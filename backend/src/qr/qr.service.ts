@@ -1,0 +1,140 @@
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { PrismaService } from '../prisma/prisma.service';
+import * as jwt from 'jsonwebtoken';
+
+export interface QrTokenPayload {
+  tableId: string;
+  tableNumber: string;
+  timestamp: number;
+}
+
+@Injectable()
+export class QrService {
+  private readonly qrSecret: string;
+  private readonly frontendUrl: string;
+
+  constructor(
+    private prisma: PrismaService,
+    private configService: ConfigService,
+  ) {
+    this.qrSecret = this.configService.get<string>('QR_TOKEN_SECRET') || 'qr-secret-key-change-this-in-production';
+    this.frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:4000';
+  }
+
+  /**
+   * Generate a new QR token for a table
+   */
+  async generateQrToken(tableId: string): Promise<{ token: string; qrUrl: string }> {
+    // Check if table exists
+    const table = await this.prisma.table.findUnique({
+      where: { id: tableId },
+    });
+
+    if (!table) {
+      throw new NotFoundException(`Table with ID ${tableId} not found`);
+    }
+
+    // Create payload
+    const payload: QrTokenPayload = {
+      tableId: table.id,
+      tableNumber: table.tableNumber,
+      timestamp: Date.now(),
+    };
+
+    // Sign the token
+    const token = jwt.sign(payload, this.qrSecret, {
+      expiresIn: '365d', // Token valid for 1 year, but can be invalidated by regenerating
+    });
+
+    // Save token to database
+    await this.prisma.table.update({
+      where: { id: tableId },
+      data: { qrToken: token },
+    });
+
+    // Generate QR URL
+    const qrUrl = `${this.frontendUrl}/menu?table=${tableId}&token=${token}`;
+
+    return { token, qrUrl };
+  }
+
+  /**
+   * Regenerate QR token for a table (invalidates old token)
+   */
+  async regenerateQrToken(tableId: string): Promise<{ token: string; qrUrl: string }> {
+    // Simply generate a new token - the old one becomes invalid because
+    // we compare against the token stored in the database
+    return this.generateQrToken(tableId);
+  }
+
+  /**
+   * Verify QR token and return table information
+   */
+  async verifyQrToken(token: string): Promise<{ valid: boolean; table?: any; error?: string }> {
+    try {
+      // Decode and verify the token
+      const decoded = jwt.verify(token, this.qrSecret) as QrTokenPayload;
+
+      // Find the table
+      const table = await this.prisma.table.findUnique({
+        where: { id: decoded.tableId },
+      });
+
+      if (!table) {
+        return { valid: false, error: 'Table not found' };
+      }
+
+      // Check if the token matches the one stored in the database
+      if (table.qrToken !== token) {
+        return { valid: false, error: 'Token has been invalidated. Please scan the new QR code.' };
+      }
+
+      // Check if table is active
+      if (table.status !== 'ACTIVE') {
+        return { valid: false, error: 'This table is currently inactive' };
+      }
+
+      return {
+        valid: true,
+        table: {
+          id: table.id,
+          tableNumber: table.tableNumber,
+          capacity: table.capacity,
+          location: table.location,
+        },
+      };
+    } catch (error) {
+      if (error instanceof jwt.TokenExpiredError) {
+        return { valid: false, error: 'QR code has expired. Please ask staff for assistance.' };
+      }
+      if (error instanceof jwt.JsonWebTokenError) {
+        return { valid: false, error: 'Invalid QR code' };
+      }
+      return { valid: false, error: 'Token verification failed' };
+    }
+  }
+
+  /**
+   * Get table with QR URL
+   */
+  async getTableWithQrUrl(tableId: string): Promise<any> {
+    const table = await this.prisma.table.findUnique({
+      where: { id: tableId },
+    });
+
+    if (!table) {
+      throw new NotFoundException(`Table with ID ${tableId} not found`);
+    }
+
+    let qrUrl = null;
+    if (table.qrToken) {
+      qrUrl = `${this.frontendUrl}/menu?table=${tableId}&token=${table.qrToken}`;
+    }
+
+    return {
+      ...table,
+      qrUrl,
+    };
+  }
+}
