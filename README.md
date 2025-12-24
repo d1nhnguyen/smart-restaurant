@@ -1,17 +1,13 @@
-# Smart Restaurant Table Management System
+# Restaurant Menu Management System
 
-A full-stack web application for managing restaurant tables with real-time status updates and CRUD operations.
+A full-stack web application for managing restaurant categories, menu items, pricing, and availability.
 
 ## Project cần file .env trong backend và frontend, hỏi người tạo đồ án để biết
 
 ## Project Structure
 
 ```
-<<<<<<< HEAD
-Source/
-=======
 Final_project/
->>>>>>> 8d1ecb68b95bfbcfc2736567e058a5b73a1f293f
 ├── backend/          # NestJS REST API
 ├── frontend/         # React web application
 ```
@@ -45,68 +41,81 @@ git clone <repository-url>
 cd Final_project
 ```
 
-### 2. Start PostgreSQL Database
-
-```bash
-docker-compose up -d
+docker-compose up -d  # Start PostgreSQL
 ```
 
-### 3. Setup Backend
-
+### 2. Backend
 ```bash
 cd backend
-npm install
-npx prisma generate
-npx prisma db push
+npm install && npx prisma db push
 npm run start:dev
 ```
 
-Backend will run on: http://localhost:3000/api
-
-### 4. Setup Frontend
-
+### 3. Frontend
 ```bash
 cd frontend
-npm install
-npm run start
+npm install && npm start
 ```
-
-Frontend will run on: http://localhost:4000
 
 ## Features
 
-- ✅ View all restaurant tables in a grid layout
-- ✅ Add new tables with validation
-- ✅ Edit existing table information
-- ✅ Toggle table status (Active/Inactive)
-- ✅ Delete tables
-- ✅ Filter by status (All/Active/Inactive)
-- ✅ Filter by location
-- ✅ Responsive admin sidebar
-- ✅ Form validation
+### 📋 Table & QR Management (Completed)
+- ✅ View/Edit restaurant tables in a grid layout
+- ✅ Automatic QR generation with secure JWT tokens
+- ✅ Real-time status tracking (Available, Occupied, etc.)
 
-## API Endpoints
+### 🍽️ Menu Management (Current Assignment)
+- **Menu Categories**: Full CRUD with name uniqueness, display ordering, and status (Active/Inactive).
+- **Menu Items**:
+  - Detailed CRUD (Price, Prep Time, Chef Recommendation).
+  - Availability status: `Available`, `Unavailable`, `Sold out`.
+  - **Soft delete** support to preserve order history.
+- **Photos Management**:
+  - Upload multiple photos per item (JPG/PNG/WebP).
+  - Set primary photos for guest menu display.
+- **Item Modifiers**:
+  - Create modifier groups (Single-select/Multi-select).
+  - Price adjustments per option (e.g., Size, Extras).
+- **Admin UI**:
+  - Advanced filtering (by name, category, status).
+  - Sorting (by price, creation time, popularity).
+  - Pagination support for large menus.
+- **Guest Menu**:
+  - Read-only consumption endpoint for QR flow.
+  - Search and category filtering.
 
-- `GET /api/tables` - Get all tables with optional filters
-- `GET /api/tables/:id` - Get single table
-- `POST /api/tables` - Create new table
-- `PUT /api/tables/:id` - Update table
-- `PATCH /api/tables/:id/status` - Toggle table status
-- `DELETE /api/tables/:id` - Delete table
-- `GET /api/tables/locations/list` - Get available locations
+## API Endpoints summary
 
-## Database Schema
+### Admin Menu API
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/admin/menu/categories` | List categories (filter/sort) |
+| POST | `/api/admin/menu/categories` | Create category |
+| GET | `/api/admin/menu/items` | List items (paging/filter/sort) |
+| POST | `/api/admin/menu/items` | Create item |
+| POST | `/api/admin/menu/items/:id/photos` | Multi-photo upload |
+| POST | `/api/admin/menu/modifier-groups` | Create modifier group |
 
-### Table Model
-- `id` - Unique identifier
-- `tableNumber` - Table number (unique)
-- `capacity` - Seating capacity (1-20)
-- `location` - Table location
-- `description` - Optional description
-- `status` - ACTIVE or INACTIVE
-- `qrToken` - Unique QR token
-- `createdAt` - Creation timestamp
-- `updatedAt` - Last update timestamp
+### Table & QR API
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/tables` | Get all tables |
+| PATCH | `/api/tables/:id/status` | Update table status |
+| POST | `/api/qr/verify` | Verify QR token |
+
+### Guest API
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/menu` | Load restaurant-scoped menu |
+
+## Database Schema Highlights
+
+- **Menu Item**: id, categoryId, name, price, prepTime, status (available/unavailable/sold_out), isChefRecommended, isDeleted.
+- **Menu Category**: id, name (unique), displayOrder, status (active/inactive).
+- **Item Photo**: id, menuItemId, url, isPrimary.
+- **Modifier Group**: id, name, selectionType (single/multiple), isRequired, minSelections, maxSelections.
+- **Modifier Option**: id, groupId, name, priceAdjustment.
+- **Table**: id, tableNumber, capacity, location, status, qrToken.
 
 ## Development
 
@@ -131,7 +140,7 @@ npx prisma studio  # Open Prisma Studio GUI
 ## Project Details
 
 - **Course**: Web Application Development (WAD)
-- **Project Type**: Final Project
+- **Assignments**: Table Management & Menu Management
 - **Year**: 2024-2025
 
 ## License
