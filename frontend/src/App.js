@@ -7,12 +7,20 @@ import MenuPage from './pages/MenuPage';
 import LoginPage from './pages/LoginPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
+import AdminItemPage from './pages/AdminItemPage';
+import AdminCategoryPage from './pages/AdminCategoryPage';
 function App() {
   return (
     <Router>
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<LoginPage />} />
+        {/* Admin Routes */}
+        <Route path="/" element={<TablesPage />} />
+        <Route path="/tables" element={<TablesPage />} />
+        <Route path="/menu" element={<AdminItemPage />} />
+        <Route path="/categories" element={<AdminCategoryPage />} />
+        {/* Public Customer Routes */}
         <Route path="/menu" element={<MenuPage />} />
 
         {/* Protected Admin Routes */}

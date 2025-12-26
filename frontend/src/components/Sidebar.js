@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../utils/auth';
+import { Link, useLocation } from 'react-router-dom';
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -10,8 +11,17 @@ const Sidebar = () => {
     e.preventDefault();
     authService.logout();
     navigate('/login');
-  };
+  };  
+  const location = useLocation(); // Lấy thông tin URL hiện tại
 
+  // Hàm kiểm tra đường dẫn để thêm class 'active'
+  // logic: nếu đường dẫn hiện tại bắt đầu bằng path của link thì active
+  const getNavLinkClass = (path) => {
+    // So sánh chính xác hoặc so sánh prefix (nếu muốn /menu/add cũng active menu)
+    return location.pathname === path || location.pathname.startsWith(path) 
+      ? 'nav-link active' 
+      : 'nav-link';
+  };
   return (
     <div className="admin-sidebar">
       <div className="sidebar-logo">
@@ -20,39 +30,46 @@ const Sidebar = () => {
       </div>
 
       <nav className="sidebar-nav">
-        <a href="/dashboard" className="nav-link">
+        <Link to="/dashboard" className={getNavLinkClass('/dashboard')}>
           <span className="nav-icon">&#128202;</span>
           Dashboard
-        </a>
-        <a href="/orders" className="nav-link">
+        </Link>
+        
+        <Link to="/orders" className={getNavLinkClass('/orders')}>
           <span className="nav-icon">&#128203;</span>
           Orders
           <span className="nav-badge">5</span>
-        </a>
-        <a href="/menu" className="nav-link">
+        </Link>
+        
+        <Link to="/menu" className={getNavLinkClass('/menu')}>
           <span className="nav-icon">&#127860;</span>
           Menu Items
-        </a>
-        <a href="/categories" className="nav-link">
+        </Link>
+        
+        <Link to="/categories" className={getNavLinkClass('/categories')}>
           <span className="nav-icon">&#128193;</span>
           Categories
-        </a>
-        <a href="/tables" className="nav-link active">
+        </Link>
+        
+        <Link to="/tables" className={getNavLinkClass('/tables')}>
           <span className="nav-icon">&#129689;</span>
           Tables
-        </a>
-        <a href="/staff" className="nav-link">
+        </Link>
+        
+        <Link to="/staff" className={getNavLinkClass('/staff')}>
           <span className="nav-icon">&#128101;</span>
           Kitchen Staff
-        </a>
-        <a href="/reports" className="nav-link">
+        </Link>
+        
+        <Link to="/reports" className={getNavLinkClass('/reports')}>
           <span className="nav-icon">&#128200;</span>
           Reports
-        </a>
-        <a href="/kds" className="nav-link">
+        </Link>
+        
+        <Link to="/kds" className={getNavLinkClass('/kds')}>
           <span className="nav-icon">&#128250;</span>
           Kitchen Display
-        </a>
+        </Link>
       </nav>
 
       <div className="sidebar-footer">
