@@ -5,8 +5,8 @@ import { ItemStatus } from '@prisma/client';
 export enum ItemSort {
   PRICE_ASC = 'price_asc',
   PRICE_DESC = 'price_desc',
-  NEWEST = 'newest',
-  OLDEST = 'oldest',
+  STATUS_ASC = 'status_asc',
+  STATUS_DESC = 'status_desc',
 }
 
 export class GetItemsFilterDto {

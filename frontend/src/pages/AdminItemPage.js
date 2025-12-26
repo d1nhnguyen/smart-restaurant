@@ -8,14 +8,14 @@ const AdminItemPage = () => {
   const [items, setItems] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   // State for filters & pagination
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [filterName, setFilterName] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
-  const [sortBy, setSortBy] = useState('newest'); // newest, price_asc, price_desc
+  const [sortBy, setSortBy] = useState('price_asc'); // price_asc, price_desc, status_asc, status_desc
 
   // State for modal
   const [showModal, setShowModal] = useState(false);
@@ -63,7 +63,7 @@ const AdminItemPage = () => {
   useEffect(() => {
     fetchItems();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, filterCategory, filterStatus, sortBy]); 
+  }, [page, filterCategory, filterStatus, sortBy]);
   // Note: filterName thường nên debounce, ở đây ta sẽ search khi bấm Enter hoặc để đơn giản thì search khi gõ (cần debounce nếu data lớn)
 
   const handleSearch = (e) => {
@@ -95,13 +95,57 @@ const AdminItemPage = () => {
     }
   };
 
-  const handleSaveItem = async (formData) => {
+  const handleSaveItem = async (formData, selectedModifierGroups) => {
     try {
+      // Handle refresh-only mode (when PhotoManager updates)
+      if (formData.refreshOnly) {
+        const res = await axios.get(`/api/admin/menu/items/${editingItem.id}`);
+        setEditingItem(res.data);
+        return; // Don't close modal or refresh list
+      }
+
       if (editingItem) {
         await axios.patch(`/api/admin/menu/items/${editingItem.id}`, formData);
+
+        // Attach modifier groups
+        if (selectedModifierGroups && selectedModifierGroups.length > 0) {
+          console.log('Sending modifier groups for update:', selectedModifierGroups);
+          await axios.post(`/api/admin/menu/items/${editingItem.id}/modifier-groups`, {
+            groupIds: selectedModifierGroups
+          });
+        }
+
         alert('Item updated successfully');
       } else {
-        await axios.post('/api/admin/menu/items', formData);
+        const { initialPhotos, primaryPhotoIndex, ...itemData } = formData;
+        const res = await axios.post('/api/admin/menu/items', itemData);
+
+        // Attach modifier groups to new item
+        if (selectedModifierGroups && selectedModifierGroups.length > 0) {
+          console.log('Sending modifier groups for new item:', selectedModifierGroups);
+          await axios.post(`/api/admin/menu/items/${res.data.id}/modifier-groups`, {
+            groupIds: selectedModifierGroups
+          });
+        }
+
+        // If there are photos to upload for the new item
+        if (initialPhotos && initialPhotos.length > 0) {
+          const photoFormData = new FormData();
+          initialPhotos.forEach(file => {
+            photoFormData.append('files', file);
+          });
+
+          const uploadRes = await axios.post(`/api/admin/menu/items/${res.data.id}/photos`, photoFormData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          });
+
+          // Set primary if selected
+          if (primaryPhotoIndex !== undefined && primaryPhotoIndex >= 0) {
+            const photoId = uploadRes.data.photos[primaryPhotoIndex].id;
+            await axios.patch(`/api/admin/menu/items/${res.data.id}/photos/${photoId}/primary`);
+          }
+        }
+
         alert('Item created successfully');
       }
       setShowModal(false);
@@ -115,13 +159,17 @@ const AdminItemPage = () => {
   // Helper render status badge
   const renderStatus = (status) => {
     let className = 'status-badge';
-    if (status === 'available') className += ' active'; // active ~ green
-    if (status === 'sold_out') className += ' inactive'; // inactive ~ red/pink
-    if (status === 'unavailable') className += ' preparing'; // preparing ~ yellow
+    if (status === 'AVAILABLE') className += ' active'; // active ~ green
+    if (status === 'SOLDOUT') className += ' inactive'; // inactive ~ red/pink
+    if (status === 'UNAVAILABLE') className += ' preparing'; // preparing ~ yellow
+
+    // Format display text
+    let displayText = status;
+    if (status === 'SOLDOUT') displayText = 'SOLD OUT';
 
     return (
       <span className={className}>
-        {status.replace('_', ' ').toUpperCase()}
+        {displayText}
       </span>
     );
   };
@@ -130,7 +178,7 @@ const AdminItemPage = () => {
     <div className="admin-layout">
       <Sidebar />
       <div className="admin-main">
-        
+
         {/* Header */}
         <div className="admin-header">
           <div>
@@ -147,15 +195,15 @@ const AdminItemPage = () => {
           <form onSubmit={handleSearch} className="filters-bar" style={{ margin: 0 }}>
             <div className="search-box">
               <span>🔍</span>
-              <input 
-                type="text" 
-                placeholder="Search items..." 
+              <input
+                type="text"
+                placeholder="Search items..."
                 value={filterName}
                 onChange={(e) => setFilterName(e.target.value)}
               />
             </div>
-            
-            <select 
+
+            <select
               className="filter-select"
               value={filterCategory}
               onChange={(e) => { setFilterCategory(e.target.value); setPage(1); }}
@@ -166,26 +214,26 @@ const AdminItemPage = () => {
               ))}
             </select>
 
-            <select 
+            <select
               className="filter-select"
               value={filterStatus}
               onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
             >
               <option value="">All Status</option>
-              <option value="available">Available</option>
-              <option value="sold_out">Sold Out</option>
-              <option value="unavailable">Unavailable</option>
+              <option value="AVAILABLE">Available</option>
+              <option value="SOLDOUT">Sold Out</option>
+              <option value="UNAVAILABLE">Unavailable</option>
             </select>
 
-            <select 
+            <select
               className="filter-select"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
             >
-              <option value="newest">Newest First</option>
-              <option value="oldest">Oldest First</option>
               <option value="price_asc">Price: Low to High</option>
               <option value="price_desc">Price: High to Low</option>
+              <option value="status_asc">Status: A-Z</option>
+              <option value="status_desc">Status: Z-A</option>
             </select>
 
             <button type="submit" className="btn-secondary" style={{ padding: '8px 16px' }}>
@@ -203,6 +251,7 @@ const AdminItemPage = () => {
               <table className="data-table">
                 <thead>
                   <tr>
+                    <th style={{ width: '80px' }}>Image</th>
                     <th>Name</th>
                     <th>Category</th>
                     <th>Price</th>
@@ -214,53 +263,86 @@ const AdminItemPage = () => {
                 <tbody>
                   {items.length === 0 ? (
                     <tr>
-                      <td colSpan="6" style={{ textAlign: 'center', padding: '30px' }}>
+                      <td colSpan="7" style={{ textAlign: 'center', padding: '30px' }}>
                         No items found.
                       </td>
                     </tr>
                   ) : (
-                    items.map(item => (
-                      <tr key={item.id}>
-                        <td>
-                          <div style={{ fontWeight: '600' }}>{item.name}</div>
-                          {item.isChefRecommended && (
-                            <span style={{ fontSize: '12px', color: '#e67e22' }}>
-                              ⭐ Chef Recommended
-                            </span>
-                          )}
-                        </td>
-                        <td>{item.category?.name || 'Uncategorized'}</td>
-                        <td style={{ fontWeight: 'bold', color: '#2c3e50' }}>
-                          ${Number(item.price).toFixed(2)}
-                        </td>
-                        <td>{renderStatus(item.status)}</td>
-                        <td>{item.prepTimeMinutes} min</td>
-                        <td>
-                          <button 
-                            className="action-btn" 
-                            title="Edit"
-                            onClick={() => handleEditItem(item)}
-                          >
-                            ✎
-                          </button>
-                          <button 
-                            className="action-btn" 
-                            title="Delete"
-                            style={{ color: '#e74c3c' }}
-                            onClick={() => handleDeleteItem(item.id)}
-                          >
-                            🗑
-                          </button>
-                        </td>
-                      </tr>
-                    ))
+                    items.map(item => {
+                      const primaryPhoto = item.photos?.find(p => p.isPrimary) || item.photos?.[0];
+
+                      return (
+                        <tr key={item.id}>
+                          <td>
+                            {primaryPhoto ? (
+                              <img
+                                src={primaryPhoto.url}
+                                alt={item.name}
+                                style={{
+                                  width: '60px',
+                                  height: '60px',
+                                  objectFit: 'cover',
+                                  borderRadius: '8px',
+                                  border: '1px solid #e0e0e0'
+                                }}
+                              />
+                            ) : (
+                              <div style={{
+                                width: '60px',
+                                height: '60px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                backgroundColor: '#f5f5f5',
+                                borderRadius: '8px',
+                                fontSize: '28px',
+                                border: '1px solid #e0e0e0'
+                              }}>
+                                🍽️
+                              </div>
+                            )}
+                          </td>
+                          <td>
+                            <div style={{ fontWeight: '600' }}>{item.name}</div>
+                            {item.isChefRecommended && (
+                              <span style={{ fontSize: '12px', color: '#e67e22' }}>
+                                ⭐ Chef Recommended
+                              </span>
+                            )}
+                          </td>
+                          <td>{item.category?.name || 'Uncategorized'}</td>
+                          <td style={{ fontWeight: 'bold', color: '#2c3e50' }}>
+                            ${Number(item.price).toFixed(2)}
+                          </td>
+                          <td>{renderStatus(item.status)}</td>
+                          <td>{item.prepTimeMinutes} min</td>
+                          <td>
+                            <button
+                              className="action-btn"
+                              title="Edit"
+                              onClick={() => handleEditItem(item)}
+                            >
+                              ✎
+                            </button>
+                            <button
+                              className="action-btn"
+                              title="Delete"
+                              style={{ color: '#e74c3c' }}
+                              onClick={() => handleDeleteItem(item.id)}
+                            >
+                              🗑
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
 
               {/* Pagination */}
               <div className="pagination">
-                <button 
+                <button
                   className="page-btn"
                   disabled={page <= 1}
                   onClick={() => setPage(p => p - 1)}
@@ -270,7 +352,7 @@ const AdminItemPage = () => {
                 <span className="page-info">
                   Page {page} of {totalPages || 1}
                 </span>
-                <button 
+                <button
                   className="page-btn"
                   disabled={page >= totalPages}
                   onClick={() => setPage(p => p + 1)}

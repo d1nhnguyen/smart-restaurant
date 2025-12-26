@@ -1,0 +1,264 @@
+.order-item-modal {
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.order-item-header {
+  position: relative;
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.order-item-img {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-bottom: 15px;
+}
+
+.order-item-placeholder {
+  width: 100%;
+  height: 250px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 80px;
+  margin-bottom: 15px;
+}
+
+.order-item-info h2 {
+  margin: 0 0 10px 0;
+  font-size: 24px;
+  color: #2d3748;
+}
+
+.order-item-desc {
+  color: #718096;
+  margin: 0 0 15px 0;
+  line-height: 1.6;
+}
+
+.order-item-base-price {
+  font-size: 18px;
+  font-weight: 600;
+  color: #38a169;
+}
+
+/* Modifier Groups */
+.modifier-groups {
+  padding: 20px;
+}
+
+.modifier-group-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 16px;
+}
+
+.modifier-group-item {
+  display: grid;
+  grid-template-columns: 20px 1fr; /* checkbox cố định */
+  align-items: center;
+  column-gap: 8px;
+}
+
+.modifier-group-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+}
+
+.modifier-group-item span {
+  white-space: nowrap;        /* không xuống dòng */
+  overflow: hidden;
+  text-overflow: ellipsis;    /* nếu tên dài */
+}
+
+.modifier-groups h3 {
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  color: #2d3748;
+}
+
+.modifier-group {
+  margin-bottom: 25px;
+  padding: 15px;
+  background: #f7fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.modifier-group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.modifier-group-name {
+  font-weight: 600;
+  color: #2d3748;
+  font-size: 16px;
+}
+
+.required-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  background: #fc8181;
+  color: white;
+  font-size: 11px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.modifier-group-type {
+  font-size: 13px;
+  color: #718096;
+}
+
+.modifier-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modifier-option {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.modifier-option:hover {
+  border-color: #667eea;
+  background: #f7fafc;
+}
+
+.modifier-option input[type="radio"],
+.modifier-option input[type="checkbox"] {
+  margin-right: 12px;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.modifier-option-name {
+  flex: 1;
+  font-weight: 500;
+  color: #2d3748;
+}
+
+.modifier-option-price {
+  font-weight: 600;
+  color: #38a169;
+  font-size: 14px;
+}
+
+/* Special Instructions */
+.special-instructions {
+  padding: 0 20px 20px;
+}
+
+.special-instructions label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.special-instructions textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.special-instructions textarea:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+/* Footer */
+.order-item-footer {
+  display: flex;
+  gap: 15px;
+  padding: 20px;
+  border-top: 1px solid #eee;
+  background: #f7fafc;
+  align-items: center;
+}
+
+.quantity-selector {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 8px 12px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.quantity-selector button {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #667eea;
+  color: white;
+  border-radius: 6px;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.quantity-selector button:hover:not(:disabled) {
+  background: #5568d3;
+}
+
+.quantity-selector button:disabled {
+  background: #cbd5e0;
+  cursor: not-allowed;
+}
+
+.quantity-selector span {
+  font-size: 18px;
+  font-weight: 600;
+  color: #2d3748;
+  min-width: 30px;
+  text-align: center;
+}
+
+.add-to-order-btn {
+  flex: 1;
+  padding: 14px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.add-to-order-btn:hover {
+  transform: translateY(-2px);
+}
+
+.add-to-order-btn:active {
+  transform: translateY(0);
+}

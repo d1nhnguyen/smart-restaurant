@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import PhotoManager from './PhotoManager';
 
 const ItemModal = ({ item, categories, onSave, onClose }) => {
   const [formData, setFormData] = useState({
@@ -7,13 +9,27 @@ const ItemModal = ({ item, categories, onSave, onClose }) => {
     price: '',
     description: '',
     prepTimeMinutes: 0,
-    status: 'available', // available, unavailable, sold_out
+    status: 'AVAILABLE', // available, unavailable, sold_out
     isChefRecommended: false,
   });
 
   const [errors, setErrors] = useState({});
+  const [modifierGroups, setModifierGroups] = useState([]);
+  const [selectedModifierGroups, setSelectedModifierGroups] = useState([]);
 
   useEffect(() => {
+    // Fetch modifier groups
+    const fetchModifierGroups = async () => {
+      try {
+        const res = await axios.get('/api/admin/menu/modifier-groups');
+        setModifierGroups(res.data);
+      } catch (error) {
+        console.error('Error fetching modifier groups:', error);
+      }
+    };
+
+    fetchModifierGroups();
+
     if (item) {
       setFormData({
         name: item.name,
@@ -24,6 +40,11 @@ const ItemModal = ({ item, categories, onSave, onClose }) => {
         status: item.status,
         isChefRecommended: item.isChefRecommended,
       });
+
+      // Set selected modifier groups
+      if (item.modifierGroups) {
+        setSelectedModifierGroups(item.modifierGroups.map(mg => mg.group.id));
+      }
     } else {
       // Set default category if available
       if (categories.length > 0) {
@@ -49,6 +70,15 @@ const ItemModal = ({ item, categories, onSave, onClose }) => {
     }
   };
 
+  const toggleModifierGroup = (groupId) => {
+    setSelectedModifierGroups(prev => {
+      if (prev.includes(groupId)) {
+        return prev.filter(id => id !== groupId);
+      } else {
+        return [...prev, groupId];
+      }
+    });
+  };
   const validate = () => {
     const newErrors = {};
 
@@ -64,7 +94,7 @@ const ItemModal = ({ item, categories, onSave, onClose }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validate()) {
-      onSave(formData);
+      onSave(formData, selectedModifierGroups);
     }
   };
 
@@ -174,8 +204,39 @@ const ItemModal = ({ item, categories, onSave, onClose }) => {
             </label>
           </div>
 
+          <div className="form-group">
+            <label>Modifier Groups</label>
+
+            <div className="modifier-group-grid">
+              {modifierGroups.map((group) => (
+                <label key={group.id} className="modifier-group-item">
+                  <input
+                    type="checkbox"
+                    checked={selectedModifierGroups.includes(group.id)}
+                    onChange={() => toggleModifierGroup(group.id)}
+                  />
+                  <span>{group.name}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <PhotoManager
+            itemId={item?.id}
+            photos={item?.photos}
+            onUpdate={() => onSave({ ...formData, refreshOnly: true }, selectedModifierGroups)}
+            onLocalChange={(localList) => {
+              setFormData(prev => ({
+                ...prev,
+                initialPhotos: localList.map(p => p.file),
+                primaryPhotoIndex: localList.findIndex(p => p.isPrimary)
+              }));
+            }}
+          />
+
+
           <div className="modal-actions">
-            <button type="button" className="btn-secondary" onClick={onClose}>
+            <button type="button" className="btn-primary" onClick={onClose}>
               Cancel
             </button>
             <button type="submit" className="btn-primary">

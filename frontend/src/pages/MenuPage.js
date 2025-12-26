@@ -1,20 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import OrderItemModal from '../components/OrderItemModal';
+import './MenuPage.css';
 
 const MenuPage = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [menuData, setMenuData] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [orderItems, setOrderItems] = useState([]);
 
   const token = searchParams.get('token');
 
   useEffect(() => {
-    const verifyAndFetchMenu = async () => {
+    const fetchMenu = async () => {
+      // For demo purposes if no token, you might want to show a general menu or an error
       if (!token) {
-        setError('Invalid QR code. No token provided.');
+        setError('Please scan a QR code to view the menu.');
         setLoading(false);
         return;
       }
@@ -22,153 +29,184 @@ const MenuPage = () => {
       try {
         const response = await axios.get(`/api/menu?token=${token}`);
         setMenuData(response.data);
-        setLoading(false);
       } catch (err) {
-        console.error('Error verifying token:', err);
-        setError(
-          err.response?.data?.message ||
-          'Invalid or expired QR code. Please scan the QR code again or ask staff for assistance.'
-        );
+        setError(err.response?.data?.message || 'Unauthorized access');
+      } finally {
         setLoading(false);
       }
     };
 
-    verifyAndFetchMenu();
+    fetchMenu();
   }, [token]);
 
   if (loading) {
     return (
-      <div className="loading-page">
-        <div className="loading-spinner"></div>
+      <div className="loading-container">
+        <div className="spinner"></div>
+        <p style={{ marginTop: '15px', color: '#666' }}>Creating your menu...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="error-page">
-        <div className="error-card">
-          <div className="error-icon">⚠️</div>
-          <h2>QR Code Error</h2>
-          <p>{error}</p>
-        </div>
+      <div className="loading-container">
+        <div style={{ fontSize: '50px' }}>🍽️</div>
+        <h2 style={{ margin: '20px 0 10px' }}>Welcome!</h2>
+        <p style={{ color: '#666', padding: '0 40px', textAlign: 'center' }}>
+          {error}
+        </p>
+        <button
+          onClick={() => navigate('/login')}
+          style={{
+            marginTop: '20px',
+            padding: '12px 30px',
+            fontSize: '16px',
+            fontWeight: '600',
+            color: '#fff',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+            transition: 'all 0.3s ease'
+          }}
+          onMouseOver={(e) => {
+            e.target.style.transform = 'translateY(-2px)';
+            e.target.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)';
+          }}
+          onMouseOut={(e) => {
+            e.target.style.transform = 'translateY(0)';
+            e.target.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+          }}
+        >
+          Login
+        </button>
       </div>
     );
   }
 
-  // Get unique categories
-  const categories = ['All', ...new Set(menuData.menuItems.map(item => item.category))];
+  const { table, categories, menuItems } = menuData;
 
-  // Filter menu items by category
-  const filteredItems = selectedCategory === 'All'
-    ? menuData.menuItems
-    : menuData.menuItems.filter(item => item.category === selectedCategory);
+  // Create a set of active category IDs for quick lookup (defense-in-depth)
+  const activeCategoryIds = new Set(
+    categories.filter(cat => cat.status === 'ACTIVE').map(c => c.id)
+  );
 
-  // Get food emoji based on category
-  const getFoodEmoji = (category, name) => {
-    const lowerName = name.toLowerCase();
-    if (lowerName.includes('salmon') || lowerName.includes('fish')) return '🐟';
-    if (lowerName.includes('salad')) return '🥗';
-    if (lowerName.includes('steak') || lowerName.includes('beef')) return '🥩';
-    if (lowerName.includes('pasta')) return '🍝';
-    if (lowerName.includes('soup')) return '🍲';
-    if (lowerName.includes('drink') || lowerName.includes('coffee')) return '☕';
-    if (lowerName.includes('dessert') || lowerName.includes('cake')) return '🍰';
-    return '🍽️';
+  const filteredItems = menuItems.filter(item => {
+    const belongsToActiveCategory = activeCategoryIds.has(item.categoryId);
+    const matchesCategory = selectedCategory === 'All' || item.categoryId === selectedCategory;
+    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
+    return belongsToActiveCategory && matchesCategory && matchesSearch;
+  });
+
+
+
+  const handleAddToOrder = (orderData) => {
+    setOrderItems(prev => [...prev, { ...orderData, id: Date.now() }]);
+    setSelectedItem(null);
+    alert('Item added to order!');
+  };
+
+  const handleItemClick = (item) => {
+    console.log('Selected item:', item);
+    console.log('Modifier groups:', item.modifierGroups);
+    setSelectedItem(item);
   };
 
   return (
     <div className="menu-page">
-      {/* Header */}
-      <div className="menu-header">
-        <h1>Smart Restaurant</h1>
-        <div className="table-info-badge">
-          📍 {menuData.table.tableNumber} • {menuData.table.capacity} seats
-          {menuData.table.location && ` • ${menuData.table.location}`}
+      {/* 1. Brand Banner */}
+      <header className="menu-header-banner">
+        <h1>{table.restaurantName || 'Smart Restaurant'}</h1>
+        <div className="table-info-pill">
+          <span>Table {table.tableNumber}</span>
+          <span style={{ opacity: 0.5 }}>|</span>
+          <span>{table.location || 'Main Hall'}</span>
+        </div>
+      </header>
+
+      {/* 2. Sticky Search & Filter */}
+      <div className="search-sticky">
+        <div className="search-input-wrapper">
+          <span>🔍</span>
+          <input
+            type="text"
+            placeholder="Search favorites..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
       </div>
 
-      {/* Category Tabs */}
-      <div className="category-tabs" style={{
-        display: 'flex',
-        gap: '8px',
-        padding: '16px 20px',
-        overflowX: 'auto',
-        background: 'white',
-        borderBottom: '1px solid #e0e0e0'
-      }}>
-        {categories.map(category => (
+      {/* 3. Category Scrolling Tabs */}
+      <nav className="category-nav">
+        <button
+          className={`category-tab ${selectedCategory === 'All' ? 'active' : ''}`}
+          onClick={() => setSelectedCategory('All')}
+        >
+          All
+        </button>
+        {categories.map(cat => (
           <button
-            key={category}
-            className={`category-tab ${selectedCategory === category ? 'active' : ''}`}
-            onClick={() => setSelectedCategory(category)}
-            style={{
-              padding: '8px 16px',
-              border: 'none',
-              borderRadius: '20px',
-              background: selectedCategory === category ? '#e74c3c' : '#f5f5f5',
-              color: selectedCategory === category ? 'white' : '#666',
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-              fontWeight: selectedCategory === category ? '600' : '400',
-              transition: 'all 0.3s'
-            }}
+            key={cat.id}
+            className={`category-tab ${selectedCategory === cat.id ? 'active' : ''}`}
+            onClick={() => setSelectedCategory(cat.id)}
           >
-            {category}
+            {cat.name}
           </button>
         ))}
-      </div>
+      </nav>
 
-      {/* Menu Items */}
-      <div className="menu-content">
-        {filteredItems.map(item => (
-          <div
-            key={item.id}
-            className={`menu-item-card ${!item.available ? 'unavailable' : ''}`}
-            style={{ display: 'flex' }}
-          >
-            <div className="menu-item-image">
-              {getFoodEmoji(item.category, item.name)}
-            </div>
-            <div className="menu-item-content">
-              <div className="menu-item-name">{item.name}</div>
-              <div className="menu-item-description">{item.description}</div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div className="menu-item-price">${item.price.toFixed(2)}</div>
-                {!item.available ? (
-                  <span className="menu-item-unavailable">Sold Out</span>
-                ) : (
-                  <button
-                    className="btn-primary"
-                    style={{ padding: '8px 16px', fontSize: '14px' }}
-                  >
-                    + Add
-                  </button>
-                )}
+      {/* 4. Menu Grid */}
+      <main className="menu-grid">
+        {filteredItems.map(item => {
+          const primaryPhoto = item.photos?.find(p => p.isPrimary) || item.photos?.[0];
+
+          return (
+            <div key={item.id} className="item-card" onClick={() => handleItemClick(item)}>
+              {primaryPhoto ? (
+                <img src={primaryPhoto.url} alt={item.name} className="item-img" />
+              ) : (
+                <div className="item-placeholder">🍕</div>
+              )}
+
+              <div className="item-details">
+                <div>
+                  <div className="item-name">{item.name}</div>
+                  <p className="item-desc">{item.description}</p>
+                </div>
+
+                <div className="item-footer">
+                  <span className="item-price">${Number(item.price).toFixed(2)}</span>
+                  <button className="add-btn" onClick={(e) => { e.stopPropagation(); handleItemClick(item); }}>+</button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {filteredItems.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
-            No items found in this category.
+          <div style={{ textAlign: 'center', gridColumn: '1/-1', padding: '60px 20px', color: '#999' }}>
+            <p style={{ fontSize: '40px' }}>🔍</p>
+            <p>No items found. Try another search!</p>
           </div>
         )}
-      </div>
+      </main>
 
-      {/* Welcome Message */}
-      <div style={{
-        background: '#e8f8f5',
-        padding: '16px 20px',
-        margin: '20px',
-        borderRadius: '12px',
-        textAlign: 'center'
-      }}>
-        <p style={{ margin: 0, color: '#27ae60' }}>
-          {menuData.message}
-        </p>
-      </div>
+      {/* Footer Info */}
+      <footer style={{ padding: '40px 20px', textAlign: 'center', opacity: 0.5, fontSize: '12px' }}>
+        Smart Restaurant System • Digital Menu
+      </footer>
+
+      {/* Order Item Modal */}
+      {selectedItem && (
+        <OrderItemModal
+          item={selectedItem}
+          onClose={() => setSelectedItem(null)}
+          onAddToOrder={handleAddToOrder}
+        />
+      )}
     </div>
   );
 };

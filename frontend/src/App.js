@@ -16,30 +16,14 @@ function App() {
         {/* Public Routes */}
         <Route path="/login" element={<LoginPage />} />
         {/* Admin Routes */}
-        <Route path="/" element={<TablesPage />} />
-        <Route path="/tables" element={<TablesPage />} />
-        <Route path="/menu" element={<AdminItemPage />} />
-        <Route path="/categories" element={<AdminCategoryPage />} />
+        <Route path="/admin/tables" element={<TablesPage />} />
+        <Route path="/admin/items" element={<AdminItemPage />} />
+        <Route path="/admin/categories" element={<AdminCategoryPage />} />
+
         {/* Public Customer Routes */}
         <Route path="/menu" element={<MenuPage />} />
+        <Route path="/" element={<MenuPage />} /> {/* Default to menu if no path */}
 
-        {/* Protected Admin Routes */}
-        <Route 
-          path="/" 
-          element={
-            <ProtectedRoute>
-              <TablesPage />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/tables" 
-          element={
-            <ProtectedRoute>
-              <TablesPage />
-            </ProtectedRoute>
-          } 
-        />
       </Routes>
     </Router>
   );

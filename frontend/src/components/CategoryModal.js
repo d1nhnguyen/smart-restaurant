@@ -38,7 +38,7 @@ const CategoryModal = ({ category, onSave, onClose }) => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = 'Category name is required';
     if (formData.displayOrder < 0) newErrors.displayOrder = 'Order cannot be negative';
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -113,7 +113,7 @@ const CategoryModal = ({ category, onSave, onClose }) => {
           </div>
 
           <div className="modal-actions">
-            <button type="button" className="btn-secondary" onClick={onClose}>
+            <button type="button" className="btn-primary" onClick={onClose}>
               Cancel
             </button>
             <button type="submit" className="btn-primary">

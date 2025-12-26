@@ -26,7 +26,7 @@ const TablesPage = () => {
       setLoading(true);
       let url = '/api/tables';
       const params = [];
-      
+
       if (filterStatus !== 'ALL') {
         params.push(`status=${filterStatus}`);
       }
@@ -94,10 +94,10 @@ const TablesPage = () => {
   const handleToggleStatus = async (table) => {
     const newStatus = table.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
     const action = newStatus === 'INACTIVE' ? 'deactivate' : 'reactivate';
-    
+
     if (!window.confirm(`Are you sure you want to ${action} table ${table.tableNumber}?${newStatus === 'INACTIVE' ? '\n\nDeactivating will prevent new orders from being placed at this table.' : ''}`))
       return;
-    
+
     try {
       await axios.patch(`/api/tables/${table.id}/status`, { status: newStatus });
       fetchTables();
@@ -195,27 +195,69 @@ const TablesPage = () => {
     }, 100);
   };
 
-  // Hàm gọi API backend để tải PDF
-  const handleDownloadPdf = (table) => {
-    window.open(`http://localhost:3000/api/tables/${table.id}/qr/download`, '_blank');
+  // Hàm gọi API backend để tải PDF với authentication token
+  const handleDownloadPdf = async (table) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`/api/tables/${table.id}/qr/download`, {
+        responseType: 'blob',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      // Create blob URL and download
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Table-${table.tableNumber}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      alert('Failed to download PDF');
+    }
   };
 
-  // Hàm gọi API backend để tải ZIP
-  const handleDownloadAll = () => {
-    window.open(`http://localhost:3000/api/tables/qr/download-all`, '_blank');
+  // Hàm gọi API backend để tải ZIP với authentication token
+  const handleDownloadAll = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/api/tables/qr/download-all', {
+        responseType: 'blob',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      // Create blob URL and download
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'all-qr-codes.zip');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading ZIP:', error);
+      alert('Failed to download ZIP file');
+    }
   };
-  
+
   // Hàm bulk regenerate tất cả QR codes
   const handleBulkRegenerateQR = async () => {
     const activeTablesCount = tables.filter(t => t.status === 'ACTIVE').length;
-    
+
     if (!window.confirm(
       `⚠️ BULK REGENERATE QR CODES\n\n` +
       `This will regenerate QR codes for ${activeTablesCount} active table(s).\n\n` +
       `All old QR codes will be INVALIDATED and customers with old codes won't be able to access the menu.\n\n` +
       `Are you sure you want to continue?`
     )) return;
-    
+
     try {
       const response = await axios.post('/api/tables/qr/regenerate-all');
       fetchTables();
@@ -237,25 +279,25 @@ const TablesPage = () => {
             <h1 className="page-title">Table Management</h1>
             <p className="page-subtitle">Manage tables and view table status</p>
           </div>
-          
+
           {/* Action buttons */}
           <div style={{ display: 'flex', gap: '10px' }}>
-            <button 
-              className="btn-primary" 
+            <button
+              className="btn-primary"
               onClick={handleBulkRegenerateQR}
               title="Regenerate all QR Codes"
             >
               🔄 Regenerate All QR
             </button>
-            <button 
-              className="btn-primary" 
+            <button
+              className="btn-primary"
               onClick={handleDownloadAll}
               title="Download all QR Codes as ZIP"
             >
               📦 Download All QR
             </button>
-            <button className="btn-primary" 
-            onClick={handleAddTable}>
+            <button className="btn-primary"
+              onClick={handleAddTable}>
               + Add Table
             </button>
           </div>
@@ -297,7 +339,7 @@ const TablesPage = () => {
           <div className="table-header">
             <h3>All Tables</h3>
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-              <select 
+              <select
                 className="filter-select"
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
@@ -306,8 +348,8 @@ const TablesPage = () => {
                 <option value="ACTIVE">Active</option>
                 <option value="INACTIVE">Inactive</option>
               </select>
-              
-              <select 
+
+              <select
                 className="filter-select"
                 value={filterLocation}
                 onChange={(e) => setFilterLocation(e.target.value)}
@@ -317,8 +359,8 @@ const TablesPage = () => {
                   <option key={loc} value={loc}>{loc}</option>
                 ))}
               </select>
-              
-              <select 
+
+              <select
                 className="filter-select"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}

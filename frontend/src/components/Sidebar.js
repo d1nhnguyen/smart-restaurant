@@ -30,43 +30,43 @@ const Sidebar = () => {
       </div>
 
       <nav className="sidebar-nav">
-        <Link to="/dashboard" className={getNavLinkClass('/dashboard')}>
+        <Link to="/admin/dashboard" className={getNavLinkClass('/admin/dashboard')}>
           <span className="nav-icon">&#128202;</span>
           Dashboard
         </Link>
         
-        <Link to="/orders" className={getNavLinkClass('/orders')}>
+        <Link to="/admin/orders" className={getNavLinkClass('/admin/orders')}>
           <span className="nav-icon">&#128203;</span>
           Orders
           <span className="nav-badge">5</span>
         </Link>
         
-        <Link to="/menu" className={getNavLinkClass('/menu')}>
+        <Link to="/admin/items" className={getNavLinkClass('/admin/items')}>
           <span className="nav-icon">&#127860;</span>
           Menu Items
         </Link>
         
-        <Link to="/categories" className={getNavLinkClass('/categories')}>
+        <Link to="/admin/categories" className={getNavLinkClass('/admin/categories')}>
           <span className="nav-icon">&#128193;</span>
           Categories
         </Link>
         
-        <Link to="/tables" className={getNavLinkClass('/tables')}>
+        <Link to="/admin/tables" className={getNavLinkClass('/admin/tables')}>
           <span className="nav-icon">&#129689;</span>
           Tables
         </Link>
         
-        <Link to="/staff" className={getNavLinkClass('/staff')}>
+        <Link to="/admin/staff" className={getNavLinkClass('/admin/staff')}>
           <span className="nav-icon">&#128101;</span>
           Kitchen Staff
         </Link>
         
-        <Link to="/reports" className={getNavLinkClass('/reports')}>
+        <Link to="/admin/reports" className={getNavLinkClass('/admin/reports')}>
           <span className="nav-icon">&#128200;</span>
           Reports
         </Link>
         
-        <Link to="/kds" className={getNavLinkClass('/kds')}>
+        <Link to="/admin/kds" className={getNavLinkClass('/admin/kds')}>
           <span className="nav-icon">&#128250;</span>
           Kitchen Display
         </Link>

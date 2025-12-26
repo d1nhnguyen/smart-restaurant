@@ -102,6 +102,8 @@ export class QrService {
           tableNumber: table.tableNumber,
           capacity: table.capacity,
           location: table.location,
+          restaurantId: '123e4567-e89b-12d3-a456-426614174000', // Default restaurant ID for table context
+          restaurantName: 'Smart Restaurant',
         },
       };
     } catch (error) {

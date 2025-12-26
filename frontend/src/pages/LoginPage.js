@@ -40,8 +40,8 @@ const LoginPage = () => {
       localStorage.setItem('token', data.access_token);
       localStorage.setItem('user', JSON.stringify(data.user));
 
-      // Redirect to tables page
-      navigate('/tables');
+      // Redirect to admin tables page
+      navigate('/admin/tables');
     } catch (err) {
       setError(err.message || 'An error occurred');
     } finally {

@@ -113,11 +113,11 @@ async function main() {
   // Size modifier group
   const sizeGroup = await prisma.modifierGroup.upsert({
     where: {
-      id: '00000000-0000-0000-0000-000000000001',
+      id: '123e4567-0000-4000-a000-000000000001',
     },
     update: {},
     create: {
-      id: '00000000-0000-0000-0000-000000000001',
+      id: '123e4567-0000-4000-a000-000000000001',
       restaurantId: RESTAURANT_ID,
       name: 'Size',
       selectionType: 'SINGLE',
@@ -143,11 +143,11 @@ async function main() {
   // Extras modifier group
   const extrasGroup = await prisma.modifierGroup.upsert({
     where: {
-      id: '00000000-0000-0000-0000-000000000002',
+      id: '123e4567-0000-4000-a000-000000000002',
     },
     update: {},
     create: {
-      id: '00000000-0000-0000-0000-000000000002',
+      id: '123e4567-0000-4000-a000-000000000002',
       restaurantId: RESTAURANT_ID,
       name: 'Extras',
       selectionType: 'MULTIPLE',
@@ -174,11 +174,11 @@ async function main() {
   // Spice Level modifier group
   const spiceGroup = await prisma.modifierGroup.upsert({
     where: {
-      id: '00000000-0000-0000-0000-000000000003',
+      id: '123e4567-0000-4000-a000-000000000003',
     },
     update: {},
     create: {
-      id: '00000000-0000-0000-0000-000000000003',
+      id: '123e4567-0000-4000-a000-000000000003',
       restaurantId: RESTAURANT_ID,
       name: 'Spice Level',
       selectionType: 'SINGLE',
@@ -201,6 +201,56 @@ async function main() {
   });
 
   console.log(`✅ Created modifier group "Spice Level" with 4 options`);
+
+  // Attach modifiers to menu items
+  console.log('🔗 Attaching modifiers to menu items...');
+  
+  const allItems = await prisma.menuItem.findMany({
+    where: { restaurantId: RESTAURANT_ID },
+  });
+
+  // Attach Size and Extras to all Main Dishes and Appetizers
+  const mainAndAppItems = allItems.filter(item => 
+    item.name.includes('Main Dishes') || item.name.includes('Appetizers')
+  );
+
+  for (const item of mainAndAppItems) {
+    await prisma.menuItemModifierGroup.createMany({
+      data: [
+        { menuItemId: item.id, groupId: sizeGroup.id },
+        { menuItemId: item.id, groupId: extrasGroup.id },
+      ],
+      skipDuplicates: true,
+    });
+  }
+
+  // Attach Spice Level to Chef Specials
+  const chefSpecialItems = allItems.filter(item => item.name.includes('Chef Specials'));
+  
+  for (const item of chefSpecialItems) {
+    await prisma.menuItemModifierGroup.createMany({
+      data: [
+        { menuItemId: item.id, groupId: sizeGroup.id },
+        { menuItemId: item.id, groupId: spiceGroup.id },
+      ],
+      skipDuplicates: true,
+    });
+  }
+
+  // Attach all modifiers to first 3 items for demo
+  const demoItems = allItems.slice(0, 3);
+  for (const item of demoItems) {
+    await prisma.menuItemModifierGroup.createMany({
+      data: [
+        { menuItemId: item.id, groupId: sizeGroup.id },
+        { menuItemId: item.id, groupId: extrasGroup.id },
+        { menuItemId: item.id, groupId: spiceGroup.id },
+      ],
+      skipDuplicates: true,
+    });
+  }
+
+  console.log(`✅ Attached modifiers to ${allItems.length} menu items`);
 
   console.log('🎉 Database seeding completed!');
 }

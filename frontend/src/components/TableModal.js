@@ -52,7 +52,7 @@ const TableModal = ({ table, locations, onSave, onClose }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (validate()) {
       onSave(formData);
     }
@@ -145,7 +145,7 @@ const TableModal = ({ table, locations, onSave, onClose }) => {
           </div>
 
           <div className="modal-actions">
-            <button type="button" className="btn-secondary" onClick={onClose}>
+            <button type="button" className="btn-primary" onClick={onClose}>
               Cancel
             </button>
             <button type="submit" className="btn-primary">
