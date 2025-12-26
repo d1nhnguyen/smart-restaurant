@@ -13,6 +13,7 @@ import {
   ValidationPipe,
   UseInterceptors,
   UploadedFiles,
+  UseGuards,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { QrService } from '../qr/qr.service';
@@ -25,6 +26,7 @@ import { UpdateMenuItemDto } from './dto/update-item.dto';
 import { GetItemsFilterDto } from './dto/get-items.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
 import { multerOptions } from '../utils/file-upload.utils';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('')
 export class MenuController {
@@ -34,10 +36,7 @@ export class MenuController {
     private readonly itemService: MenuItemService,
   ) { }
 
-  // ==================================================================
-  // --- GUEST MENU ENDPOINTS ---
-  // Đường dẫn: /api/menu
-  // ==================================================================
+  // --- GUEST MENU ENDPOINTS (Public) ---
 
   @Get('menu')
   async getMenu(@Query('token') token: string) {
@@ -78,9 +77,7 @@ export class MenuController {
     return this.qrService.verifyQrToken(token);
   }
 
-  // ==================================================================
-  // --- ADMIN MANAGEMENT ENDPOINTS ---
-  // ==================================================================
+  // --- ADMIN MANAGEMENT ENDPOINTS (Secured) ---
 
   private getAdminRestaurantId() {
     return '123e4567-e89b-12d3-a456-426614174000';
@@ -89,21 +86,25 @@ export class MenuController {
   // --- Category Endpoints ---
 
   @Get('admin/menu/categories')
+  @UseGuards(JwtAuthGuard)
   findAllCategories() {
     return this.categoryService.findAll(this.getAdminRestaurantId());
   }
 
   @Post('admin/menu/categories')
+  @UseGuards(JwtAuthGuard)
   createCategory(@Body() dto: CreateCategoryDto) {
     return this.categoryService.create(this.getAdminRestaurantId(), dto);
   }
 
   @Patch('admin/menu/categories/:id')
+  @UseGuards(JwtAuthGuard)
   updateCategory(@Param('id') id: string, @Body() dto: UpdateCategoryDto) {
     return this.categoryService.update(id, this.getAdminRestaurantId(), dto);
   }
 
   @Patch('admin/menu/categories/:id/status')
+  @UseGuards(JwtAuthGuard)
   updateCategoryStatus(@Param('id') id: string, @Body() dto: UpdateStatusDto) {
     return this.categoryService.updateStatus(id, this.getAdminRestaurantId(), dto.status);
   }
@@ -111,36 +112,40 @@ export class MenuController {
   // --- Item Endpoints ---
 
   @Get('admin/menu/items')
+  @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe({ transform: true }))
   findAllItems(@Query() query: GetItemsFilterDto) {
     return this.itemService.findAll(this.getAdminRestaurantId(), query);
   }
 
   @Get('admin/menu/items/:id')
+  @UseGuards(JwtAuthGuard)
   findOneItem(@Param('id') id: string) {
     return this.itemService.findOne(id, this.getAdminRestaurantId());
   }
 
   @Post('admin/menu/items')
+  @UseGuards(JwtAuthGuard)
   createItem(@Body() dto: CreateMenuItemDto) {
     return this.itemService.create(this.getAdminRestaurantId(), dto);
   }
 
   @Patch('admin/menu/items/:id')
+  @UseGuards(JwtAuthGuard)
   updateItem(@Param('id') id: string, @Body() dto: UpdateMenuItemDto) {
     return this.itemService.update(id, this.getAdminRestaurantId(), dto);
   }
 
   @Delete('admin/menu/items/:id')
+  @UseGuards(JwtAuthGuard)
   removeItem(@Param('id') id: string) {
     return this.itemService.remove(id, this.getAdminRestaurantId());
   }
 
-  // ==================================================================
   // --- PHOTO MANAGEMENT ENDPOINTS ---
-  // ==================================================================
 
   @Post('admin/menu/items/:id/photos')
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(FilesInterceptor('files', 10, multerOptions))
   async uploadPhotos(
     @Param('id') id: string,
@@ -150,6 +155,7 @@ export class MenuController {
   }
 
   @Delete('admin/menu/items/:id/photos/:photoId')
+  @UseGuards(JwtAuthGuard)
   async deletePhoto(
     @Param('id') id: string,
     @Param('photoId') photoId: string,
@@ -158,6 +164,7 @@ export class MenuController {
   }
 
   @Patch('admin/menu/items/:id/photos/:photoId/primary')
+  @UseGuards(JwtAuthGuard)
   async setPrimaryPhoto(
     @Param('id') id: string,
     @Param('photoId') photoId: string,

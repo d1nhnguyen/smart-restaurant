@@ -150,3 +150,15 @@ model MenuItemModifierGroup {
   @@id([menuItemId, groupId])
   @@map("menu_item_modifier_groups")
 }
+
+// User Model for Authentication
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String   @unique @db.VarChar(255)
+  password  String   @db.VarChar(255)
+  name      String?  @db.VarChar(100)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
