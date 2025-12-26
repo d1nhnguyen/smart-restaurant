@@ -96,8 +96,9 @@ model MenuItem {
 model MenuItemPhoto {
   id         String   @id @default(uuid()) @db.Uuid
   menuItemId String   @map("menu_item_id") @db.Uuid
-  url        String   @db.Text
-  isPrimary  Boolean  @default(false) @map("is_primary")
+  url        String
+  isPrimary  Boolean  @default(false)
+  sortOrder  Int      @default(0)
   createdAt  DateTime @default(now()) @map("created_at")
 
   menuItem MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)

@@ -8,7 +8,7 @@ const AdminItemPage = () => {
   const [items, setItems] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   // State for filters & pagination
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -63,7 +63,7 @@ const AdminItemPage = () => {
   useEffect(() => {
     fetchItems();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, filterCategory, filterStatus, sortBy]); 
+  }, [page, filterCategory, filterStatus, sortBy]);
   // Note: filterName thường nên debounce, ở đây ta sẽ search khi bấm Enter hoặc để đơn giản thì search khi gõ (cần debounce nếu data lớn)
 
   const handleSearch = (e) => {
@@ -95,13 +95,40 @@ const AdminItemPage = () => {
     }
   };
 
-  const handleSaveItem = async (formData) => {
+  const handleSaveItem = async (formData, refreshOnly = false) => {
     try {
       if (editingItem) {
-        await axios.patch(`/api/admin/menu/items/${editingItem.id}`, formData);
-        alert('Item updated successfully');
+        if (!refreshOnly) {
+          await axios.patch(`/api/admin/menu/items/${editingItem.id}`, formData);
+          alert('Item updated successfully');
+        } else {
+          // Just fetch updated item data (including photos)
+          const res = await axios.get(`/api/admin/menu/items/${editingItem.id}`);
+          setEditingItem(res.data);
+          return; // Don't close modal or refresh list
+        }
       } else {
-        await axios.post('/api/admin/menu/items', formData);
+        const { initialPhotos, primaryPhotoIndex, ...itemData } = formData;
+        const res = await axios.post('/api/admin/menu/items', itemData);
+
+        // If there are photos to upload for the new item
+        if (initialPhotos && initialPhotos.length > 0) {
+          const photoFormData = new FormData();
+          initialPhotos.forEach(file => {
+            photoFormData.append('files', file);
+          });
+
+          const uploadRes = await axios.post(`/api/admin/menu/items/${res.data.id}/photos`, photoFormData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          });
+
+          // Set primary if selected
+          if (primaryPhotoIndex !== undefined && primaryPhotoIndex >= 0) {
+            const photoId = uploadRes.data.photos[primaryPhotoIndex].id;
+            await axios.patch(`/api/admin/menu/items/${res.data.id}/photos/${photoId}/primary`);
+          }
+        }
+
         alert('Item created successfully');
       }
       setShowModal(false);
@@ -130,7 +157,7 @@ const AdminItemPage = () => {
     <div className="admin-layout">
       <Sidebar />
       <div className="admin-main">
-        
+
         {/* Header */}
         <div className="admin-header">
           <div>
@@ -147,15 +174,15 @@ const AdminItemPage = () => {
           <form onSubmit={handleSearch} className="filters-bar" style={{ margin: 0 }}>
             <div className="search-box">
               <span>🔍</span>
-              <input 
-                type="text" 
-                placeholder="Search items..." 
+              <input
+                type="text"
+                placeholder="Search items..."
                 value={filterName}
                 onChange={(e) => setFilterName(e.target.value)}
               />
             </div>
-            
-            <select 
+
+            <select
               className="filter-select"
               value={filterCategory}
               onChange={(e) => { setFilterCategory(e.target.value); setPage(1); }}
@@ -166,7 +193,7 @@ const AdminItemPage = () => {
               ))}
             </select>
 
-            <select 
+            <select
               className="filter-select"
               value={filterStatus}
               onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
@@ -177,7 +204,7 @@ const AdminItemPage = () => {
               <option value="unavailable">Unavailable</option>
             </select>
 
-            <select 
+            <select
               className="filter-select"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
@@ -236,15 +263,15 @@ const AdminItemPage = () => {
                         <td>{renderStatus(item.status)}</td>
                         <td>{item.prepTimeMinutes} min</td>
                         <td>
-                          <button 
-                            className="action-btn" 
+                          <button
+                            className="action-btn"
                             title="Edit"
                             onClick={() => handleEditItem(item)}
                           >
                             ✎
                           </button>
-                          <button 
-                            className="action-btn" 
+                          <button
+                            className="action-btn"
                             title="Delete"
                             style={{ color: '#e74c3c' }}
                             onClick={() => handleDeleteItem(item.id)}
@@ -260,7 +287,7 @@ const AdminItemPage = () => {
 
               {/* Pagination */}
               <div className="pagination">
-                <button 
+                <button
                   className="page-btn"
                   disabled={page <= 1}
                   onClick={() => setPage(p => p - 1)}
@@ -270,7 +297,7 @@ const AdminItemPage = () => {
                 <span className="page-info">
                   Page {page} of {totalPages || 1}
                 </span>
-                <button 
+                <button
                   className="page-btn"
                   disabled={page >= totalPages}
                   onClick={() => setPage(p => p + 1)}

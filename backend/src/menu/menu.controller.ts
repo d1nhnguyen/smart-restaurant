@@ -11,9 +11,11 @@ import {
   BadRequestException,
   UsePipes,
   ValidationPipe,
+  UseInterceptors,
+  UploadedFiles,
 } from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { QrService } from '../qr/qr.service';
-// --- Import mới ---
 import { MenuCategoryService } from './menu-category.service';
 import { MenuItemService } from './menu-item.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
@@ -21,22 +23,23 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 import { CreateMenuItemDto } from './dto/create-item.dto';
 import { UpdateMenuItemDto } from './dto/update-item.dto';
 import { GetItemsFilterDto } from './dto/get-items.dto';
-import { UpdateStatusDto } from './dto/update-status.dto'; // Đảm bảo bạn đã tạo file này
+import { UpdateStatusDto } from './dto/update-status.dto';
+import { multerOptions } from '../utils/file-upload.utils';
 
-@Controller('') // Đổi thành Root để định nghĩa path linh hoạt cho cả Guest và Admin
+@Controller('')
 export class MenuController {
   constructor(
-    private readonly qrService: QrService, // Giữ nguyên code cũ
-    private readonly categoryService: MenuCategoryService, // Inject thêm service Admin
-    private readonly itemService: MenuItemService,         // Inject thêm service Admin
-  ) {}
+    private readonly qrService: QrService,
+    private readonly categoryService: MenuCategoryService,
+    private readonly itemService: MenuItemService,
+  ) { }
 
   // ==================================================================
-  // PHẦN 1: GUEST MENU (CODE CŨ - GIỮ NGUYÊN LOGIC)
+  // --- GUEST MENU ENDPOINTS ---
   // Đường dẫn: /api/menu
   // ==================================================================
 
-  @Get('menu') // Chuyển 'menu' xuống đây
+  @Get('menu')
   async getMenu(@Query('token') token: string) {
     if (!token) {
       throw new BadRequestException('Token is required. Please scan the QR code again.');
@@ -48,39 +51,39 @@ export class MenuController {
       throw new UnauthorizedException(result.error || 'Invalid or expired token');
     }
 
-    // Lấy danh sách Categories & Items thực tế từ Database (Nâng cấp code cũ)
-    const restaurantId = result.table.restaurantId; // Giả sử trong table có restaurantId
-    // Nếu table chưa có restaurantId, bạn có thể hardcode tạm hoặc lấy items mẫu như cũ
-    
-    // Code cũ của bạn trả về data mẫu, bạn có thể giữ nguyên hoặc gọi service thật:
-    // const categories = await this.categoryService.findAll(restaurantId);
-    
+    const restaurantId = result.table.restaurantId;
+
+    // Fetch categories and items from database
+    const categories = await this.categoryService.findAll(restaurantId);
+
+    // Lấy tất cả items có ảnh kèm theo
+    const items = await this.itemService.findAll(restaurantId, {
+      page: 1,
+      limit: 1000, // Lấy hết để group 
+      status: 'AVAILABLE' as any,
+    });
+
     return {
       success: true,
       table: result.table,
       message: `Welcome to Table ${result.table.tableNumber}!`,
-      // Giữ lại data mẫu của bạn để không làm hỏng app cũ, hoặc thay bằng data thật
-      menuItems: [
-        { id: '1', name: 'Grilled Salmon', price: 18.00, available: true },
-        // ... (data mẫu cũ)
-      ],
+      categories,
+      menuItems: items.data,
     };
   }
 
-  @Get('menu/verify') // Chuyển path cũ
+  @Get('menu/verify')
   async verifyToken(@Query('token') token: string) {
     if (!token) return { valid: false, error: 'Token is required' };
     return this.qrService.verifyQrToken(token);
   }
 
   // ==================================================================
-  // PHẦN 2: ADMIN MANAGEMENT (CODE MỚI - BỔ SUNG)
-  // Đường dẫn: /api/admin/menu/...
+  // --- ADMIN MANAGEMENT ENDPOINTS ---
   // ==================================================================
 
-  // Helper: Mock ID (Thay bằng User Decorator khi có Auth)
   private getAdminRestaurantId() {
-    return '123e4567-e89b-12d3-a456-426614174000'; 
+    return '123e4567-e89b-12d3-a456-426614174000';
   }
 
   // --- Category Endpoints ---
@@ -131,5 +134,34 @@ export class MenuController {
   @Delete('admin/menu/items/:id')
   removeItem(@Param('id') id: string) {
     return this.itemService.remove(id, this.getAdminRestaurantId());
+  }
+
+  // ==================================================================
+  // --- PHOTO MANAGEMENT ENDPOINTS ---
+  // ==================================================================
+
+  @Post('admin/menu/items/:id/photos')
+  @UseInterceptors(FilesInterceptor('files', 10, multerOptions))
+  async uploadPhotos(
+    @Param('id') id: string,
+    @UploadedFiles() files: Express.Multer.File[],
+  ) {
+    return this.itemService.addPhotos(id, this.getAdminRestaurantId(), files);
+  }
+
+  @Delete('admin/menu/items/:id/photos/:photoId')
+  async deletePhoto(
+    @Param('id') id: string,
+    @Param('photoId') photoId: string,
+  ) {
+    return this.itemService.removePhoto(id, photoId, this.getAdminRestaurantId());
+  }
+
+  @Patch('admin/menu/items/:id/photos/:photoId/primary')
+  async setPrimaryPhoto(
+    @Param('id') id: string,
+    @Param('photoId') photoId: string,
+  ) {
+    return this.itemService.setPrimaryPhoto(id, photoId, this.getAdminRestaurantId());
   }
 }

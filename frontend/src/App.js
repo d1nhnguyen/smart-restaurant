@@ -11,12 +11,14 @@ function App() {
     <Router>
       <Routes>
         {/* Admin Routes */}
-        <Route path="/" element={<TablesPage />} />
-        <Route path="/tables" element={<TablesPage />} />
-        <Route path="/menu" element={<AdminItemPage />} />
-        <Route path="/categories" element={<AdminCategoryPage />} />
+        <Route path="/admin/tables" element={<TablesPage />} />
+        <Route path="/admin/items" element={<AdminItemPage />} />
+        <Route path="/admin/categories" element={<AdminCategoryPage />} />
+
         {/* Public Customer Routes */}
         <Route path="/menu" element={<MenuPage />} />
+        <Route path="/" element={<MenuPage />} /> {/* Default to menu if no path */}
+
       </Routes>
     </Router>
   );

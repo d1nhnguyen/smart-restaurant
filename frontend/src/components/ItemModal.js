@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PhotoManager from './PhotoManager';
 
 const ItemModal = ({ item, categories, onSave, onClose }) => {
   const [formData, setFormData] = useState({
@@ -173,6 +174,20 @@ const ItemModal = ({ item, categories, onSave, onClose }) => {
               Chef Recommended 👨‍🍳
             </label>
           </div>
+
+          <PhotoManager
+            itemId={item?.id}
+            photos={item?.photos}
+            onUpdate={() => onSave(formData, true)}
+            onLocalChange={(localList) => {
+              setFormData(prev => ({
+                ...prev,
+                initialPhotos: localList.map(p => p.file),
+                primaryPhotoIndex: localList.findIndex(p => p.isPrimary)
+              }));
+            }}
+          />
+
 
           <div className="modal-actions">
             <button type="button" className="btn-secondary" onClick={onClose}>
