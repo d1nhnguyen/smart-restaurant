@@ -15,7 +15,7 @@ const AdminItemPage = () => {
   const [filterName, setFilterName] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
-  const [sortBy, setSortBy] = useState('price_asc'); // price_asc, price_desc, status_asc, status_desc
+  const [sortBy, setSortBy] = useState('name_asc'); // name_asc, name_desc, price_asc, price_desc, status_asc, status_desc
 
   // State for modal
   const [showModal, setShowModal] = useState(false);
@@ -230,6 +230,8 @@ const AdminItemPage = () => {
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
             >
+              <option value="name_asc">Name: A-Z</option>
+              <option value="name_desc">Name: Z-A</option>
               <option value="price_asc">Price: Low to High</option>
               <option value="price_desc">Price: High to Low</option>
               <option value="status_asc">Status: A-Z</option>

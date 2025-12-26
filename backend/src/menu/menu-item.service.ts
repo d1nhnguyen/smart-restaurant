@@ -52,6 +52,8 @@ export class MenuItemService {
       case ItemSort.PRICE_DESC: orderBy = { price: 'desc' }; break;
       case ItemSort.STATUS_ASC: orderBy = { status: 'asc' }; break;
       case ItemSort.STATUS_DESC: orderBy = { status: 'desc' }; break;
+      case ItemSort.NAME_ASC: orderBy = { name: 'asc' }; break;
+      case ItemSort.NAME_DESC: orderBy = { name: 'desc' }; break;
     }
 
     const [items, total] = await Promise.all([

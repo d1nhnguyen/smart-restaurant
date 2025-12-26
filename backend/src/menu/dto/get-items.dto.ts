@@ -7,6 +7,8 @@ export enum ItemSort {
   PRICE_DESC = 'price_desc',
   STATUS_ASC = 'status_asc',
   STATUS_DESC = 'status_desc',
+  NAME_ASC = 'name_asc',
+  NAME_DESC = 'name_desc',
 }
 
 export class GetItemsFilterDto {

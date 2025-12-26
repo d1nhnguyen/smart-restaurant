@@ -14,6 +14,7 @@ const MenuPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedItem, setSelectedItem] = useState(null);
   const [orderItems, setOrderItems] = useState([]);
+  const [sortBy, setSortBy] = useState('');
 
   const token = searchParams.get('token');
 
@@ -100,6 +101,22 @@ const MenuPage = () => {
     return belongsToActiveCategory && matchesCategory && matchesSearch;
   });
 
+  // Apply sorting
+  const sortedItems = [...filteredItems].sort((a, b) => {
+    switch (sortBy) {
+      case 'name-asc':
+        return a.name.localeCompare(b.name);
+      case 'name-desc':
+        return b.name.localeCompare(a.name);
+      case 'price-asc':
+        return Number(a.price) - Number(b.price);
+      case 'price-desc':
+        return Number(b.price) - Number(a.price);
+      default:
+        return 0; // No sorting
+    }
+  });
+
 
 
   const handleAddToOrder = (orderData) => {
@@ -137,6 +154,29 @@ const MenuPage = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          style={{
+            padding: '12px 16px',
+            fontSize: '14px',
+            border: '1px solid #e0e0e0',
+            borderRadius: '12px',
+            background: '#fff',
+            cursor: 'pointer',
+            outline: 'none',
+            minWidth: '150px',
+            fontWeight: '500',
+            color: '#333'
+          }}
+        >
+          <option value="">Sort by</option>
+          <option value="name-asc">Name (A-Z)</option>
+          <option value="name-desc">Name (Z-A)</option>
+          <option value="price-asc">Price (Low-High)</option>
+          <option value="price-desc">Price (High-Low)</option>
+        </select>
       </div>
 
       {/* 3. Category Scrolling Tabs */}
@@ -160,7 +200,7 @@ const MenuPage = () => {
 
       {/* 4. Menu Grid */}
       <main className="menu-grid">
-        {filteredItems.map(item => {
+        {sortedItems.map(item => {
           const primaryPhoto = item.photos?.find(p => p.isPrimary) || item.photos?.[0];
 
           return (
@@ -186,7 +226,7 @@ const MenuPage = () => {
           );
         })}
 
-        {filteredItems.length === 0 && (
+        {sortedItems.length === 0 && (
           <div style={{ textAlign: 'center', gridColumn: '1/-1', padding: '60px 20px', color: '#999' }}>
             <p style={{ fontSize: '40px' }}>🔍</p>
             <p>No items found. Try another search!</p>
