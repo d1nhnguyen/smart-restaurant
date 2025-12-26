@@ -1,6 +1,17 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { authService } from '../utils/auth';
 
 const Sidebar = () => {
+  const navigate = useNavigate();
+  const user = authService.getUser();
+
+  const handleLogout = (e) => {
+    e.preventDefault();
+    authService.logout();
+    navigate('/login');
+  };
+
   return (
     <div className="admin-sidebar">
       <div className="sidebar-logo">
@@ -46,13 +57,13 @@ const Sidebar = () => {
 
       <div className="sidebar-footer">
         <div className="admin-profile">
-          <div className="admin-avatar">AD</div>
+          <div className="admin-avatar">{user?.name?.[0]?.toUpperCase() || 'U'}</div>
           <div className="admin-info">
-            <div className="admin-name">Admin User</div>
-            <div className="admin-role">Restaurant Admin</div>
+            <div className="admin-name">{user?.name || 'User'}</div>
+            <div className="admin-role">{user?.email || ''}</div>
           </div>
         </div>
-        <a href="/login" className="logout-link">&#128682; Logout</a>
+        <a href="/login" className="logout-link" onClick={handleLogout}>&#128682; Logout</a>
       </div>
     </div>
   );

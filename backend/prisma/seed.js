@@ -1,9 +1,26 @@
 const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcrypt');
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log('🌱 Starting database seeding...');
+
+  // Create default admin user
+  const hashedPassword = await bcrypt.hash('admin123', 10);
+  
+  const adminUser = await prisma.user.upsert({
+    where: { email: 'admin@restaurant.com' },
+    update: {},
+    create: {
+      email: 'admin@restaurant.com',
+      password: hashedPassword,
+      name: 'Admin User',
+    },
+  });
+
+  console.log(`✅ Created admin user: ${adminUser.email}`);
+  console.log(`   Password: admin123`);
 
   // Create sample tables
   const locations = ['Indoor', 'Outdoor', 'Patio', 'VIP Room'];

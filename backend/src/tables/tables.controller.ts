@@ -11,6 +11,7 @@ import {
   Res,
   StreamableFile,
   Header,
+  UseGuards,
 } from '@nestjs/common';
 import { TablesService } from './tables.service';
 import { TablesExportService } from './tables-export.service';
@@ -18,8 +19,10 @@ import { QrService } from '../qr/qr.service';
 import { CreateTableDto } from './dto/create-table.dto';
 import { UpdateTableDto } from './dto/update-table.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('tables')
+@UseGuards(JwtAuthGuard)
 export class TablesController {
   constructor(
     private readonly tablesService: TablesService,
