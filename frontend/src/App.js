@@ -4,7 +4,8 @@ import './styles.css';
 import './custom-styles.css';
 import TablesPage from './pages/TablesPage';
 import MenuPage from './pages/MenuPage';
-
+import AdminItemPage from './pages/AdminItemPage';
+import AdminCategoryPage from './pages/AdminCategoryPage';
 function App() {
   return (
     <Router>
@@ -12,7 +13,8 @@ function App() {
         {/* Admin Routes */}
         <Route path="/" element={<TablesPage />} />
         <Route path="/tables" element={<TablesPage />} />
-
+        <Route path="/menu" element={<AdminItemPage />} />
+        <Route path="/categories" element={<AdminCategoryPage />} />
         {/* Public Customer Routes */}
         <Route path="/menu" element={<MenuPage />} />
       </Routes>
