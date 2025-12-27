@@ -4,8 +4,9 @@ import App from './App';
 import axios from 'axios';
 import { authService } from './utils/auth';
 
-// Configure axios base URL
-axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+// Configure axios base URL - Remove trailing /api or slash to avoid duplication
+const rawApiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+axios.defaults.baseURL = rawApiUrl.replace(/\/api$/, '').replace(/\/$/, '');
 
 // Add request interceptor to include auth token
 axios.interceptors.request.use(

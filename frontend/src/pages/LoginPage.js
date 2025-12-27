@@ -22,7 +22,8 @@ const LoginPage = () => {
         ? { email, password }
         : { email, password, name };
 
-      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+      let baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+      baseUrl = baseUrl.replace(/\/api$/, '').replace(/\/$/, '');
       const response = await fetch(`${baseUrl}/api${endpoint}`, {
         method: 'POST',
         headers: {

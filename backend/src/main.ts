@@ -13,8 +13,9 @@ async function bootstrap() {
   });
 
   // Enable CORS
+  const frontendUrl = process.env.FRONTEND_URL?.replace(/\/$/, '') || 'http://localhost:4000';
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:4000',
+    origin: frontendUrl,
     credentials: true,
   });
 
