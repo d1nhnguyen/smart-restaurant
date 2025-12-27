@@ -140,15 +140,29 @@ const ModifierGroupModal = ({ group, onSave, onClose }) => {
                         </div>
                     </div>
 
-                    <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', margin: 0 }}>
-                            <input type="checkbox" name="isRequired" checked={formData.isRequired} onChange={handleChange} />
-                            Is Required?
-                        </label>
-                        <select name="status" value={formData.status} onChange={handleChange} className="form-input" style={{ width: 'auto' }}>
-                            <option value="ACTIVE">Active</option>
-                            <option value="INACTIVE">Inactive</option>
-                        </select>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                        <div className="form-group">
+                            <label style={{ visibility: 'hidden' }}>Spacer</label>
+                            <div style={{ display: 'flex', alignItems: 'center', height: '42px' }}>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', margin: 0 }}>
+                                    <input
+                                        type="checkbox"
+                                        name="isRequired"
+                                        checked={formData.isRequired}
+                                        onChange={handleChange}
+                                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                                    />
+                                    Is Required?
+                                </label>
+                            </div>
+                        </div>
+                        <div className="form-group">
+                            <label>Status</label>
+                            <select name="status" value={formData.status} onChange={handleChange} className="form-input">
+                                <option value="ACTIVE">Active</option>
+                                <option value="INACTIVE">Inactive</option>
+                            </select>
+                        </div>
                     </div>
 
                     {formData.selectionType === 'MULTIPLE' && (
@@ -164,13 +178,13 @@ const ModifierGroupModal = ({ group, onSave, onClose }) => {
                         </div>
                     )}
 
-                    <div className="modifier-options-section" style={{ marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '15px' }}>
+                    <div className="modifier-options-section" style={{ marginTop: '25px', borderTop: '1px solid #eee', paddingTop: '20px', paddingLeft: '20px', paddingRight: '20px' }}>
                         <h3>Options</h3>
                         <div className="options-list" style={{ marginBottom: '15px' }}>
                             {options.map(opt => (
-                                <div key={opt.id} className="option-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '8px', backgroundColor: '#f9f9f9', marginBottom: '5px', borderRadius: '4px' }}>
-                                    <span>{opt.name} (+${Number(opt.priceAdjustment).toFixed(2)})</span>
-                                    <button type="button" onClick={() => handleRemoveOption(opt.id)} style={{ color: '#e74c3c', border: 'none', background: 'none', cursor: 'pointer' }}>✕</button>
+                                <div key={opt.id} className="option-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', backgroundColor: '#f9f9f9', marginBottom: '8px', borderRadius: '8px', border: '1px solid #eee' }}>
+                                    <span style={{ fontSize: '14px', fontWeight: '500' }}>{opt.name} (+${Number(opt.priceAdjustment).toFixed(2)})</span>
+                                    <button type="button" onClick={() => handleRemoveOption(opt.id)} style={{ color: '#e74c3c', border: 'none', background: 'none', cursor: 'pointer', fontSize: '18px', padding: '0 5px' }}>✕</button>
                                 </div>
                             ))}
                         </div>
@@ -196,7 +210,7 @@ const ModifierGroupModal = ({ group, onSave, onClose }) => {
                         </div>
                     </div>
 
-                    <div className="modal-actions" style={{ marginTop: '20px' }}>
+                    <div className="modal-actions">
                         <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
                         <button type="submit" className="btn-primary" disabled={loading}>
                             {loading ? 'Saving...' : (group ? 'Update Group' : 'Create Group')}

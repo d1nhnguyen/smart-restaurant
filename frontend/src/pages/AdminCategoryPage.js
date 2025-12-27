@@ -6,7 +6,7 @@ import CategoryModal from '../components/CategoryModal';
 const AdminCategoryPage = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   // State cho Modal
   const [showModal, setShowModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
@@ -73,23 +73,23 @@ const AdminCategoryPage = () => {
     }
   };
 
-  // Logic xóa (Backend sẽ chặn nếu còn món ăn)
-  /* const handleDeleteCategory = async (id) => {
-    if(!window.confirm("Are you sure?")) return;
+  const handleDeleteCategory = async (id) => {
+    if (!window.confirm("Are you sure? This category can only be deleted if it has no items.")) return;
     try {
-       await axios.delete(`/api/admin/menu/categories/${id}`);
-       fetchCategories();
+      await axios.delete(`/api/admin/menu/categories/${id}`);
+      fetchCategories();
+      alert('Category deleted successfully');
     } catch (error) {
-       alert(error.response?.data?.message || "Cannot delete category");
+      console.error('Error deleting category:', error);
+      alert(error.response?.data?.message || "Cannot delete category");
     }
-  }
-  */
+  };
 
   return (
     <div className="admin-layout">
       <Sidebar />
       <div className="admin-main">
-        
+
         {/* Header */}
         <div className="admin-header">
           <div>
@@ -144,20 +144,20 @@ const AdminCategoryPage = () => {
                       </span>
                     </td>
                     <td>
-                      <button 
-                        className="action-btn" 
+                      <button
+                        className="action-btn"
                         title="Edit"
                         onClick={() => handleEditCategory(cat)}
                       >
                         ✎
                       </button>
-                      <button 
-                        className="action-btn" 
-                        title={cat.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
-                        onClick={() => handleToggleStatus(cat)}
-                        style={{ marginLeft: '10px' }}
+                      <button
+                        className="action-btn"
+                        title="Delete"
+                        onClick={() => handleDeleteCategory(cat.id)}
+                        style={{ marginLeft: '10px', color: '#e74c3c' }}
                       >
-                        {cat.status === 'ACTIVE' ? '🔒' : '🔓'}
+                        🗑
                       </button>
                     </td>
                   </tr>
