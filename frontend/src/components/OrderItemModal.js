@@ -53,6 +53,12 @@ const OrderItemModal = ({ item, onClose, onAddToOrder }) => {
           const newSelection = current.filter(id => id !== optionId);
           return { ...prev, [groupId]: newSelection.length > 0 ? newSelection : undefined };
         } else {
+          // Check maxSelections before adding
+          const group = modifierGroups.find(mg => mg.group.id === groupId)?.group;
+          if (group?.maxSelections > 0 && current.length >= group.maxSelections) {
+            alert(`You can only select up to ${group.maxSelections} option(s) for ${group.name}`);
+            return prev;
+          }
           // Add
           return { ...prev, [groupId]: [...current, optionId] };
         }
@@ -67,16 +73,32 @@ const OrderItemModal = ({ item, onClose, onAddToOrder }) => {
   };
 
   const handleAddToOrder = () => {
-    // Validate required modifiers
-    const missingRequired = modifierGroups.find(mg =>
-      mg.group.isRequired && !selectedModifiers[mg.group.id]
-    );
+    // Validate all modifier group constraints
+    for (const mg of modifierGroups) {
+      const group = mg.group;
+      const selected = selectedModifiers[group.id];
+      const selectedCount = Array.isArray(selected) ? selected.length : (selected ? 1 : 0);
 
-    if (missingRequired) {
-      alert(`Please select ${missingRequired.group.name}`);
-      return;
+      // Check if required
+      if (group.isRequired && selectedCount === 0) {
+        alert(`Please select ${group.name}`);
+        return;
+      }
+
+      // Check minimum selections
+      if (group.minSelections > 0 && selectedCount < group.minSelections) {
+        alert(`Please select at least ${group.minSelections} option(s) for ${group.name}`);
+        return;
+      }
+
+      // Check maximum selections
+      if (group.maxSelections > 0 && selectedCount > group.maxSelections) {
+        alert(`You can only select up to ${group.maxSelections} option(s) for ${group.name}`);
+        return;
+      }
     }
 
+    // All validations passed, add to order
     onAddToOrder({
       item,
       quantity,

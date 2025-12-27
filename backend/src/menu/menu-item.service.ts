@@ -72,6 +72,9 @@ export class MenuItemService {
             ]
           },
           modifierGroups: {
+            where: {
+              group: { status: 'ACTIVE' },
+            },
             include: {
               group: {
                 include: {

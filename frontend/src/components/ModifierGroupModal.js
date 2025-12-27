@@ -8,8 +8,7 @@ const ModifierGroupModal = ({ group, onSave, onClose }) => {
         isRequired: false,
         minSelections: 0,
         maxSelections: 0,
-        displayOrder: 0,
-        status: 'ACTIVE'
+        displayOrder: 0
     });
 
     const [options, setOptions] = useState([]);
@@ -79,9 +78,12 @@ const ModifierGroupModal = ({ group, onSave, onClose }) => {
         try {
             let groupId = group?.id;
             if (groupId) {
+                // When updating, send all fields including status
                 await axios.put(`/api/admin/menu/modifier-groups/${groupId}`, formData);
             } else {
-                const res = await axios.post('/api/admin/menu/modifier-groups', formData);
+                // When creating, exclude status from the payload (it will default to ACTIVE in the database)
+                const { status, ...createData } = formData;
+                const res = await axios.post('/api/admin/menu/modifier-groups', createData);
                 groupId = res.data.id;
 
                 // Add local options to newly created group
@@ -145,10 +147,12 @@ const ModifierGroupModal = ({ group, onSave, onClose }) => {
                             <input type="checkbox" name="isRequired" checked={formData.isRequired} onChange={handleChange} />
                             Is Required?
                         </label>
-                        <select name="status" value={formData.status} onChange={handleChange} className="form-input" style={{ width: 'auto' }}>
-                            <option value="ACTIVE">Active</option>
-                            <option value="INACTIVE">Inactive</option>
-                        </select>
+                        {group && (
+                            <select name="status" value={formData.status} onChange={handleChange} className="form-input" style={{ width: 'auto' }}>
+                                <option value="ACTIVE">Active</option>
+                                <option value="INACTIVE">Inactive</option>
+                            </select>
+                        )}
                     </div>
 
                     {formData.selectionType === 'MULTIPLE' && (
@@ -197,7 +201,7 @@ const ModifierGroupModal = ({ group, onSave, onClose }) => {
                     </div>
 
                     <div className="modal-actions" style={{ marginTop: '20px' }}>
-                        <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
+                        <button type="button" className="btn-primary" onClick={onClose}>Cancel</button>
                         <button type="submit" className="btn-primary" disabled={loading}>
                             {loading ? 'Saving...' : (group ? 'Update Group' : 'Create Group')}
                         </button>
