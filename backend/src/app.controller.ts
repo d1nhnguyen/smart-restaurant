@@ -1,9 +1,9 @@
 import { Controller, Get } from '@nestjs/common';
 
-@Controller()
+@Controller('health')
 export class AppController {
     @Get()
     getHello(): string {
-        return 'Smart Restaurant API is running!';
+        return 'OK';
     }
 }
