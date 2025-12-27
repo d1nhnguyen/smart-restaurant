@@ -18,11 +18,12 @@ const LoginPage = () => {
 
     try {
       const endpoint = isLogin ? '/auth/login' : '/auth/register';
-      const body = isLogin 
+      const body = isLogin
         ? { email, password }
         : { email, password, name };
 
-      const response = await fetch(`http://localhost:3000/api${endpoint}`, {
+      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+      const response = await fetch(`${baseUrl}/api${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -54,9 +55,9 @@ const LoginPage = () => {
       <div className="login-card">
         <h1 className="login-title">Menu Management</h1>
         <h2 className="login-subtitle">{isLogin ? 'Login' : 'Register'}</h2>
-        
+
         {error && <div className="error-message">{error}</div>}
-        
+
         <form onSubmit={handleSubmit} className="login-form">
           {!isLogin && (
             <div className="form-group">
@@ -71,7 +72,7 @@ const LoginPage = () => {
               />
             </div>
           )}
-          
+
           <div className="form-group">
             <label htmlFor="email">Email</label>
             <input
@@ -83,7 +84,7 @@ const LoginPage = () => {
               required
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="password">Password</label>
             <input
@@ -96,15 +97,15 @@ const LoginPage = () => {
               minLength="6"
             />
           </div>
-          
+
           <button type="submit" className="login-button" disabled={loading}>
             {loading ? 'Processing...' : (isLogin ? 'Login' : 'Register')}
           </button>
         </form>
-        
+
         <div className="toggle-form">
           {isLogin ? "Don't have an account? " : "Already have an account? "}
-          <button 
+          <button
             type="button"
             onClick={() => {
               setIsLogin(!isLogin);
