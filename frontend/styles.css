@@ -1,5 +1,3 @@
-
-
 /* Additional styles for React components */
 
 .filter-select {
@@ -104,7 +102,7 @@
   color: var(--danger);
 }
 
-.form-group input,
+.form-group input:not([type="checkbox"]):not([type="radio"]),
 .form-group select,
 .form-group textarea {
   width: 100%;
@@ -116,7 +114,7 @@
   transition: all 0.3s;
 }
 
-.form-group input:focus,
+.form-group input:not([type="checkbox"]):not([type="radio"]):focus,
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
@@ -197,6 +195,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -207,6 +206,7 @@
     transform: translateY(20px);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
@@ -219,11 +219,11 @@
     width: 95%;
     max-height: 95vh;
   }
-  
+
   .stats-grid {
     grid-template-columns: 1fr !important;
   }
-  
+
   .tables-grid {
     grid-template-columns: 1fr !important;
   }
