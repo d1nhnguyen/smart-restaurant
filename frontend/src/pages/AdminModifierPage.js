@@ -114,14 +114,14 @@ const AdminModifierPage = () => {
                                                 {group.status}
                                             </span>
                                         </td>
-                                        <td>
+                                        <td className="actions-cell">
                                             <button className="action-btn" title="Edit" onClick={() => handleEditGroup(group)}>
                                                 ✎
                                             </button>
                                             <button
                                                 className="action-btn"
                                                 title="Delete"
-                                                style={{ color: '#e74c3c', marginLeft: '10px' }}
+                                                style={{ color: '#e74c3c' }}
                                                 onClick={() => handleDeleteGroup(group.id)}
                                             >
                                                 🗑

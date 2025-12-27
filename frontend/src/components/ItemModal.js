@@ -204,7 +204,7 @@ const ItemModal = ({ item, categories, onSave, onClose }) => {
             </label>
           </div>
 
-          <div className="form-group">
+          <div className="form-group" style={{ marginTop: '20px' }}>
             <label>Modifier Groups</label>
 
             <div className="modifier-group-grid">
@@ -221,18 +221,20 @@ const ItemModal = ({ item, categories, onSave, onClose }) => {
             </div>
           </div>
 
-          <PhotoManager
-            itemId={item?.id}
-            photos={item?.photos}
-            onUpdate={() => onSave({ ...formData, refreshOnly: true }, selectedModifierGroups)}
-            onLocalChange={(localList) => {
-              setFormData(prev => ({
-                ...prev,
-                initialPhotos: localList.map(p => p.file),
-                primaryPhotoIndex: localList.findIndex(p => p.isPrimary)
-              }));
-            }}
-          />
+          <div className="form-group">
+            <PhotoManager
+              itemId={item?.id}
+              photos={item?.photos}
+              onUpdate={() => onSave({ ...formData, refreshOnly: true }, selectedModifierGroups)}
+              onLocalChange={(localList) => {
+                setFormData(prev => ({
+                  ...prev,
+                  initialPhotos: localList.map(p => p.file),
+                  primaryPhotoIndex: localList.findIndex(p => p.isPrimary)
+                }));
+              }}
+            />
+          </div>
 
 
           <div className="modal-actions">

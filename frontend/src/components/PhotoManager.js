@@ -106,7 +106,7 @@ const PhotoManager = ({ itemId, photos = [], onUpdate, onLocalChange }) => {
 
     return (
         <div className="photo-manager">
-            <label style={{ fontWeight: '600', fontSize: '14px', marginBottom: '10px', display: 'block' }}>
+            <label>
                 Photos Management {itemId ? '' : '(Local Preview)'}
             </label>
 
