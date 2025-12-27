@@ -11,15 +11,15 @@ const Sidebar = () => {
     e.preventDefault();
     authService.logout();
     navigate('/login');
-  };  
+  };
   const location = useLocation(); // Lấy thông tin URL hiện tại
 
   // Hàm kiểm tra đường dẫn để thêm class 'active'
   // logic: nếu đường dẫn hiện tại bắt đầu bằng path của link thì active
   const getNavLinkClass = (path) => {
     // So sánh chính xác hoặc so sánh prefix (nếu muốn /menu/add cũng active menu)
-    return location.pathname === path || location.pathname.startsWith(path) 
-      ? 'nav-link active' 
+    return location.pathname === path || location.pathname.startsWith(path)
+      ? 'nav-link active'
       : 'nav-link';
   };
   return (
@@ -34,38 +34,43 @@ const Sidebar = () => {
           <span className="nav-icon">&#128202;</span>
           Dashboard
         </Link>
-        
+
         <Link to="/admin/orders" className={getNavLinkClass('/admin/orders')}>
           <span className="nav-icon">&#128203;</span>
           Orders
           <span className="nav-badge">5</span>
         </Link>
-        
+
         <Link to="/admin/items" className={getNavLinkClass('/admin/items')}>
           <span className="nav-icon">&#127860;</span>
           Menu Items
         </Link>
-        
+
         <Link to="/admin/categories" className={getNavLinkClass('/admin/categories')}>
           <span className="nav-icon">&#128193;</span>
           Categories
         </Link>
-        
+
+        <Link to="/admin/modifiers" className={getNavLinkClass('/admin/modifiers')}>
+          <span className="nav-icon">&#128203;</span>
+          Modifiers
+        </Link>
+
         <Link to="/admin/tables" className={getNavLinkClass('/admin/tables')}>
           <span className="nav-icon">&#129689;</span>
           Tables
         </Link>
-        
+
         <Link to="/admin/staff" className={getNavLinkClass('/admin/staff')}>
           <span className="nav-icon">&#128101;</span>
           Kitchen Staff
         </Link>
-        
+
         <Link to="/admin/reports" className={getNavLinkClass('/admin/reports')}>
           <span className="nav-icon">&#128200;</span>
           Reports
         </Link>
-        
+
         <Link to="/admin/kds" className={getNavLinkClass('/admin/kds')}>
           <span className="nav-icon">&#128250;</span>
           Kitchen Display

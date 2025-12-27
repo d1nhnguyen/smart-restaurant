@@ -9,6 +9,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 
 import AdminItemPage from './pages/AdminItemPage';
 import AdminCategoryPage from './pages/AdminCategoryPage';
+import AdminModifierPage from './pages/AdminModifierPage';
 function App() {
   return (
     <Router>
@@ -19,6 +20,7 @@ function App() {
         <Route path="/admin/tables" element={<TablesPage />} />
         <Route path="/admin/items" element={<AdminItemPage />} />
         <Route path="/admin/categories" element={<AdminCategoryPage />} />
+        <Route path="/admin/modifiers" element={<AdminModifierPage />} />
 
         {/* Public Customer Routes */}
         <Route path="/menu" element={<MenuPage />} />
