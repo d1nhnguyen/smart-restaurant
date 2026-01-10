@@ -12,9 +12,9 @@ import { join } from 'path';
 export class MenuItemService {
   constructor(private prisma: PrismaService) { }
 
-  async create(restaurantId: string, dto: CreateMenuItemDto) {
-    const category = await this.prisma.menuCategory.findFirst({
-      where: { id: dto.categoryId, restaurantId },
+  async create(dto: CreateMenuItemDto) {
+    const category = await this.prisma.menuCategory.findUnique({
+      where: { id: dto.categoryId },
     });
     if (!category) throw new NotFoundException('Category not found');
 
@@ -23,7 +23,6 @@ export class MenuItemService {
     return this.prisma.menuItem.create({
       data: {
         ...itemData,
-        restaurantId,
         status: dto.status || ItemStatus.AVAILABLE,
         category: {
           connect: { id: categoryId }
@@ -32,13 +31,12 @@ export class MenuItemService {
     });
   }
 
-  async findAll(restaurantId: string, query: GetItemsFilterDto) {
+  async findAll(query: GetItemsFilterDto) {
     const { page, limit, search, categoryId, status, sort } = query;
     const skip = (page - 1) * limit;
 
     // Build Where Clause
     const where: Prisma.MenuItemWhereInput = {
-      restaurantId,
       isDeleted: false, // Chỉ lấy item chưa bị xóa
       categoryId: categoryId || undefined,
       status: status || undefined,
@@ -104,9 +102,9 @@ export class MenuItemService {
     };
   }
 
-  async findOne(id: string, restaurantId: string) {
+  async findOne(id: string) {
     const item = await this.prisma.menuItem.findFirst({
-      where: { id, restaurantId, isDeleted: false },
+      where: { id, isDeleted: false },
       include: {
         category: true,
         photos: {
@@ -121,16 +119,16 @@ export class MenuItemService {
     return item;
   }
 
-  async update(id: string, restaurantId: string, dto: UpdateMenuItemDto) {
-    await this.findOne(id, restaurantId); // Check exist
+  async update(id: string, dto: UpdateMenuItemDto) {
+    await this.findOne(id); // Check exist
     return this.prisma.menuItem.update({
       where: { id },
       data: dto,
     });
   }
 
-  async remove(id: string, restaurantId: string) {
-    await this.findOne(id, restaurantId); // Check exist
+  async remove(id: string) {
+    await this.findOne(id); // Check exist
 
     // Soft Delete: Giữ lại data cho lịch sử order
     return this.prisma.menuItem.update({
@@ -141,9 +139,9 @@ export class MenuItemService {
 
   // --- Photo Management Logic ---
 
-  async addPhotos(itemId: string, restaurantId: string, files: Express.Multer.File[]) {
-    // 1. Check item exists and belongs to restaurant
-    await this.findOne(itemId, restaurantId);
+  async addPhotos(itemId: string, files: Express.Multer.File[]) {
+    // 1. Check item exists
+    await this.findOne(itemId);
 
     // 2. Create photo records
     const photos = await Promise.all(
@@ -165,9 +163,9 @@ export class MenuItemService {
     };
   }
 
-  async removePhoto(itemId: string, photoId: string, restaurantId: string) {
+  async removePhoto(itemId: string, photoId: string) {
     // 1. Check item ownership
-    await this.findOne(itemId, restaurantId);
+    await this.findOne(itemId);
 
     // 2. Find photo
     const photo = await this.prisma.menuItemPhoto.findUnique({
@@ -199,9 +197,9 @@ export class MenuItemService {
     return { success: true, message: 'Photo removed successfully and file deleted' };
   }
 
-  async setPrimaryPhoto(itemId: string, photoId: string, restaurantId: string) {
+  async setPrimaryPhoto(itemId: string, photoId: string) {
     // 1. Check ownership
-    await this.findOne(itemId, restaurantId);
+    await this.findOne(itemId);
 
     // 2. Verify photo exists
     const photo = await this.prisma.menuItemPhoto.findUnique({

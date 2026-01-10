@@ -3,13 +3,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { QrService } from '../qr/qr.service';
 import { CreateTableDto } from './dto/create-table.dto';
 import { UpdateTableDto } from './dto/update-table.dto';
+import { TableStatus } from '@prisma/client';
 
 @Injectable()
 export class TablesService {
   constructor(
     private prisma: PrismaService,
     private qrService: QrService,
-  ) {}
+  ) { }
 
   async create(createTableDto: CreateTableDto) {
     // Check if table number already exists
@@ -95,7 +96,7 @@ export class TablesService {
     });
   }
 
-  async updateStatus(id: string, status: 'ACTIVE' | 'INACTIVE') {
+  async updateStatus(id: string, status: TableStatus) {
     await this.findOne(id); // Check if exists
 
     return this.prisma.table.update({

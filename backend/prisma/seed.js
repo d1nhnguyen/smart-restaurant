@@ -1,54 +1,77 @@
-const { PrismaClient, MenuStatus, ItemStatus, ModifierSelectionType } = require('@prisma/client');
+const { PrismaClient, MenuStatus, ItemStatus } = require('@prisma/client');
 const bcrypt = require('bcrypt');
 
 const prisma = new PrismaClient();
-const RESTAURANT_ID = '123e4567-e89b-12d3-a456-426614174000';
 
 async function main() {
   console.log('🌱 Starting database seeding...');
 
-  // Create default admin user
+  // Create default admin user (Simplified: No restaurantId, no Role)
   const hashedPassword = await bcrypt.hash('admin123', 10);
-  
+
   const adminUser = await prisma.user.upsert({
-    where: { email: 'admin@restaurant.com' },
+    where: { email: 'admin@smartrestaurant.com' },
     update: {},
     create: {
-      email: 'admin@restaurant.com',
+      email: 'admin@smartrestaurant.com',
       password: hashedPassword,
       name: 'Admin User',
+      isActive: true,
     },
   });
 
   console.log(`✅ Created admin user: ${adminUser.email}`);
   console.log(`   Password: admin123`);
 
-  // Create sample tables
+  // Create sample kitchen staff (Simplified: No restaurantId)
+  await prisma.staff.createMany({
+    data: [
+      {
+        name: 'Chef Gordon',
+        role: 'CHEF',
+        phone: '0901234567',
+        status: 'ACTIVE'
+      },
+      {
+        name: 'Waiter John',
+        role: 'WAITER',
+        phone: '0909876543',
+        status: 'ACTIVE'
+      }
+    ],
+    skipDuplicates: true
+  });
+  console.log('✅ Created sample staff members');
+
+  // Create sample tables (Simplified: No restaurantId)
   const locations = ['Indoor', 'Outdoor', 'Patio', 'VIP Room'];
   const tables = [];
 
   for (let i = 1; i <= 20; i++) {
     const location = locations[Math.floor(Math.random() * locations.length)];
     const capacity = Math.floor(Math.random() * 6) + 2; // 2-8 seats
-    
+
+    // Upsert table with tableNumber
     const table = await prisma.table.upsert({
-      where: { tableNumber: `T${i.toString().padStart(2, '0')}` },
+      where: {
+        tableNumber: `T${i.toString().padStart(2, '0')}`,
+      },
       update: {},
       create: {
         tableNumber: `T${i.toString().padStart(2, '0')}`,
         capacity: capacity,
         location: location,
         description: `Table ${i} - ${location} section with ${capacity} seats`,
-        status: 'ACTIVE',
+        status: 'AVAILABLE',
       },
     });
-    
+
     tables.push(table);
   }
 
   console.log(`✅ Created ${tables.length} sample tables`);
 
-   console.log('🍽️ Seeding menu categories & items...');
+  console.log('🍽️ Seeding menu categories & items...');
 
   const categoriesData = [
     { name: 'Appetizers', description: 'Starters & small bites' },
@@ -59,31 +82,25 @@ async function main() {
   ];
 
   for (const categoryData of categoriesData) {
-    // Upsert category: composite unique restaurantId + name
+    // Upsert category: unique name
     const category = await prisma.menuCategory.upsert({
       where: {
-        restaurantId_name: {
-          restaurantId: RESTAURANT_ID,
-          name: categoryData.name,
-        },
+        name: categoryData.name,
       },
       update: {
         description: categoryData.description,
         status: MenuStatus.ACTIVE,
       },
       create: {
-        restaurantId: RESTAURANT_ID,
         name: categoryData.name,
         description: categoryData.description,
         status: MenuStatus.ACTIVE,
       },
     });
 
-    // Để seed chạy lại không bị tạo trùng items:
-    // xóa hết items thuộc category này rồi tạo lại 5 món.
+    // Reset items for this category
     await prisma.menuItem.deleteMany({
       where: {
-        restaurantId: RESTAURANT_ID,
         categoryId: category.id,
       },
     });
@@ -91,7 +108,6 @@ async function main() {
     for (let i = 1; i <= 5; i++) {
       await prisma.menuItem.create({
         data: {
-          restaurantId: RESTAURANT_ID,
           categoryId: category.id,
           name: `${category.name} Item ${i}`,
           description: `Delicious ${category.name.toLowerCase()} item number ${i}`,
@@ -107,7 +123,7 @@ async function main() {
     console.log(`✅ Category "${category.name}" seeded with 5 items`);
   }
 
-  // Create sample modifier groups
+  // Create sample modifier groups (Simplified: No restaurantId)
   console.log('🔧 Seeding modifier groups & options...');
 
   // Size modifier group
@@ -118,7 +134,6 @@ async function main() {
     update: {},
     create: {
       id: '123e4567-0000-4000-a000-000000000001',
-      restaurantId: RESTAURANT_ID,
       name: 'Size',
       selectionType: 'SINGLE',
       isRequired: true,
@@ -129,11 +144,12 @@ async function main() {
     },
   });
 
+  await prisma.modifierOption.deleteMany({ where: { groupId: sizeGroup.id } });
   await prisma.modifierOption.createMany({
     data: [
-      { groupId: sizeGroup.id, name: 'Small', priceAdjustment: 0, status: MenuStatus.ACTIVE },
-      { groupId: sizeGroup.id, name: 'Medium', priceAdjustment: 1.0, status: MenuStatus.ACTIVE },
-      { groupId: sizeGroup.id, name: 'Large', priceAdjustment: 2.0, status: MenuStatus.ACTIVE },
+      { groupId: sizeGroup.id, name: 'Small', priceAdjustment: 0, status: MenuStatus.ACTIVE, sortOrder: 0 },
+      { groupId: sizeGroup.id, name: 'Medium', priceAdjustment: 1.0, status: MenuStatus.ACTIVE, sortOrder: 1 },
+      { groupId: sizeGroup.id, name: 'Large', priceAdjustment: 2.0, status: MenuStatus.ACTIVE, sortOrder: 2 },
     ],
     skipDuplicates: true,
   });
@@ -148,7 +164,6 @@ async function main() {
     update: {},
     create: {
       id: '123e4567-0000-4000-a000-000000000002',
-      restaurantId: RESTAURANT_ID,
       name: 'Extras',
       selectionType: 'MULTIPLE',
       isRequired: false,
@@ -159,12 +174,13 @@ async function main() {
     },
   });
 
+  await prisma.modifierOption.deleteMany({ where: { groupId: extrasGroup.id } });
   await prisma.modifierOption.createMany({
     data: [
-      { groupId: extrasGroup.id, name: 'Extra Cheese', priceAdjustment: 0.5, status: MenuStatus.ACTIVE },
-      { groupId: extrasGroup.id, name: 'Bacon', priceAdjustment: 1.0, status: MenuStatus.ACTIVE },
-      { groupId: extrasGroup.id, name: 'Avocado', priceAdjustment: 1.5, status: MenuStatus.ACTIVE },
-      { groupId: extrasGroup.id, name: 'Mushrooms', priceAdjustment: 0.75, status: MenuStatus.ACTIVE },
+      { groupId: extrasGroup.id, name: 'Extra Cheese', priceAdjustment: 0.5, status: MenuStatus.ACTIVE, sortOrder: 0 },
+      { groupId: extrasGroup.id, name: 'Bacon', priceAdjustment: 1.0, status: MenuStatus.ACTIVE, sortOrder: 1 },
+      { groupId: extrasGroup.id, name: 'Avocado', priceAdjustment: 1.5, status: MenuStatus.ACTIVE, sortOrder: 2 },
+      { groupId: extrasGroup.id, name: 'Mushrooms', priceAdjustment: 0.75, status: MenuStatus.ACTIVE, sortOrder: 3 },
     ],
     skipDuplicates: true,
   });
@@ -179,7 +195,6 @@ async function main() {
     update: {},
     create: {
       id: '123e4567-0000-4000-a000-000000000003',
-      restaurantId: RESTAURANT_ID,
       name: 'Spice Level',
       selectionType: 'SINGLE',
       isRequired: false,
@@ -190,12 +205,13 @@ async function main() {
     },
   });
 
+  await prisma.modifierOption.deleteMany({ where: { groupId: spiceGroup.id } });
   await prisma.modifierOption.createMany({
     data: [
-      { groupId: spiceGroup.id, name: 'Mild', priceAdjustment: 0, status: MenuStatus.ACTIVE },
-      { groupId: spiceGroup.id, name: 'Medium', priceAdjustment: 0, status: MenuStatus.ACTIVE },
-      { groupId: spiceGroup.id, name: 'Hot', priceAdjustment: 0, status: MenuStatus.ACTIVE },
-      { groupId: spiceGroup.id, name: 'Extra Hot', priceAdjustment: 0.5, status: MenuStatus.ACTIVE },
+      { groupId: spiceGroup.id, name: 'Mild', priceAdjustment: 0, status: MenuStatus.ACTIVE, sortOrder: 0 },
+      { groupId: spiceGroup.id, name: 'Medium', priceAdjustment: 0, status: MenuStatus.ACTIVE, sortOrder: 1 },
+      { groupId: spiceGroup.id, name: 'Hot', priceAdjustment: 0, status: MenuStatus.ACTIVE, sortOrder: 2 },
+      { groupId: spiceGroup.id, name: 'Extra Hot', priceAdjustment: 0.5, status: MenuStatus.ACTIVE, sortOrder: 3 },
     ],
     skipDuplicates: true,
   });
@@ -203,14 +219,13 @@ async function main() {
   console.log(`✅ Created modifier group "Spice Level" with 4 options`);
 
   // Attach modifiers to menu items
+  // NOTE: Logic remains same, just fetching all Items (no restaurant filter)
   console.log('🔗 Attaching modifiers to menu items...');
-  
-  const allItems = await prisma.menuItem.findMany({
-    where: { restaurantId: RESTAURANT_ID },
-  });
+
+  const allItems = await prisma.menuItem.findMany();
 
   // Attach Size and Extras to all Main Dishes and Appetizers
-  const mainAndAppItems = allItems.filter(item => 
+  const mainAndAppItems = allItems.filter(item =>
     item.name.includes('Main Dishes') || item.name.includes('Appetizers')
   );
 
@@ -226,7 +241,7 @@ async function main() {
 
   // Attach Spice Level to Chef Specials
   const chefSpecialItems = allItems.filter(item => item.name.includes('Chef Specials'));
-  
+
   for (const item of chefSpecialItems) {
     await prisma.menuItemModifierGroup.createMany({
       data: [

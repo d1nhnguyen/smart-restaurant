@@ -7,11 +7,11 @@ import { UpdateModifierOptionDto } from './dto/update-modifier-option.dto';
 
 @Injectable()
 export class ModifierGroupService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   // ===== MODIFIER GROUPS =====
 
-  async create(restaurantId: string, dto: CreateModifierGroupDto) {
+  async create(dto: CreateModifierGroupDto) {
     // Validation: if multi-select, maxSelections must be >= minSelections
     if (dto.selectionType === 'MULTIPLE' && dto.minSelections && dto.maxSelections) {
       if (dto.maxSelections < dto.minSelections) {
@@ -27,7 +27,6 @@ export class ModifierGroupService {
 
     return this.prisma.modifierGroup.create({
       data: {
-        restaurantId,
         ...dto,
         minSelections: dto.minSelections || 0,
         maxSelections: dto.maxSelections || 0,
@@ -43,9 +42,8 @@ export class ModifierGroupService {
     });
   }
 
-  async findAll(restaurantId: string) {
+  async findAll() {
     return this.prisma.modifierGroup.findMany({
-      where: { restaurantId },
       include: {
         options: {
           where: { status: 'ACTIVE' },
@@ -59,9 +57,9 @@ export class ModifierGroupService {
     });
   }
 
-  async findOne(id: string, restaurantId: string) {
-    const group = await this.prisma.modifierGroup.findFirst({
-      where: { id, restaurantId },
+  async findOne(id: string) {
+    const group = await this.prisma.modifierGroup.findUnique({
+      where: { id },
       include: {
         options: {
           orderBy: { createdAt: 'asc' },
@@ -76,9 +74,9 @@ export class ModifierGroupService {
     return group;
   }
 
-  async update(id: string, restaurantId: string, dto: UpdateModifierGroupDto) {
-    const group = await this.prisma.modifierGroup.findFirst({
-      where: { id, restaurantId },
+  async update(id: string, dto: UpdateModifierGroupDto) {
+    const group = await this.prisma.modifierGroup.findUnique({
+      where: { id },
     });
 
     if (!group) {
@@ -106,9 +104,9 @@ export class ModifierGroupService {
     });
   }
 
-  async remove(id: string, restaurantId: string) {
-    const group = await this.prisma.modifierGroup.findFirst({
-      where: { id, restaurantId },
+  async remove(id: string) {
+    const group = await this.prisma.modifierGroup.findUnique({
+      where: { id },
       include: {
         menuItems: true,
       },
@@ -130,10 +128,10 @@ export class ModifierGroupService {
 
   // ===== MODIFIER OPTIONS =====
 
-  async createOption(groupId: string, restaurantId: string, dto: CreateModifierOptionDto) {
-    // Verify group exists and belongs to restaurant
-    const group = await this.prisma.modifierGroup.findFirst({
-      where: { id: groupId, restaurantId },
+  async createOption(groupId: string, dto: CreateModifierOptionDto) {
+    // Verify group exists
+    const group = await this.prisma.modifierGroup.findUnique({
+      where: { id: groupId },
     });
 
     if (!group) {
@@ -149,13 +147,10 @@ export class ModifierGroupService {
     });
   }
 
-  async updateOption(optionId: string, restaurantId: string, dto: UpdateModifierOptionDto) {
-    // Verify option exists and belongs to restaurant
-    const option = await this.prisma.modifierOption.findFirst({
-      where: {
-        id: optionId,
-        group: { restaurantId },
-      },
+  async updateOption(optionId: string, dto: UpdateModifierOptionDto) {
+    // Verify option exists
+    const option = await this.prisma.modifierOption.findUnique({
+      where: { id: optionId },
       include: { group: true },
     });
 
@@ -169,13 +164,10 @@ export class ModifierGroupService {
     });
   }
 
-  async removeOption(optionId: string, restaurantId: string) {
-    // Verify option exists and belongs to restaurant
-    const option = await this.prisma.modifierOption.findFirst({
-      where: {
-        id: optionId,
-        group: { restaurantId },
-      },
+  async removeOption(optionId: string) {
+    // Verify option exists
+    const option = await this.prisma.modifierOption.findUnique({
+      where: { id: optionId },
       include: { group: true },
     });
 
@@ -190,21 +182,20 @@ export class ModifierGroupService {
 
   // ===== ATTACH/DETACH GROUPS TO ITEMS =====
 
-  async attachGroupsToItem(itemId: string, restaurantId: string, groupIds: string[]) {
-    // Verify item exists and belongs to restaurant
-    const item = await this.prisma.menuItem.findFirst({
-      where: { id: itemId, restaurantId },
+  async attachGroupsToItem(itemId: string, groupIds: string[]) {
+    // Verify item exists
+    const item = await this.prisma.menuItem.findUnique({
+      where: { id: itemId },
     });
 
     if (!item) {
       throw new NotFoundException('Menu item not found');
     }
 
-    // Verify all groups exist and belong to restaurant
+    // Verify all groups exist
     const groups = await this.prisma.modifierGroup.findMany({
       where: {
         id: { in: groupIds },
-        restaurantId,
       },
     });
 

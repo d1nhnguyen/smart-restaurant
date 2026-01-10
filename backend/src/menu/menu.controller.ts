@@ -119,16 +119,13 @@ export class MenuController {
       throw new UnauthorizedException(result.error || 'Invalid or expired token');
     }
 
-    // Sử dụng cùng restaurantId với admin để đảm bảo data nhất quán
-    const restaurantId = this.getAdminRestaurantId();
-
     // Lấy tất cả categories và chỉ giữ lại những category ACTIVE
-    const allCategories = await this.categoryService.findAll(restaurantId);
+    const allCategories = await this.categoryService.findAll();
     const activeCategories = allCategories.filter(cat => cat.status === 'ACTIVE');
     const activeCategoryIds = activeCategories.map(c => c.id);
 
     // Lấy tất cả items có ảnh kèm theo
-    const items = await this.itemService.findAll(restaurantId, {
+    const items = await this.itemService.findAll({
       page: 1,
       limit: 1000, // Lấy hết để group 
       status: 'AVAILABLE' as any,
@@ -158,30 +155,26 @@ export class MenuController {
   // --- ADMIN MANAGEMENT ENDPOINTS ---
   // ==================================================================
 
-  private getAdminRestaurantId() {
-    return '123e4567-e89b-12d3-a456-426614174000';
-  }
-
   // --- Category Endpoints ---
 
   @Get('admin/menu/categories')
   findAllCategories() {
-    return this.categoryService.findAll(this.getAdminRestaurantId());
+    return this.categoryService.findAll();
   }
 
   @Post('admin/menu/categories')
   createCategory(@Body() dto: CreateCategoryDto) {
-    return this.categoryService.create(this.getAdminRestaurantId(), dto);
+    return this.categoryService.create(dto);
   }
 
   @Patch('admin/menu/categories/:id')
   updateCategory(@Param('id') id: string, @Body() dto: UpdateCategoryDto) {
-    return this.categoryService.update(id, this.getAdminRestaurantId(), dto);
+    return this.categoryService.update(id, dto);
   }
 
   @Patch('admin/menu/categories/:id/status')
   updateCategoryStatus(@Param('id') id: string, @Body() dto: UpdateStatusDto) {
-    return this.categoryService.updateStatus(id, this.getAdminRestaurantId(), dto.status);
+    return this.categoryService.updateStatus(id, dto.status);
   }
 
   // --- Item Endpoints ---
@@ -189,78 +182,78 @@ export class MenuController {
   @Get('admin/menu/items')
   @UsePipes(new ValidationPipe({ transform: true }))
   findAllItems(@Query() query: GetItemsFilterDto) {
-    return this.itemService.findAll(this.getAdminRestaurantId(), query);
+    return this.itemService.findAll(query);
   }
 
   @Get('admin/menu/items/:id')
   findOneItem(@Param('id') id: string) {
-    return this.itemService.findOne(id, this.getAdminRestaurantId());
+    return this.itemService.findOne(id);
   }
 
   @Post('admin/menu/items')
   createItem(@Body() dto: CreateMenuItemDto) {
-    return this.itemService.create(this.getAdminRestaurantId(), dto);
+    return this.itemService.create(dto);
   }
 
   @Patch('admin/menu/items/:id')
   updateItem(@Param('id') id: string, @Body() dto: UpdateMenuItemDto) {
-    return this.itemService.update(id, this.getAdminRestaurantId(), dto);
+    return this.itemService.update(id, dto);
   }
 
   @Delete('admin/menu/items/:id')
   removeItem(@Param('id') id: string) {
-    return this.itemService.remove(id, this.getAdminRestaurantId());
+    return this.itemService.remove(id);
   }
 
   // --- Modifier Group Endpoints ---
 
   @Get('admin/menu/modifier-groups')
   findAllModifierGroups() {
-    return this.modifierGroupService.findAll(this.getAdminRestaurantId());
+    return this.modifierGroupService.findAll();
   }
 
   @Get('admin/menu/modifier-groups/:id')
   findOneModifierGroup(@Param('id') id: string) {
-    return this.modifierGroupService.findOne(id, this.getAdminRestaurantId());
+    return this.modifierGroupService.findOne(id);
   }
 
   @Post('admin/menu/modifier-groups')
   createModifierGroup(@Body() dto: CreateModifierGroupDto) {
-    return this.modifierGroupService.create(this.getAdminRestaurantId(), dto);
+    return this.modifierGroupService.create(dto);
   }
 
   @Put('admin/menu/modifier-groups/:id')
   updateModifierGroup(@Param('id') id: string, @Body() dto: UpdateModifierGroupDto) {
-    return this.modifierGroupService.update(id, this.getAdminRestaurantId(), dto);
+    return this.modifierGroupService.update(id, dto);
   }
 
   @Delete('admin/menu/modifier-groups/:id')
   removeModifierGroup(@Param('id') id: string) {
-    return this.modifierGroupService.remove(id, this.getAdminRestaurantId());
+    return this.modifierGroupService.remove(id);
   }
 
   // --- Modifier Option Endpoints ---
 
   @Post('admin/menu/modifier-groups/:id/options')
   createModifierOption(@Param('id') groupId: string, @Body() dto: CreateModifierOptionDto) {
-    return this.modifierGroupService.createOption(groupId, this.getAdminRestaurantId(), dto);
+    return this.modifierGroupService.createOption(groupId, dto);
   }
 
   @Put('admin/menu/modifier-options/:id')
   updateModifierOption(@Param('id') optionId: string, @Body() dto: UpdateModifierOptionDto) {
-    return this.modifierGroupService.updateOption(optionId, this.getAdminRestaurantId(), dto);
+    return this.modifierGroupService.updateOption(optionId, dto);
   }
 
   @Delete('admin/menu/modifier-options/:id')
   removeModifierOption(@Param('id') optionId: string) {
-    return this.modifierGroupService.removeOption(optionId, this.getAdminRestaurantId());
+    return this.modifierGroupService.removeOption(optionId);
   }
 
   // --- Attach/Detach Modifier Groups to Items ---
 
   @Post('admin/menu/items/:id/modifier-groups')
   attachModifierGroupsToItem(@Param('id') itemId: string, @Body() dto: AttachModifierGroupsDto) {
-    return this.modifierGroupService.attachGroupsToItem(itemId, this.getAdminRestaurantId(), dto.groupIds);
+    return this.modifierGroupService.attachGroupsToItem(itemId, dto.groupIds);
   }
 
   // ==================================================================
@@ -273,7 +266,7 @@ export class MenuController {
     @Param('id') id: string,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
-    return this.itemService.addPhotos(id, this.getAdminRestaurantId(), files);
+    return this.itemService.addPhotos(id, files);
   }
 
   @Delete('admin/menu/items/:id/photos/:photoId')
@@ -281,7 +274,7 @@ export class MenuController {
     @Param('id') id: string,
     @Param('photoId') photoId: string,
   ) {
-    return this.itemService.removePhoto(id, photoId, this.getAdminRestaurantId());
+    return this.itemService.removePhoto(id, photoId);
   }
 
   @Patch('admin/menu/items/:id/photos/:photoId/primary')
@@ -289,7 +282,7 @@ export class MenuController {
     @Param('id') id: string,
     @Param('photoId') photoId: string,
   ) {
-    return this.itemService.setPrimaryPhoto(id, photoId, this.getAdminRestaurantId());
+    return this.itemService.setPrimaryPhoto(id, photoId);
   }
 }
 
