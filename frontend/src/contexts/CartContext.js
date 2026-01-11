@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { loadCartData, saveCartData, clearCartData } from '../utils/cartStorage';
+import { loadCartData, saveCartData, clearCartData, refreshCartTimestamp } from '../utils/cartStorage';
 import { orderService } from '../services/orderService';
 
 const CartContext = createContext();
@@ -19,23 +19,40 @@ export const CartProvider = ({ children }) => {
     const [activeOrder, setActiveOrder] = useState(null);
     const [error, setError] = useState(null);
 
+    const refreshActiveOrder = useCallback(async (tableId) => {
+        try {
+            const order = await orderService.getCurrentOrder(tableId);
+            setActiveOrder(order); // null if no active order
+        } catch (err) {
+            console.error('Failed to fetch active order', err);
+            setActiveOrder(null);
+        }
+    }, []);
+
     // Load cart data when table changes
     useEffect(() => {
         if (table?.id) {
             localStorage.setItem('current_table', JSON.stringify(table));
             const saved = loadCartData(table.id);
+
             if (saved) {
                 setCart(saved.cart || []);
                 setOrderNotes(saved.orderNotes || '');
             } else {
                 setCart([]);
                 setOrderNotes('');
+
+                // Check if there was data that expired
+                const rawStored = localStorage.getItem(`cart_${table.id}`);
+                if (rawStored) {
+                    setError('Your cart has expired due to inactivity. Please add items again.');
+                    localStorage.removeItem(`cart_${table.id}`);
+                }
             }
 
-            // Check for active order on backend
             refreshActiveOrder(table.id);
         }
-    }, [table?.id]);
+    }, [table?.id, refreshActiveOrder]);
 
     // Persist cart on changes
     useEffect(() => {
@@ -44,25 +61,46 @@ export const CartProvider = ({ children }) => {
         }
     }, [cart, orderNotes, table?.id]);
 
-    const refreshActiveOrder = async (tableId) => {
-        try {
-            const order = await orderService.getCurrentOrder(tableId);
-            setActiveOrder(order); // null if no active order
-        } catch (err) {
-            console.error('Failed to fetch active order', err);
-        }
-    };
-
     const handleSetTable = (tableId, tableNumber) => {
         setTable({ id: tableId, tableNumber });
     };
 
+    const clearError = () => setError(null);
+
     const addToCart = (item) => {
         setCart((prev) => {
             // Logic to check if exact same item (menuItemId + modifiers + request) exists
-            // For simplicity, we create a unique entry for each customization unless exactly the same
-            const cartItemId = `${item.id}-${Date.now()}`;
+            const modifiersKey = (item.selectedModifiers || [])
+                .map(m => m.modifierOptionId)
+                .sort()
+                .join(',');
 
+            const existingIndex = prev.findIndex(cartItem =>
+                cartItem.menuItemId === item.id &&
+                cartItem.specialRequest === (item.specialRequest || '') &&
+                (cartItem.selectedModifiers || [])
+                    .map(m => m.modifierOptionId)
+                    .sort()
+                    .join(',') === modifiersKey
+            );
+
+            if (existingIndex >= 0) {
+                // Merge: Increase quantity
+                return prev.map((cartItem, index) => {
+                    if (index === existingIndex) {
+                        const newQty = cartItem.quantity + (item.quantity || 1);
+                        return {
+                            ...cartItem,
+                            quantity: newQty,
+                            itemTotal: (cartItem.price + cartItem.modifiersTotal) * newQty
+                        };
+                    }
+                    return cartItem;
+                });
+            }
+
+            // New item entry
+            const cartItemId = `${item.id}-${Date.now()}`;
             const newItem = {
                 cartItemId,
                 menuItemId: item.id,
@@ -77,11 +115,15 @@ export const CartProvider = ({ children }) => {
 
             return [...prev, newItem];
         });
+
+        // Reset expiry timer on interaction
+        if (table?.id) refreshCartTimestamp(table.id);
         setError(null);
     };
 
     const removeFromCart = (cartItemId) => {
         setCart((prev) => prev.filter(item => item.cartItemId !== cartItemId));
+        if (table?.id) refreshCartTimestamp(table.id);
     };
 
     const updateQuantity = (cartItemId, delta) => {
@@ -99,6 +141,7 @@ export const CartProvider = ({ children }) => {
                 return item;
             }).filter(Boolean);
         });
+        if (table?.id) refreshCartTimestamp(table.id);
     };
 
     const placeOrder = async () => {
@@ -138,6 +181,7 @@ export const CartProvider = ({ children }) => {
     };
 
     const subtotal = cart.reduce((sum, item) => sum + item.itemTotal, 0);
+    const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
     const taxRate = 0; // Tax logic can be added here
     const taxAmount = subtotal * taxRate;
     const total = subtotal + taxAmount;
@@ -147,6 +191,7 @@ export const CartProvider = ({ children }) => {
             table,
             setTable: handleSetTable,
             cart,
+            cartCount,
             addToCart,
             removeFromCart,
             updateQuantity,
@@ -159,6 +204,7 @@ export const CartProvider = ({ children }) => {
             setIsCartOpen,
             isSubmitting,
             error,
+            clearError,
             placeOrder,
             activeOrder,
             refreshActiveOrder

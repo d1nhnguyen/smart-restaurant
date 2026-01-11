@@ -3,6 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useCart } from '../contexts/CartContext';
 
+const isValidUUID = (str) => {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(str);
+};
+
 const QRLandingPage = () => {
     const { tableId } = useParams();
     const navigate = useNavigate();
@@ -12,9 +17,14 @@ const QRLandingPage = () => {
 
     useEffect(() => {
         const validateTable = async () => {
+            // 1. Initial validation
+            if (!tableId || !isValidUUID(tableId)) {
+                setError('Invalid QR code format. Please scan again.');
+                setLoading(false);
+                return;
+            }
+
             try {
-                // We use the existing GET /api/tables/:id endpoint
-                // or a simpler one if available. Here we verify table exists.
                 const response = await axios.get(`/api/tables/${tableId}`);
                 const tableData = response.data;
 
@@ -24,66 +34,85 @@ const QRLandingPage = () => {
                     return;
                 }
 
-                // Initialize Cart Context with Table Info
+                // 2. Initialize Cart Context
                 setTable(tableData.id, tableData.tableNumber);
 
-                // Check for existing order
+                // 3. Check for existing order
                 await refreshActiveOrder(tableData.id);
 
-                // Redirect to menu with the token if available or just /menu
-                // The current MenuPage uses a 'token' query param, let's keep it compatible
-                // for now or modify MenuPage later to use context.
-                if (tableData.qrToken) {
-                    navigate(`/menu?token=${tableData.qrToken}`, { replace: true });
-                } else {
-                    navigate('/menu', { replace: true });
-                }
+                // 4. Secure Navigation: Do not leak qrToken in URL
+                // MenuPage should rely on context for tableId now.
+                navigate('/menu', { replace: true });
 
             } catch (err) {
                 console.error('Table validation failed', err);
-                setError('Invalid QR code. Please try again or ask for assistance.');
+                if (err.response?.status === 404) {
+                    setError('Table not found. Please scan a valid QR code.');
+                } else {
+                    setError('Invalid QR code or connection error. Please try again.');
+                }
             } finally {
                 setLoading(false);
             }
         };
 
-        if (tableId) {
-            validateTable();
-        } else {
-            setError('No table information found.');
-            setLoading(false);
-        }
+        validateTable();
     }, [tableId, navigate, setTable, refreshActiveOrder]);
 
     if (loading) {
         return (
-            <div className="loading-container">
+            <div className="loading-container" style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: '100vh',
+                background: '#f8f9fa'
+            }}>
                 <div className="spinner"></div>
-                <p style={{ marginTop: '15px' }}>Verifying your table...</p>
+                <p style={{ marginTop: '20px', color: '#666', fontWeight: '500' }}>Setting up your table...</p>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="loading-container" style={{ padding: '20px', textAlign: 'center' }}>
-                <div style={{ fontSize: '50px' }}>⚠️</div>
-                <h2 style={{ margin: '20px 0 10px' }}>Oops!</h2>
-                <p style={{ color: '#666' }}>{error}</p>
+            <div className="loading-container" style={{
+                padding: '40px 20px',
+                textAlign: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: '100vh',
+                background: '#f8f9fa'
+            }}>
+                <div style={{ fontSize: '64px', marginBottom: '20px' }}>😕</div>
+                <h2 style={{ margin: '0 0 10px', color: '#2c3e50' }}>Oops!</h2>
+                <p style={{ color: '#666', marginBottom: '30px', maxWidth: '300px' }}>{error}</p>
+
                 <button
-                    onClick={() => navigate('/login')}
+                    onClick={() => window.location.reload()}
                     style={{
-                        marginTop: '20px',
-                        padding: '10px 25px',
+                        padding: '14px 32px',
                         background: '#e74c3c',
                         color: '#fff',
                         border: 'none',
-                        borderRadius: '8px',
-                        cursor: 'pointer'
+                        borderRadius: '25px',
+                        fontSize: '16px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 15px rgba(231, 76, 60, 0.3)',
+                        transition: 'all 0.2s ease'
                     }}
                 >
-                    Back to Login
+                    🔄 Try Again
                 </button>
+
+                <p style={{ color: '#999', fontSize: '14px', marginTop: '30px' }}>
+                    Still having issues? <br />
+                    Please ask our staff for help.
+                </p>
             </div>
         );
     }

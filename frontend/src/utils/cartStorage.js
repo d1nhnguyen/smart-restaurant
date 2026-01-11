@@ -37,3 +37,17 @@ export const clearCartData = (tableId) => {
         localStorage.removeItem(`cart_${tableId}`);
     }
 };
+
+export const refreshCartTimestamp = (tableId) => {
+    if (!tableId) return;
+    const stored = localStorage.getItem(`cart_${tableId}`);
+    if (!stored) return;
+
+    try {
+        const parsed = JSON.parse(stored);
+        parsed.lastUpdate = Date.now();
+        localStorage.setItem(`cart_${tableId}`, JSON.stringify(parsed));
+    } catch (error) {
+        console.error('Error refreshing cart timestamp', error);
+    }
+};

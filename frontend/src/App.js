@@ -22,6 +22,7 @@ function App() {
           {/* Public Routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/table/:tableId" element={<QRLandingPage />} />
+          <Route path="/order-status/:orderId" element={<div>Order Tracking (Coming Soon)</div>} />
 
           {/* Admin Routes */}
           <Route path="/admin/tables" element={<TablesPage />} />
