@@ -22,14 +22,13 @@ export const CartProvider = ({ children }) => {
     const refreshActiveOrder = useCallback(async (tableId) => {
         try {
             const order = await orderService.getCurrentOrder(tableId);
-            setActiveOrder(order); // null if no active order
+            setActiveOrder(order);
         } catch (err) {
             console.error('Failed to fetch active order', err);
             setActiveOrder(null);
         }
     }, []);
 
-    // Load cart data when table changes
     useEffect(() => {
         if (table?.id) {
             localStorage.setItem('current_table', JSON.stringify(table));
@@ -42,19 +41,16 @@ export const CartProvider = ({ children }) => {
                 setCart([]);
                 setOrderNotes('');
 
-                // Check if there was data that expired
                 const rawStored = localStorage.getItem(`cart_${table.id}`);
                 if (rawStored) {
                     setError('Your cart has expired due to inactivity. Please add items again.');
                     localStorage.removeItem(`cart_${table.id}`);
                 }
             }
-
             refreshActiveOrder(table.id);
         }
     }, [table?.id, refreshActiveOrder]);
 
-    // Persist cart on changes
     useEffect(() => {
         if (table?.id) {
             saveCartData(table.id, cart, orderNotes);
@@ -67,17 +63,43 @@ export const CartProvider = ({ children }) => {
 
     const clearError = () => setError(null);
 
-    const addToCart = (item) => {
+    const addToCart = (orderData) => {
+        const { item, quantity, selectedModifiers: selectedModifiersObj, specialInstructions } = orderData;
+
         setCart((prev) => {
-            // Logic to check if exact same item (menuItemId + modifiers + request) exists
-            const modifiersKey = (item.selectedModifiers || [])
+            // 1. Transform selectedModifiers from Object {groupId: id/ids} to Array of objects
+            const selectedModifiersArray = [];
+            let modifiersTotal = 0;
+
+            Object.keys(selectedModifiersObj).forEach(groupId => {
+                const optionIdOrIds = selectedModifiersObj[groupId];
+                const optionIds = Array.isArray(optionIdOrIds) ? optionIdOrIds : [optionIdOrIds];
+
+                const group = item.modifierGroups?.find(mg => mg.group.id === groupId)?.group;
+                if (group) {
+                    optionIds.forEach(optId => {
+                        const option = group.options.find(o => o.id === optId);
+                        if (option) {
+                            selectedModifiersArray.push({
+                                modifierOptionId: option.id,
+                                modifierOptionName: option.name,
+                                priceAdjustment: Number(option.priceAdjustment)
+                            });
+                            modifiersTotal += Number(option.priceAdjustment);
+                        }
+                    });
+                }
+            });
+
+            // 2. Check for duplicate
+            const modifiersKey = selectedModifiersArray
                 .map(m => m.modifierOptionId)
                 .sort()
                 .join(',');
 
             const existingIndex = prev.findIndex(cartItem =>
                 cartItem.menuItemId === item.id &&
-                cartItem.specialRequest === (item.specialRequest || '') &&
+                cartItem.specialRequest === (specialInstructions || '') &&
                 (cartItem.selectedModifiers || [])
                     .map(m => m.modifierOptionId)
                     .sort()
@@ -85,10 +107,9 @@ export const CartProvider = ({ children }) => {
             );
 
             if (existingIndex >= 0) {
-                // Merge: Increase quantity
                 return prev.map((cartItem, index) => {
                     if (index === existingIndex) {
-                        const newQty = cartItem.quantity + (item.quantity || 1);
+                        const newQty = cartItem.quantity + quantity;
                         return {
                             ...cartItem,
                             quantity: newQty,
@@ -99,24 +120,23 @@ export const CartProvider = ({ children }) => {
                 });
             }
 
-            // New item entry
+            // 3. New item
             const cartItemId = `${item.id}-${Date.now()}`;
             const newItem = {
                 cartItemId,
                 menuItemId: item.id,
                 name: item.name,
                 price: Number(item.price),
-                quantity: item.quantity || 1,
-                specialRequest: item.specialRequest || '',
-                selectedModifiers: item.selectedModifiers || [],
-                modifiersTotal: item.modifiersTotal || 0,
-                itemTotal: (Number(item.price) + (item.modifiersTotal || 0)) * (item.quantity || 1)
+                quantity: quantity,
+                specialRequest: specialInstructions || '',
+                selectedModifiers: selectedModifiersArray,
+                modifiersTotal: modifiersTotal,
+                itemTotal: (Number(item.price) + modifiersTotal) * quantity
             };
 
             return [...prev, newItem];
         });
 
-        // Reset expiry timer on interaction
         if (table?.id) refreshCartTimestamp(table.id);
         setError(null);
     };
@@ -146,10 +166,8 @@ export const CartProvider = ({ children }) => {
 
     const placeOrder = async () => {
         if (!table?.id || cart.length === 0) return;
-
         setIsSubmitting(true);
         setError(null);
-
         try {
             const orderData = {
                 tableId: table.id,
@@ -182,32 +200,17 @@ export const CartProvider = ({ children }) => {
 
     const subtotal = cart.reduce((sum, item) => sum + item.itemTotal, 0);
     const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-    const taxRate = 0; // Tax logic can be added here
-    const taxAmount = subtotal * taxRate;
-    const total = subtotal + taxAmount;
+    const total = subtotal; // Tax can be added if needed
 
     return (
         <CartContext.Provider value={{
-            table,
-            setTable: handleSetTable,
-            cart,
-            cartCount,
-            addToCart,
-            removeFromCart,
-            updateQuantity,
-            orderNotes,
-            setOrderNotes,
-            subtotal,
-            taxAmount,
-            total,
-            isCartOpen,
-            setIsCartOpen,
-            isSubmitting,
-            error,
-            clearError,
-            placeOrder,
-            activeOrder,
-            refreshActiveOrder
+            table, setTable: handleSetTable,
+            cart, cartCount,
+            addToCart, removeFromCart, updateQuantity,
+            orderNotes, setOrderNotes,
+            subtotal, total, taxAmount: 0,
+            isCartOpen, setIsCartOpen, isSubmitting, error, clearError,
+            placeOrder, activeOrder, refreshActiveOrder
         }}>
             {children}
         </CartContext.Provider>

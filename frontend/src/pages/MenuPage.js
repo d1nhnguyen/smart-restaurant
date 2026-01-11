@@ -2,43 +2,48 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import OrderItemModal from '../components/OrderItemModal';
+import { useCart } from '../contexts/CartContext';
+import CartButton from '../components/cart/CartButton';
+import CartDrawer from '../components/cart/CartDrawer';
 import './MenuPage.css';
 
 const MenuPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [errorStatus, setErrorStatus] = useState(null);
   const [menuData, setMenuData] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedItem, setSelectedItem] = useState(null);
-  const [orderItems, setOrderItems] = useState([]);
   const [sortBy, setSortBy] = useState('');
+
+  const { addToCart, table, error: cartError, clearError } = useCart();
 
   const token = searchParams.get('token');
 
   useEffect(() => {
     const fetchMenu = async () => {
-      // For demo purposes if no token, you might want to show a general menu or an error
-      if (!token) {
-        setError('Please scan a QR code to view the menu.');
+      // Priority: use token from URL, but if missing, allow viewing if table info is in context
+      if (!token && !table?.id) {
+        setErrorStatus('Please scan a QR code to view the menu.');
         setLoading(false);
         return;
       }
 
       try {
-        const response = await axios.get(`/api/menu?token=${token}`);
+        const url = token ? `/api/menu?token=${token}` : `/api/menu?tableId=${table.id}`;
+        const response = await axios.get(url);
         setMenuData(response.data);
       } catch (err) {
-        setError(err.response?.data?.message || 'Unauthorized access');
+        setErrorStatus(err.response?.data?.message || 'Unauthorized access');
       } finally {
         setLoading(false);
       }
     };
 
     fetchMenu();
-  }, [token]);
+  }, [token, table?.id]);
 
   if (loading) {
     return (
@@ -49,13 +54,13 @@ const MenuPage = () => {
     );
   }
 
-  if (error) {
+  if (errorStatus) {
     return (
       <div className="loading-container">
         <div style={{ fontSize: '50px' }}>🍽️</div>
         <h2 style={{ margin: '20px 0 10px' }}>Welcome!</h2>
         <p style={{ color: '#666', padding: '0 40px', textAlign: 'center' }}>
-          {error}
+          {errorStatus}
         </p>
         <button
           onClick={() => navigate('/login')}
@@ -72,14 +77,6 @@ const MenuPage = () => {
             boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
             transition: 'all 0.3s ease'
           }}
-          onMouseOver={(e) => {
-            e.target.style.transform = 'translateY(-2px)';
-            e.target.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)';
-          }}
-          onMouseOut={(e) => {
-            e.target.style.transform = 'translateY(0)';
-            e.target.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
-          }}
         >
           Login
         </button>
@@ -87,9 +84,9 @@ const MenuPage = () => {
     );
   }
 
-  const { table, categories, menuItems } = menuData;
+  const { categories, menuItems, table: tableFromApi } = menuData;
 
-  // Create a set of active category IDs for quick lookup (defense-in-depth)
+  // Create a set of active category IDs for quick lookup
   const activeCategoryIds = new Set(
     categories.filter(cat => cat.status === 'ACTIVE').map(c => c.id)
   );
@@ -101,45 +98,55 @@ const MenuPage = () => {
     return belongsToActiveCategory && matchesCategory && matchesSearch;
   });
 
-  // Apply sorting
   const sortedItems = [...filteredItems].sort((a, b) => {
     switch (sortBy) {
-      case 'name-asc':
-        return a.name.localeCompare(b.name);
-      case 'name-desc':
-        return b.name.localeCompare(a.name);
-      case 'price-asc':
-        return Number(a.price) - Number(b.price);
-      case 'price-desc':
-        return Number(b.price) - Number(a.price);
-      default:
-        return 0; // No sorting
+      case 'name-asc': return a.name.localeCompare(b.name);
+      case 'name-desc': return b.name.localeCompare(a.name);
+      case 'price-asc': return Number(a.price) - Number(b.price);
+      case 'price-desc': return Number(b.price) - Number(a.price);
+      default: return 0;
     }
   });
 
-
-
   const handleAddToOrder = (orderData) => {
-    setOrderItems(prev => [...prev, { ...orderData, id: Date.now() }]);
+    addToCart(orderData);
     setSelectedItem(null);
-    alert('Item added to order!');
   };
 
   const handleItemClick = (item) => {
-    console.log('Selected item:', item);
-    console.log('Modifier groups:', item.modifierGroups);
     setSelectedItem(item);
   };
 
   return (
     <div className="menu-page">
+      {/* Expiry / Cart Error Banner */}
+      {cartError && (
+        <div style={{
+          background: '#fee2e2',
+          padding: '12px 20px',
+          color: '#ef4444',
+          fontSize: '14px',
+          textAlign: 'center',
+          position: 'sticky',
+          top: 0,
+          zIndex: 1100,
+          borderBottom: '1px solid #fecaca',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <span>{cartError}</span>
+          <button onClick={clearError} style={{ background: 'none', border: 'none', color: '#ef4444', fontWeight: 'bold', cursor: 'pointer' }}>✕</button>
+        </div>
+      )}
+
       {/* 1. Brand Banner */}
       <header className="menu-header-banner">
-        <h1>{table.restaurantName || 'Smart Restaurant'}</h1>
+        <h1>{tableFromApi?.restaurantName || 'Smart Restaurant'}</h1>
         <div className="table-info-pill">
-          <span>Table {table.tableNumber}</span>
+          <span>Table {table?.tableNumber || tableFromApi?.tableNumber}</span>
           <span style={{ opacity: 0.5 }}>|</span>
-          <span>{table.location || 'Main Hall'}</span>
+          <span>{table?.location || tableFromApi?.location || 'Main Hall'}</span>
         </div>
       </header>
 
@@ -158,18 +165,7 @@ const MenuPage = () => {
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
-          style={{
-            padding: '12px 16px',
-            fontSize: '14px',
-            border: '1px solid #e0e0e0',
-            borderRadius: '12px',
-            background: '#fff',
-            cursor: 'pointer',
-            outline: 'none',
-            minWidth: '150px',
-            fontWeight: '500',
-            color: '#333'
-          }}
+          className="sort-select"
         >
           <option value="">Sort by</option>
           <option value="name-asc">Name (A-Z)</option>
@@ -234,7 +230,10 @@ const MenuPage = () => {
         )}
       </main>
 
-      {/* Footer Info */}
+      {/* Cart Button & Drawer */}
+      <CartButton />
+      <CartDrawer />
+
       <footer style={{ padding: '40px 20px', textAlign: 'center', opacity: 0.5, fontSize: '12px' }}>
         Smart Restaurant System • Digital Menu
       </footer>

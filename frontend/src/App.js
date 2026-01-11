@@ -13,6 +13,7 @@ import AdminModifierPage from './pages/AdminModifierPage';
 import { CartProvider } from './contexts/CartContext';
 
 import QRLandingPage from './pages/QRLandingPage';
+import OrderTrackingPage from './pages/OrderTrackingPage';
 
 function App() {
   return (
@@ -22,7 +23,7 @@ function App() {
           {/* Public Routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/table/:tableId" element={<QRLandingPage />} />
-          <Route path="/order-status/:orderId" element={<div>Order Tracking (Coming Soon)</div>} />
+          <Route path="/order-status/:orderId" element={<OrderTrackingPage />} />
 
           {/* Admin Routes */}
           <Route path="/admin/tables" element={<TablesPage />} />
