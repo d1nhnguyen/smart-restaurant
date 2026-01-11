@@ -24,6 +24,15 @@ const MenuPage = () => {
   const token = urlToken || contextToken;
 
   useEffect(() => {
+    const isRoot = window.location.pathname === '/';
+
+    // If on root, don't fetch menu, just show landing
+    if (isRoot) {
+      setErrorStatus('Welcome! Please scan a QR code.');
+      setLoading(false);
+      return;
+    }
+
     const fetchMenu = async () => {
       // Priority: use token from URL, but if missing, allow viewing if table info is in context
       if (!token && !table?.id) {
@@ -100,6 +109,10 @@ const MenuPage = () => {
         </div>
       </div>
     );
+  }
+
+  if (!menuData) {
+    return null;
   }
 
   const { categories, menuItems, table: tableFromApi } = menuData;

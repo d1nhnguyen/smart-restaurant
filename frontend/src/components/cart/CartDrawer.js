@@ -7,18 +7,14 @@ const CartDrawer = () => {
     const navigate = useNavigate();
     const {
         cart, isCartOpen, setIsCartOpen, updateQuantity, removeFromCart,
-        subtotal, total, orderNotes, setOrderNotes, placeOrder, isSubmitting, error, table
+        subtotal, total, taxAmount, orderNotes, setOrderNotes, table
     } = useCart();
 
     if (!isCartOpen) return null;
 
-    const handlePlaceOrder = async () => {
-        try {
-            const order = await placeOrder();
-            if (order) {
-                navigate(`/order-status/${order.id}`);
-            }
-        } catch (err) { }
+    const handleGoToCheckout = () => {
+        setIsCartOpen(false);
+        navigate('/checkout');
     };
 
     const handleRemoveItem = (cartItemId, itemName) => {
@@ -35,8 +31,6 @@ const CartDrawer = () => {
                     <h2>Your Cart {table && <span className="table-badge">Table {table.tableNumber}</span>}</h2>
                     <button className="close-drawer" onClick={() => setIsCartOpen(false)} aria-label="Close cart">&times;</button>
                 </div>
-
-                {error && <div className="cart-error">{error}</div>}
 
                 <div className="cart-items-list">
                     {cart.length === 0 ? (
@@ -86,10 +80,11 @@ const CartDrawer = () => {
                         </div>
                         <div className="summary-section">
                             <div className="summary-row"><span>Subtotal</span><span>${subtotal.toFixed(2)}</span></div>
+                            <div className="summary-row"><span>Tax (8%)</span><span>${taxAmount.toFixed(2)}</span></div>
                             <div className="summary-row total"><span>Total</span><span>${total.toFixed(2)}</span></div>
                         </div>
-                        <button className="place-order-btn" disabled={isSubmitting} onClick={handlePlaceOrder}>
-                            {isSubmitting ? 'Placing Order...' : `Place Order - $${total.toFixed(2)}`}
+                        <button className="place-order-btn" onClick={handleGoToCheckout}>
+                            Proceed to Checkout
                         </button>
                     </div>
                 )}

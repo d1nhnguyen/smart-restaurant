@@ -116,8 +116,9 @@ export class OrdersService {
             // Generate order number
             const orderNumber = this.generateOrderNumber();
 
-            const taxAmount = 0;
-            const totalAmount = subtotalAmount + taxAmount;
+            const TAX_RATE = 0.08;
+            const taxAmount = subtotalAmount * TAX_RATE;
+            const totalAmount = (Number(subtotalAmount) + taxAmount);
 
             // Create Order
             const newOrder = await tx.order.create({
@@ -167,7 +168,6 @@ export class OrdersService {
                 where: { id: tableId },
                 data: {
                     status: 'OCCUPIED',
-                    currentOrderId: newOrder.id,
                 },
             });
 
@@ -240,6 +240,61 @@ export class OrdersService {
         });
 
         return activeOrder;
+    }
+
+    async updateStatus(id: string, newStatus: OrderStatus) {
+        const order = await this.prisma.order.findUnique({
+            where: { id },
+        });
+
+        if (!order) {
+            throw new NotFoundException(`Order #${id} not found`);
+        }
+
+        // State Machine Validation
+        const validTransitions: Record<OrderStatus, OrderStatus[]> = {
+            [OrderStatus.PENDING]: [OrderStatus.ACCEPTED, OrderStatus.CANCELLED],
+            [OrderStatus.ACCEPTED]: [OrderStatus.PREPARING, OrderStatus.CANCELLED],
+            [OrderStatus.PREPARING]: [OrderStatus.READY],
+            [OrderStatus.READY]: [OrderStatus.SERVED],
+            [OrderStatus.SERVED]: [OrderStatus.COMPLETED],
+            [OrderStatus.COMPLETED]: [], // Terminal state
+            [OrderStatus.CANCELLED]: [], // Terminal state
+        };
+
+        if (!validTransitions[order.status].includes(newStatus)) {
+            throw new BadRequestException(
+                `Invalid status transition from ${order.status} to ${newStatus}`,
+            );
+        }
+
+        const updateData: Prisma.OrderUpdateInput = {
+            status: newStatus,
+        };
+
+        if (newStatus === OrderStatus.ACCEPTED) updateData.confirmedAt = new Date();
+        if (newStatus === OrderStatus.COMPLETED) updateData.completedAt = new Date();
+        if (newStatus === OrderStatus.CANCELLED) updateData.cancelledAt = new Date();
+
+        return this.prisma.$transaction(async (tx) => {
+            const updatedOrder = await tx.order.update({
+                where: { id },
+                data: updateData,
+                include: { table: true },
+            });
+
+            // If COMPLETED or CANCELLED, free up the table
+            if (newStatus === OrderStatus.COMPLETED || newStatus === OrderStatus.CANCELLED) {
+                await tx.table.update({
+                    where: { id: updatedOrder.tableId },
+                    data: {
+                        status: 'AVAILABLE',
+                    },
+                });
+            }
+
+            return updatedOrder;
+        });
     }
 
     /**

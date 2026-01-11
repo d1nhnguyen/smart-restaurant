@@ -14,6 +14,8 @@ import { CartProvider } from './contexts/CartContext';
 
 import QRLandingPage from './pages/QRLandingPage';
 import OrderTrackingPage from './pages/OrderTrackingPage';
+import CheckoutPage from './pages/CheckoutPage';
+import OrderConfirmPage from './pages/OrderConfirmPage';
 
 function App() {
   return (
@@ -24,6 +26,8 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/table/:tableId" element={<QRLandingPage />} />
           <Route path="/order-status/:orderId" element={<OrderTrackingPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/order-success/:orderId" element={<OrderConfirmPage />} />
 
           {/* Admin Routes */}
           <Route path="/admin/tables" element={<TablesPage />} />

@@ -1,6 +1,7 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { OrderStatus } from '@prisma/client';
 
 @Controller('orders')
 export class OrdersController {
@@ -9,6 +10,14 @@ export class OrdersController {
     @Post()
     create(@Body() createOrderDto: CreateOrderDto) {
         return this.ordersService.create(createOrderDto);
+    }
+
+    @Patch(':id/status')
+    updateStatus(
+        @Param('id', ParseUUIDPipe) id: string,
+        @Body('status') status: OrderStatus,
+    ) {
+        return this.ordersService.updateStatus(id, status);
     }
 
     @Get('current')

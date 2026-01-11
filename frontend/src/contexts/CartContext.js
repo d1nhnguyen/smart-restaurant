@@ -241,7 +241,9 @@ export const CartProvider = ({ children }) => {
 
     const subtotal = cart.reduce((sum, item) => sum + item.itemTotal, 0);
     const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-    const total = subtotal; // Tax can be added if needed
+    const TAX_RATE = 0.08;
+    const taxAmount = subtotal * TAX_RATE;
+    const total = subtotal + taxAmount;
 
     return (
         <CartContext.Provider value={{
