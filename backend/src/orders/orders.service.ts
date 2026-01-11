@@ -175,6 +175,73 @@ export class OrdersService {
         });
     }
 
+    async findOne(id: string) {
+        const order = await this.prisma.order.findUnique({
+            where: { id },
+            include: {
+                table: true,
+                items: {
+                    include: {
+                        selectedModifiers: true,
+                    },
+                    orderBy: {
+                        createdAt: 'asc',
+                    },
+                },
+                payments: true,
+            },
+        });
+
+        if (!order) {
+            throw new NotFoundException(`Order #${id} not found`);
+        }
+
+        return order;
+    }
+
+    async findCurrentByTable(tableId: string) {
+        // 1. Check if table exists
+        const table = await this.prisma.table.findUnique({
+            where: { id: tableId },
+        });
+
+        if (!table) {
+            throw new NotFoundException('Table not found');
+        }
+
+        // 2. Find the most recent active order (not completed or cancelled)
+        const activeOrder = await this.prisma.order.findFirst({
+            where: {
+                tableId,
+                status: {
+                    notIn: [OrderStatus.COMPLETED, OrderStatus.CANCELLED],
+                },
+            },
+            include: {
+                table: {
+                    select: {
+                        id: true,
+                        tableNumber: true,
+                        location: true,
+                    },
+                },
+                items: {
+                    include: {
+                        selectedModifiers: true,
+                    },
+                    orderBy: {
+                        createdAt: 'asc',
+                    },
+                },
+            },
+            orderBy: {
+                createdAt: 'desc',
+            },
+        });
+
+        return activeOrder;
+    }
+
     /**
      * Validate modifiers according to business rules:
      * 1. Modifier must belong to this menu item
