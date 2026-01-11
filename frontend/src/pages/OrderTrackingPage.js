@@ -32,6 +32,15 @@ const OrderTrackingPage = () => {
         return () => clearInterval(interval);
     }, [fetchOrder]);
 
+    const { setTable } = useCart();
+
+    // Restore table context if missing (e.g. direct link visit)
+    useEffect(() => {
+        if (order?.table && !table) {
+            setTable(order.table.id, order.table.tableNumber);
+        }
+    }, [order, table, setTable]);
+
     if (loading) return <div className="loading-container"><div className="spinner"></div><p>Fetching order status...</p></div>;
 
     if (error || !order) return (

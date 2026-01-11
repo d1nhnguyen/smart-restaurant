@@ -12,6 +12,22 @@ export const CartProvider = ({ children }) => {
         return savedTable ? JSON.parse(savedTable) : null;
     });
 
+    const [token, setToken] = useState(() => {
+        const stored = localStorage.getItem('qr_token');
+        if (!stored) return null;
+        try {
+            const { token, savedAt } = JSON.parse(stored);
+            const TOKEN_EXPIRY = 4 * 60 * 60 * 1000; // 4 hours
+            if (Date.now() - savedAt > TOKEN_EXPIRY) {
+                localStorage.removeItem('qr_token');
+                return null;
+            }
+            return token;
+        } catch {
+            return null;
+        }
+    });
+
     const [cart, setCart] = useState([]);
     const [orderNotes, setOrderNotes] = useState('');
     const [isCartOpen, setIsCartOpen] = useState(false);
@@ -57,8 +73,26 @@ export const CartProvider = ({ children }) => {
         }
     }, [cart, orderNotes, table?.id]);
 
-    const handleSetTable = (tableId, tableNumber) => {
+    const handleSetTable = (tableId, tableNumber, qrToken) => {
+        // If switching tables, clear the old cart and token
+        if (table && table.id !== tableId) {
+            clearCartData(table.id);
+            setCart([]);
+            setOrderNotes('');
+            localStorage.removeItem('qr_token');
+            setToken(null);
+        }
+
         setTable({ id: tableId, tableNumber });
+
+        if (qrToken) {
+            setToken(qrToken);
+            localStorage.setItem('qr_token', JSON.stringify({
+                token: qrToken,
+                tableId: tableId,
+                savedAt: Date.now()
+            }));
+        }
     };
 
     const clearError = () => setError(null);
@@ -190,6 +224,13 @@ export const CartProvider = ({ children }) => {
             setIsCartOpen(false);
             return result;
         } catch (err) {
+            // Handle 409 Conflict - table already has active order
+            if (err.response?.status === 409) {
+                setError('This table already has an active order. You can add more items to it.');
+                await refreshActiveOrder(table.id);
+                return null;
+            }
+
             const msg = err.response?.data?.message || 'Failed to place order. Please try again.';
             setError(msg);
             throw err;

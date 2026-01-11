@@ -53,8 +53,8 @@ export class QrService {
       data: { qrToken: token },
     });
 
-    // Generate QR URL
-    const qrUrl = `${this.frontendUrl}/menu?table=${tableId}&token=${token}`;
+    // Generate QR URL - Point to landing page for validation and context setup
+    const qrUrl = `${this.frontendUrl}/table/${tableId}?token=${token}`;
 
     return { token, qrUrl };
   }

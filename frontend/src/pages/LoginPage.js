@@ -54,7 +54,7 @@ const LoginPage = () => {
   return (
     <div className="login-container">
       <div className="login-card">
-        <h1 className="login-title">Menu Management</h1>
+        <h1 className="login-title">Smart Restaurant</h1>
         <h2 className="login-subtitle">{isLogin ? 'Login' : 'Register'}</h2>
 
         {error && <div className="error-message">{error}</div>}

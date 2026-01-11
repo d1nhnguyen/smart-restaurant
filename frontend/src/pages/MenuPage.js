@@ -18,9 +18,10 @@ const MenuPage = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [sortBy, setSortBy] = useState('');
 
-  const { addToCart, table, error: cartError, clearError } = useCart();
+  const { addToCart, table, setTable, error: cartError, clearError, activeOrder, token: contextToken } = useCart();
 
-  const token = searchParams.get('token');
+  const urlToken = searchParams.get('token');
+  const token = urlToken || contextToken;
 
   useEffect(() => {
     const fetchMenu = async () => {
@@ -34,7 +35,13 @@ const MenuPage = () => {
       try {
         const url = token ? `/api/menu?token=${token}` : `/api/menu?tableId=${table.id}`;
         const response = await axios.get(url);
-        setMenuData(response.data);
+        const data = response.data;
+        setMenuData(data);
+
+        // Sync table info to context if it came from a token or is different
+        if (data.table && (!table || table.id !== data.table.id)) {
+          setTable(data.table.id, data.table.tableNumber, data.table.qrToken);
+        }
       } catch (err) {
         setErrorStatus(err.response?.data?.message || 'Unauthorized access');
       } finally {
@@ -43,7 +50,7 @@ const MenuPage = () => {
     };
 
     fetchMenu();
-  }, [token, table?.id]);
+  }, [token, table?.id, setTable]);
 
   if (loading) {
     return (
@@ -56,30 +63,41 @@ const MenuPage = () => {
 
   if (errorStatus) {
     return (
-      <div className="loading-container">
-        <div style={{ fontSize: '50px' }}>🍽️</div>
-        <h2 style={{ margin: '20px 0 10px' }}>Welcome!</h2>
-        <p style={{ color: '#666', padding: '0 40px', textAlign: 'center' }}>
-          {errorStatus}
-        </p>
-        <button
-          onClick={() => navigate('/login')}
-          style={{
-            marginTop: '20px',
-            padding: '12px 30px',
-            fontSize: '16px',
-            fontWeight: '600',
-            color: '#fff',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
-            transition: 'all 0.3s ease'
-          }}
-        >
-          Login
-        </button>
+      <div className="guest-landing">
+        <div className="landing-content">
+          <div className="landing-icon">🍽️</div>
+          <h1>Welcome!</h1>
+          <p className="landing-message">
+            To view our menu and place an order, please scan the QR code on your table.
+          </p>
+
+          <div className="scan-instructions">
+            <div className="instruction-step">
+              <span className="step-icon">📱</span>
+              <span>Open your camera app</span>
+            </div>
+            <div className="instruction-step">
+              <span className="step-icon">🎯</span>
+              <span>Point at the QR code on your table</span>
+            </div>
+            <div className="instruction-step">
+              <span className="step-icon">👆</span>
+              <span>Tap the link that appears</span>
+            </div>
+          </div>
+
+          <div className="qr-visual">
+            <div className="qr-placeholder">
+              <span>📷</span>
+            </div>
+            <p>Look for this on your table</p>
+          </div>
+
+          <div className="staff-access">
+            <span>Staff member? </span>
+            <button onClick={() => navigate('/login')}>Login here</button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -121,22 +139,30 @@ const MenuPage = () => {
     <div className="menu-page">
       {/* Expiry / Cart Error Banner */}
       {cartError && (
-        <div style={{
-          background: '#fee2e2',
-          padding: '12px 20px',
-          color: '#ef4444',
-          fontSize: '14px',
-          textAlign: 'center',
-          position: 'sticky',
-          top: 0,
-          zIndex: 1100,
-          borderBottom: '1px solid #fecaca',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
+        <div className="error-banner">
           <span>{cartError}</span>
-          <button onClick={clearError} style={{ background: 'none', border: 'none', color: '#ef4444', fontWeight: 'bold', cursor: 'pointer' }}>✕</button>
+          <button onClick={clearError}>✕</button>
+        </div>
+      )}
+
+      {/* Active Order Banner */}
+      {activeOrder && (
+        <div className="active-order-banner">
+          <div className="banner-content">
+            <div className="banner-info">
+              <span className="banner-icon">📋</span>
+              <span>Active Order: <strong>#{activeOrder.orderNumber}</strong></span>
+              <span className={`status-chip ${activeOrder.status.toLowerCase()}`}>
+                {activeOrder.status}
+              </span>
+            </div>
+            <button
+              className="banner-btn"
+              onClick={() => navigate(`/order-status/${activeOrder.id}`)}
+            >
+              View Order →
+            </button>
+          </div>
         </div>
       )}
 

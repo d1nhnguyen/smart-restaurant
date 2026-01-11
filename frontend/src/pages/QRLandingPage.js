@@ -35,14 +35,17 @@ const QRLandingPage = () => {
                 }
 
                 // 2. Initialize Cart Context
-                setTable(tableData.id, tableData.tableNumber);
+                setTable(tableData.id, tableData.tableNumber, tableData.qrToken);
 
                 // 3. Check for existing order
                 await refreshActiveOrder(tableData.id);
 
-                // 4. Secure Navigation: Do not leak qrToken in URL
-                // MenuPage should rely on context for tableId now.
-                navigate('/menu', { replace: true });
+                // 4. Secure Navigation: Do not leak qrToken in URL unless needed for MenuPage
+                const searchParams = new URLSearchParams(window.location.search);
+                const token = searchParams.get('token');
+                const targetPath = token ? `/menu?token=${token}` : '/menu';
+
+                navigate(targetPath, { replace: true });
 
             } catch (err) {
                 console.error('Table validation failed', err);
