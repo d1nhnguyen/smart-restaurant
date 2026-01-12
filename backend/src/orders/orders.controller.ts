@@ -12,12 +12,47 @@ export class OrdersController {
         return this.ordersService.create(createOrderDto);
     }
 
+    @Get()
+    findAll(@Query('status') status?: OrderStatus) {
+        return this.ordersService.findAll(status);
+    }
+
     @Patch(':id/status')
     updateStatus(
         @Param('id', ParseUUIDPipe) id: string,
         @Body('status') status: OrderStatus,
     ) {
         return this.ordersService.updateStatus(id, status);
+    }
+
+    @Post(':id/accept')
+    acceptOrder(@Param('id', ParseUUIDPipe) id: string) {
+        return this.ordersService.acceptOrder(id);
+    }
+
+    @Post(':id/reject')
+    rejectOrder(@Param('id', ParseUUIDPipe) id: string) {
+        return this.ordersService.rejectOrder(id);
+    }
+
+    @Post(':id/send-to-kitchen')
+    sendToKitchen(@Param('id', ParseUUIDPipe) id: string) {
+        return this.ordersService.sendToKitchen(id);
+    }
+
+    @Post(':id/mark-ready')
+    markAsReady(@Param('id', ParseUUIDPipe) id: string) {
+        return this.ordersService.markAsReady(id);
+    }
+
+    @Post(':id/served')
+    markAsServed(@Param('id', ParseUUIDPipe) id: string) {
+        return this.ordersService.markAsServed(id);
+    }
+
+    @Post(':id/complete')
+    completeOrder(@Param('id', ParseUUIDPipe) id: string) {
+        return this.ordersService.completeOrder(id);
     }
 
     @Get('current')

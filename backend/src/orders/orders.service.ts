@@ -209,8 +209,8 @@ export class OrdersService {
             throw new NotFoundException('Table not found');
         }
 
-        // 2. Find the most recent active order (not completed or cancelled)
-        const activeOrder = await this.prisma.order.findFirst({
+        // 2. Find ALL active orders (not completed or cancelled) for this table
+        const activeOrders = await this.prisma.order.findMany({
             where: {
                 tableId,
                 status: {
@@ -239,7 +239,41 @@ export class OrdersService {
             },
         });
 
-        return activeOrder;
+        return activeOrders;
+    }
+
+    async findAll(status?: OrderStatus) {
+        const where: Prisma.OrderWhereInput = {};
+
+        if (status) {
+            where.status = status;
+        }
+
+        const orders = await this.prisma.order.findMany({
+            where,
+            include: {
+                table: {
+                    select: {
+                        id: true,
+                        tableNumber: true,
+                        location: true,
+                    },
+                },
+                items: {
+                    include: {
+                        selectedModifiers: true,
+                    },
+                    orderBy: {
+                        createdAt: 'asc',
+                    },
+                },
+            },
+            orderBy: {
+                createdAt: 'desc',
+            },
+        });
+
+        return orders;
     }
 
     async updateStatus(id: string, newStatus: OrderStatus) {
@@ -280,7 +314,14 @@ export class OrdersService {
             const updatedOrder = await tx.order.update({
                 where: { id },
                 data: updateData,
-                include: { table: true },
+                include: {
+                    table: true,
+                    items: {
+                        include: {
+                            selectedModifiers: true,
+                        },
+                    },
+                },
             });
 
             // If COMPLETED or CANCELLED, free up the table
@@ -295,6 +336,31 @@ export class OrdersService {
 
             return updatedOrder;
         });
+    }
+
+    // Convenience methods for order status transitions
+    async acceptOrder(id: string) {
+        return this.updateStatus(id, OrderStatus.ACCEPTED);
+    }
+
+    async rejectOrder(id: string) {
+        return this.updateStatus(id, OrderStatus.CANCELLED);
+    }
+
+    async sendToKitchen(id: string) {
+        return this.updateStatus(id, OrderStatus.PREPARING);
+    }
+
+    async markAsReady(id: string) {
+        return this.updateStatus(id, OrderStatus.READY);
+    }
+
+    async markAsServed(id: string) {
+        return this.updateStatus(id, OrderStatus.SERVED);
+    }
+
+    async completeOrder(id: string) {
+        return this.updateStatus(id, OrderStatus.COMPLETED);
     }
 
     /**
