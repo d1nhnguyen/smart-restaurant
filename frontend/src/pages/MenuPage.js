@@ -17,8 +17,9 @@ const MenuPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedItem, setSelectedItem] = useState(null);
   const [sortBy, setSortBy] = useState('');
+  const [ordersExpanded, setOrdersExpanded] = useState(false);
 
-  const { addToCart, table, setTable, error: cartError, clearError, activeOrder, token: contextToken } = useCart();
+  const { addToCart, table, setTable, error: cartError, clearError, activeOrder, activeOrders, token: contextToken } = useCart();
 
   const urlToken = searchParams.get('token');
   const token = urlToken || contextToken;
@@ -158,24 +159,47 @@ const MenuPage = () => {
         </div>
       )}
 
-      {/* Active Order Banner */}
-      {activeOrder && (
-        <div className="active-order-banner">
-          <div className="banner-content">
-            <div className="banner-info">
-              <span className="banner-icon">📋</span>
-              <span>Active Order: <strong>#{activeOrder.orderNumber}</strong></span>
-              <span className={`status-chip ${activeOrder.status.toLowerCase()}`}>
-                {activeOrder.status}
-              </span>
+
+      {/* Active Orders Banner - Collapsible */}
+      {activeOrders && activeOrders.length > 0 && (
+        <div className="active-orders-banner">
+          {/* Compact button view */}
+          <div className="banner-toggle" onClick={() => setOrdersExpanded(!ordersExpanded)}>
+            <div className="banner-toggle-content">
+              <div className="banner-info">
+                <span className="banner-icon">📋</span>
+                <span><strong>{activeOrders.length}</strong> Active Order{activeOrders.length > 1 ? 's' : ''}</span>
+              </div>
+              <button className="toggle-btn">
+                {ordersExpanded ? '▲ Hide' : '▼ Show'}
+              </button>
             </div>
-            <button
-              className="banner-btn"
-              onClick={() => navigate(`/order-status/${activeOrder.id}`)}
-            >
-              View Order →
-            </button>
           </div>
+
+          {/* Expanded orders list */}
+          {ordersExpanded && (
+            <div className="orders-list">
+              {activeOrders.map(order => (
+                <div key={order.id} className="banner-content">
+                  <div className="banner-info">
+                    <span>Order: <strong>#{order.orderNumber}</strong></span>
+                    <span className={`status-chip ${order.status.toLowerCase()}`}>
+                      {order.status}
+                    </span>
+                  </div>
+                  <button
+                    className="banner-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/order-status/${order.id}`);
+                    }}
+                  >
+                    View →
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
