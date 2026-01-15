@@ -266,7 +266,88 @@ async function main() {
   }
 
   console.log(`✅ Attached modifiers to ${allItems.length} menu items`);
+  console.log('📝 Seeding sample orders for KDS testing...');
 
+  // Get available data for order creation
+  const tablesForOrders = await prisma.table.findMany();
+  const allMenuItems = await prisma.menuItem.findMany();
+
+  // Helper function to create past timestamps
+  const minutesAgo = (min) => new Date(Date.now() - min * 60000);
+
+  const ordersData = [
+    {
+      orderNumber: "ORD-KDS-001",
+      table: tablesForOrders[0],
+      status: 'PREPARING',
+      confirmedAt: minutesAgo(5), // 🟢 Green timer (< 10 mins)
+      customerName: "Anh Tuấn",
+      items: [
+        { item: allMenuItems[0], qty: 2 },
+        { item: allMenuItems[1], qty: 1 }
+      ]
+    },
+    {
+      orderNumber: "ORD-KDS-002",
+      table: tablesForOrders[4],
+      status: 'PREPARING',
+      confirmedAt: minutesAgo(15), // 🟡 Yellow timer (10-20 mins)
+      customerName: "Chị Lan",
+      items: [
+        { item: allMenuItems[2], qty: 3 }
+      ]
+    },
+    {
+      orderNumber: "ORD-KDS-003",
+      table: tablesForOrders[7],
+      status: 'PREPARING',
+      confirmedAt: minutesAgo(25), // 🔴 Red timer (> 20 mins)
+      customerName: "Bác Hùng",
+      items: [
+        { item: allMenuItems[3], qty: 1 },
+        { item: allMenuItems[4], qty: 2 }
+      ]
+    },
+    {
+      orderNumber: "ORD-KDS-004",
+      table: tablesForOrders[1],
+      status: 'PENDING', // Will not show on KDS
+      customerName: "Khách vãng lai",
+      items: [{ item: allMenuItems[0], qty: 4 }]
+    }
+  ];
+
+  for (const o of ordersData) {
+    const subtotal = o.items.reduce((sum, i) => sum + (Number(i.item.price) * i.qty), 0);
+    
+    await prisma.order.upsert({
+      where: { orderNumber: o.orderNumber },
+      update: {},
+      create: {
+        orderNumber: o.orderNumber,
+        tableId: o.table.id,
+        orderDate: new Date(),
+        status: o.status,
+        confirmedAt: o.confirmedAt,
+        subtotalAmount: subtotal,
+        totalAmount: subtotal,
+        customerName: o.customerName,
+        items: {
+          create: o.items.map(i => ({
+            menuItemId: i.item.id,
+            menuItemName: i.item.name,
+            menuItemPrice: i.item.price,
+            quantity: i.qty,
+            unitPrice: i.item.price,
+            subtotal: Number(i.item.price) * i.qty,
+            status: 'PREPARING'
+          }))
+        }
+      }
+    });
+  }
+
+  console.log(`✅ Created ${ordersData.length} sample orders for KDS`);
   console.log('🎉 Database seeding completed!');
 }
 

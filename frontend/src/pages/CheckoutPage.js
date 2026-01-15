@@ -1,15 +1,24 @@
-import React from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
+import axios from 'axios';
 import './CheckoutPage.css';
 
 const CheckoutPage = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    
+    // Lấy dữ liệu từ CartContext (từ HEAD)
     const {
         cart, subtotal, total, taxAmount, orderNotes, setOrderNotes,
         placeOrder, isSubmitting, error, table
     } = useCart();
 
+    // State cho phương thức thanh toán (từ Incoming)
+    const [paymentMethod, setPaymentMethod] = useState('CARD');
+    const [loading, setLoading] = useState(false);
+
+    // Kiểm tra session bàn (từ HEAD)
     if (!table) {
         return (
             <div className="checkout-container">
@@ -22,6 +31,7 @@ const CheckoutPage = () => {
         );
     }
 
+    // Kiểm tra giỏ hàng trống (từ HEAD)
     if (cart.length === 0) {
         return (
             <div className="checkout-container">
@@ -34,14 +44,37 @@ const CheckoutPage = () => {
         );
     }
 
+    // Logic xử lý đặt hàng & thanh toán kết hợp
     const handleConfirmOrder = async () => {
+        setLoading(true);
         try {
+            // 1. Đặt hàng (sử dụng hàm từ Context của HEAD)
             const order = await placeOrder();
-            if (order) {
-                navigate(`/order-success/${order.id}`);
+            
+            if (order && order.id) {
+                // 2. Gọi API thanh toán (Logic từ Incoming)
+                const payRes = await axios.post('/api/payments', {
+                    orderId: order.id,
+                    amount: total,
+                    method: paymentMethod
+                });
+
+                if (paymentMethod !== 'CASH') {
+                    // Giả lập xử lý thanh toán online hoặc confirm
+                    if (paymentMethod === 'CARD') await new Promise(resolve => setTimeout(resolve, 1500));
+                    
+                    await axios.post(`/api/payments/${payRes.data.id}/confirm`);
+                    
+                    navigate(`/order-success/${order.id}`);
+                } else {
+                    alert("Vui lòng thanh toán tại quầy. Đơn hàng của bạn đã được gửi!");
+                    navigate(`/order-success/${order.id}`);
+                }
             }
         } catch (err) {
-            console.error('Order placement failed', err);
+            console.error('Order placement or payment failed', err);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -54,6 +87,7 @@ const CheckoutPage = () => {
             </header>
 
             <main className="checkout-main">
+                {/* Tóm tắt đơn hàng (từ HEAD - chi tiết hơn) */}
                 <section className="order-summary">
                     <h2>Order Summary</h2>
                     <div className="items-list">
@@ -70,11 +104,27 @@ const CheckoutPage = () => {
                                             {item.selectedModifiers.map(m => m.modifierOptionName).join(', ')}
                                         </p>
                                     )}
-                                    {item.specialRequest && (
-                                        <p className="special-req">Note: {item.specialRequest}</p>
-                                    )}
                                 </div>
                             </div>
+                        ))}
+                    </div>
+                </section>
+
+                {/* Chọn phương thức thanh toán (Tích hợp từ Incoming) */}
+                <section className="payment-method-section">
+                    <h2>Payment Method</h2>
+                    <div className="payment-grid">
+                        {['CARD', 'MOMO', 'ZALOPAY', 'CASH'].map(method => (
+                            <label key={method} className={`payment-option ${paymentMethod === method ? 'active' : ''}`}>
+                                <input 
+                                    type="radio" 
+                                    name="payment" 
+                                    value={method} 
+                                    checked={paymentMethod === method} 
+                                    onChange={(e) => setPaymentMethod(e.target.value)} 
+                                />
+                                {method}
+                            </label>
                         ))}
                     </div>
                 </section>
@@ -110,11 +160,10 @@ const CheckoutPage = () => {
                 <button
                     className="place-order-btn"
                     onClick={handleConfirmOrder}
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || loading}
                 >
-                    {isSubmitting ? 'Processing...' : `Confirm & Place Order - $${total.toFixed(2)}`}
+                    {isSubmitting || loading ? 'Processing...' : `Confirm & Pay - $${total.toFixed(2)}`}
                 </button>
-                <p className="disclaimer">By placing this order, you agree to our terms of service.</p>
             </footer>
         </div>
     );

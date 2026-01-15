@@ -6,7 +6,7 @@ import { MenuModule } from './menu/menu.module';
 import { AuthModule } from './auth/auth.module';
 import { OrdersModule } from './orders/orders.module';
 import { AppController } from './app.controller';
-
+import { PaymentsModule } from './payments/payments.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -17,6 +17,7 @@ import { AppController } from './app.controller';
     MenuModule,
     AuthModule,
     OrdersModule,
+    PaymentsModule,
   ],
   controllers: [AppController],
 })
