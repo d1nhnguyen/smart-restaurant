@@ -36,7 +36,7 @@ function App() {
           <Route path="/admin/categories" element={<AdminCategoryPage />} />
           <Route path="/admin/modifiers" element={<AdminModifierPage />} />
           <Route path="/admin/orders" element={<AdminOrderPage />} />
-
+          <Route path="/admin/kds" element={<KDSPage />} />
           {/* Public Customer Routes */}
           <Route path="/menu" element={<MenuPage />} />
           <Route path="/" element={<MenuPage />} /> {/* Default to menu if no path */}
