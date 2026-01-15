@@ -16,7 +16,10 @@ import { PaymentsModule } from './payments/payments.module';
     TablesModule,
     MenuModule,
     AuthModule,
+<<<<<<< HEAD
     OrdersModule,
+=======
+>>>>>>> 5ee4fb4 (Config module)
     PaymentsModule,
   ],
   controllers: [AppController],
