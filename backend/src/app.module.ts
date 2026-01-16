@@ -8,6 +8,7 @@ import { OrdersModule } from './orders/orders.module';
 import { AppController } from './app.controller';
 import { KitchenModule } from './kitchen/kitchen.module';
 
+import { PaymentsModule } from './payments/payments.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -19,6 +20,7 @@ import { KitchenModule } from './kitchen/kitchen.module';
     AuthModule,
     OrdersModule,
     KitchenModule,
+    PaymentsModule,
   ],
   controllers: [AppController],
 })

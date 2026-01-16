@@ -18,6 +18,11 @@ import OrderTrackingPage from './pages/OrderTrackingPage';
 import CheckoutPage from './pages/CheckoutPage';
 import OrderConfirmPage from './pages/OrderConfirmPage';
 
+import KDSPage from './pages/KDSPage';
+
+import PaymentSuccessPage from './pages/PaymentSuccessPage';
+import PaymentFailedPage from './pages/PaymentFailedPage';
+
 function App() {
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
@@ -37,9 +42,13 @@ function App() {
           <Route path="/admin/modifiers" element={<AdminModifierPage />} />
           <Route path="/admin/orders" element={<AdminOrderPage />} />
           <Route path="/admin/kds" element={<KDSPage />} />
+
           {/* Public Customer Routes */}
           <Route path="/menu" element={<MenuPage />} />
           <Route path="/" element={<MenuPage />} /> {/* Default to menu if no path */}
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/payment/success" element={<PaymentSuccessPage />} />
+          <Route path="/payment/failed" element={<PaymentFailedPage />} />
 
         </Routes >
       </CartProvider >
