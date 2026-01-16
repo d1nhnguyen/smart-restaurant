@@ -108,15 +108,29 @@ export class MenuController {
   // ==================================================================
 
   @Get('menu')
-  async getMenu(@Query('token') token: string) {
-    if (!token) {
-      throw new BadRequestException('Token is required. Please scan the QR code again.');
+  async getMenu(
+    @Query('token') token?: string,
+    @Query('tableId') tableId?: string
+  ) {
+    if (!token && !tableId) {
+      throw new BadRequestException('Token or Table ID is required.');
     }
 
-    const result = await this.qrService.verifyQrToken(token);
+    let tableInfo;
 
-    if (!result.valid) {
-      throw new UnauthorizedException(result.error || 'Invalid or expired token');
+    if (token) {
+      const result = await this.qrService.verifyQrToken(token);
+      if (!result.valid) {
+        throw new UnauthorizedException(result.error || 'Invalid or expired token');
+      }
+      tableInfo = result.table;
+    } else {
+      // Direct access via tableId (session already established)
+      const table = await this.itemService.getTableById(tableId); // Assuming itemService or prisma access
+      if (!table || table.status === 'INACTIVE') {
+        throw new UnauthorizedException('Invalid or inactive table');
+      }
+      tableInfo = table;
     }
 
     // Lấy tất cả categories và chỉ giữ lại những category ACTIVE
@@ -138,8 +152,11 @@ export class MenuController {
 
     return {
       success: true,
-      table: result.table,
-      message: `Welcome to Table ${result.table.tableNumber}!`,
+      table: {
+        ...tableInfo,
+        qrToken: token || tableInfo.qrToken
+      },
+      message: `Welcome to Table ${tableInfo.tableNumber}!`,
       categories: activeCategories,
       menuItems: activeItems,
     };

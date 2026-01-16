@@ -23,7 +23,6 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TableStatus } from '@prisma/client';
 
 @Controller('tables')
-@UseGuards(JwtAuthGuard)
 export class TablesController {
   constructor(
     private readonly tablesService: TablesService,
@@ -32,6 +31,7 @@ export class TablesController {
   ) { }
 
   @Post()
+  @UseGuards(JwtAuthGuard)
   create(@Body() createTableDto: CreateTableDto) {
     return this.tablesService.create(createTableDto);
   }
@@ -39,6 +39,7 @@ export class TablesController {
   // API 1: Tải tất cả QR code (ZIP)
   // Đặt endpoint này TRƯỚC @Get(':id') để tránh bị nhầm 'qr/download-all' là một cái id
   @Get('qr/download-all')
+  @UseGuards(JwtAuthGuard)
   @Header('Content-Type', 'application/zip')
   async downloadAllZip(@Res({ passthrough: true }) res): Promise<StreamableFile> {
     try {
@@ -60,6 +61,7 @@ export class TablesController {
 
   // API 2: Tải PDF của 1 bàn
   @Get(':id/qr/download')
+  @UseGuards(JwtAuthGuard)
   @Header('Content-Type', 'application/pdf')
   async downloadTablePdf(
     @Param('id') id: string,
@@ -83,6 +85,7 @@ export class TablesController {
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard)
   findAll(
     @Query('status') status?: string,
     @Query('location') location?: string,
@@ -92,6 +95,7 @@ export class TablesController {
   }
 
   @Get('locations')
+  @UseGuards(JwtAuthGuard)
   getLocations() {
     return this.tablesService.getLocations();
   }
@@ -102,11 +106,13 @@ export class TablesController {
   }
 
   @Put(':id')
+  @UseGuards(JwtAuthGuard)
   update(@Param('id') id: string, @Body() updateTableDto: UpdateTableDto) {
     return this.tablesService.update(id, updateTableDto);
   }
 
   @Patch(':id/status')
+  @UseGuards(JwtAuthGuard)
   updateStatus(@Param('id') id: string, @Body() updateStatusDto: UpdateStatusDto) {
     // Map DTO status to Enum
     const status = updateStatusDto.status === 'ACTIVE'
@@ -116,6 +122,7 @@ export class TablesController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
   remove(@Param('id') id: string) {
     return this.tablesService.remove(id);
   }
@@ -128,6 +135,7 @@ export class TablesController {
    * MUST BE BEFORE :id routes to avoid conflict
    */
   @Post('qr/regenerate-all')
+  @UseGuards(JwtAuthGuard)
   async regenerateAllQr() {
     // Regenerate for AVAILABLE tables
     const tables = await this.tablesService.findAll({ status: TableStatus.AVAILABLE });
@@ -155,6 +163,7 @@ export class TablesController {
    * POST /tables/:id/qr/generate
    */
   @Post(':id/qr/generate')
+  @UseGuards(JwtAuthGuard)
   generateQr(@Param('id') id: string) {
     return this.qrService.generateQrToken(id);
   }
@@ -164,6 +173,7 @@ export class TablesController {
    * POST /tables/:id/qr/regenerate
    */
   @Post(':id/qr/regenerate')
+  @UseGuards(JwtAuthGuard)
   regenerateQr(@Param('id') id: string) {
     return this.qrService.regenerateQrToken(id);
   }
@@ -173,6 +183,7 @@ export class TablesController {
    * GET /tables/:id/qr
    */
   @Get(':id/qr')
+  @UseGuards(JwtAuthGuard)
   getTableQr(@Param('id') id: string) {
     return this.qrService.getTableWithQrUrl(id);
   }

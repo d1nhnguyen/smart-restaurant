@@ -10,23 +10,37 @@ import ProtectedRoute from './components/ProtectedRoute';
 import AdminItemPage from './pages/AdminItemPage';
 import AdminCategoryPage from './pages/AdminCategoryPage';
 import AdminModifierPage from './pages/AdminModifierPage';
+import { CartProvider } from './contexts/CartContext';
+
+import QRLandingPage from './pages/QRLandingPage';
+import OrderTrackingPage from './pages/OrderTrackingPage';
+import CheckoutPage from './pages/CheckoutPage';
+import OrderConfirmPage from './pages/OrderConfirmPage';
+
 function App() {
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/login" element={<LoginPage />} />
-        {/* Admin Routes */}
-        <Route path="/admin/tables" element={<TablesPage />} />
-        <Route path="/admin/items" element={<AdminItemPage />} />
-        <Route path="/admin/categories" element={<AdminCategoryPage />} />
-        <Route path="/admin/modifiers" element={<AdminModifierPage />} />
+      <CartProvider>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/table/:tableId" element={<QRLandingPage />} />
+          <Route path="/order-status/:orderId" element={<OrderTrackingPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/order-success/:orderId" element={<OrderConfirmPage />} />
 
-        {/* Public Customer Routes */}
-        <Route path="/menu" element={<MenuPage />} />
-        <Route path="/" element={<MenuPage />} /> {/* Default to menu if no path */}
+          {/* Admin Routes */}
+          <Route path="/admin/tables" element={<TablesPage />} />
+          <Route path="/admin/items" element={<AdminItemPage />} />
+          <Route path="/admin/categories" element={<AdminCategoryPage />} />
+          <Route path="/admin/modifiers" element={<AdminModifierPage />} />
 
-      </Routes>
+          {/* Public Customer Routes */}
+          <Route path="/menu" element={<MenuPage />} />
+          <Route path="/" element={<MenuPage />} /> {/* Default to menu if no path */}
+
+        </Routes>
+      </CartProvider>
     </Router>
   );
 }

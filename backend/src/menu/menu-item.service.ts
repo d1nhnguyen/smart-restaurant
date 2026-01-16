@@ -222,4 +222,8 @@ export class MenuItemService {
       data: { isPrimary: true },
     });
   }
+
+  async getTableById(id: string) {
+    return this.prisma.table.findUnique({ where: { id } });
+  }
 }

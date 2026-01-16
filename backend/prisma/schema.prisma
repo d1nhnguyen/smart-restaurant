@@ -20,9 +20,10 @@ enum TableStatus {
 
 enum OrderStatus {
   PENDING
-  CONFIRMED
+  ACCEPTED
   PREPARING
   READY
+  SERVED
   COMPLETED
   CANCELLED
 }
