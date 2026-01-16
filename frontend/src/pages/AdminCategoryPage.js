@@ -61,17 +61,7 @@ const AdminCategoryPage = () => {
     }
   };
 
-  const handleToggleStatus = async (cat) => {
-    const newStatus = cat.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-    try {
-      // Gọi endpoint updateStatus riêng biệt
-      await axios.patch(`/api/admin/menu/categories/${cat.id}/status`, { status: newStatus });
-      fetchCategories();
-    } catch (error) {
-      console.error('Error updating status:', error);
-      alert('Failed to update status');
-    }
-  };
+
 
   const handleDeleteCategory = async (id) => {
     if (!window.confirm("Are you sure? This category can only be deleted if it has no items.")) return;

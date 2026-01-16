@@ -11,7 +11,7 @@ const PhotoManager = ({ itemId, photos = [], onUpdate, onLocalChange }) => {
         return () => {
             localPhotos.forEach(p => URL.revokeObjectURL(p.url));
         };
-    }, []);
+    }, [localPhotos]);
 
     const handleFileChange = async (e) => {
         const files = Array.from(e.target.files);
