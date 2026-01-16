@@ -5,7 +5,7 @@ import './custom-styles.css';
 import TablesPage from './pages/TablesPage';
 import MenuPage from './pages/MenuPage';
 import LoginPage from './pages/LoginPage';
-import ProtectedRoute from './components/ProtectedRoute';
+
 
 import AdminItemPage from './pages/AdminItemPage';
 import AdminCategoryPage from './pages/AdminCategoryPage';

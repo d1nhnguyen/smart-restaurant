@@ -13,7 +13,7 @@ const MenuPage = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedItem, setSelectedItem] = useState(null);
-  const [orderItems, setOrderItems] = useState([]);
+
   const [sortBy, setSortBy] = useState('');
 
   const token = searchParams.get('token');
@@ -120,7 +120,7 @@ const MenuPage = () => {
 
 
   const handleAddToOrder = (orderData) => {
-    setOrderItems(prev => [...prev, { ...orderData, id: Date.now() }]);
+    // setOrderItems(prev => [...prev, { ...orderData, id: Date.now() }]);
     setSelectedItem(null);
     alert('Item added to order!');
   };
