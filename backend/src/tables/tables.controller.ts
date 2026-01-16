@@ -20,7 +20,6 @@ import { CreateTableDto } from './dto/create-table.dto';
 import { UpdateTableDto } from './dto/update-table.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { TableStatus } from '@prisma/client';
 
 @Controller('tables')
 @UseGuards(JwtAuthGuard)
@@ -29,7 +28,7 @@ export class TablesController {
     private readonly tablesService: TablesService,
     private readonly qrService: QrService,
     private readonly tablesExportService: TablesExportService,
-  ) { }
+  ) {}
 
   @Post()
   create(@Body() createTableDto: CreateTableDto) {
@@ -43,14 +42,14 @@ export class TablesController {
   async downloadAllZip(@Res({ passthrough: true }) res): Promise<StreamableFile> {
     try {
       // Lấy tất cả bàn từ DB
-      const tables = await this.tablesService.findAll({});
+      const tables = await this.tablesService.findAll({}); 
       // Gọi service export để nén zip
       const { stream, filename } = await this.tablesExportService.generateAllQrsZip(tables);
-
+      
       res.set({
         'Content-Disposition': `attachment; filename="${filename}"`,
       });
-
+      
       return new StreamableFile(stream);
     } catch (error) {
       console.error('Error generating ZIP:', error);
@@ -70,18 +69,18 @@ export class TablesController {
       const table = await this.tablesService.findOne(id);
       // Gọi service export để tạo PDF
       const { stream, filename } = await this.tablesExportService.generateTablePdf(table);
-
+      
       res.set({
         'Content-Disposition': `attachment; filename="${filename}"`,
       });
-
+      
       return new StreamableFile(stream);
     } catch (error) {
       console.error('Error generating PDF:', error);
       throw error;
     }
   }
-
+  
   @Get()
   findAll(
     @Query('status') status?: string,
@@ -108,11 +107,7 @@ export class TablesController {
 
   @Patch(':id/status')
   updateStatus(@Param('id') id: string, @Body() updateStatusDto: UpdateStatusDto) {
-    // Map DTO status to Enum
-    const status = updateStatusDto.status === 'ACTIVE'
-      ? TableStatus.AVAILABLE
-      : TableStatus.INACTIVE;
-    return this.tablesService.updateStatus(id, status);
+    return this.tablesService.updateStatus(id, updateStatusDto.status);
   }
 
   @Delete(':id')
@@ -129,10 +124,9 @@ export class TablesController {
    */
   @Post('qr/regenerate-all')
   async regenerateAllQr() {
-    // Regenerate for AVAILABLE tables
-    const tables = await this.tablesService.findAll({ status: TableStatus.AVAILABLE });
+    const tables = await this.tablesService.findAll({ status: 'ACTIVE' });
     let regeneratedCount = 0;
-
+    
     for (const table of tables) {
       try {
         await this.qrService.regenerateQrToken(table.id);
@@ -141,7 +135,7 @@ export class TablesController {
         console.error(`Failed to regenerate QR for table ${table.id}:`, error);
       }
     }
-
+    
     return {
       success: true,
       regeneratedCount,

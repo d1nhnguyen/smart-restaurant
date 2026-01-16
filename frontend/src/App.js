@@ -12,7 +12,7 @@ import AdminCategoryPage from './pages/AdminCategoryPage';
 import AdminModifierPage from './pages/AdminModifierPage';
 function App() {
   return (
-    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <Router>
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<LoginPage />} />

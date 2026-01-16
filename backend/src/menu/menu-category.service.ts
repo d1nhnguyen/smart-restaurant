@@ -5,40 +5,47 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 import { MenuStatus } from '@prisma/client';
 @Injectable()
 export class MenuCategoryService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
-  async create(dto: CreateCategoryDto) {
-    // Check trùng tên
+  async create(restaurantId: string, dto: CreateCategoryDto) {
+    // Check trùng tên trong cùng nhà hàng
     const exists = await this.prisma.menuCategory.findUnique({
       where: {
-        name: dto.name,
+        restaurantId_name: {
+          restaurantId,
+          name: dto.name,
+        },
       },
     });
 
     if (exists) {
-      throw new ConflictException('Category name already exists');
+      throw new ConflictException('Category name already exists in this restaurant');
     }
 
     return this.prisma.menuCategory.create({
-      data: dto,
+      data: {
+        ...dto,
+        restaurantId,
+      },
     });
   }
 
-  async findAll() {
+  async findAll(restaurantId: string) {
     return this.prisma.menuCategory.findMany({
+      where: { restaurantId },
       orderBy: { displayOrder: 'asc' }, // Sắp xếp theo thứ tự hiển thị
       include: {
         _count: {
-          select: { items: { where: { isDeleted: false } } } // Đếm số món ăn đang có
+            select: { items: { where: { isDeleted: false } } } // Đếm số món ăn đang có
         }
       }
     });
   }
 
-  async update(id: string, dto: UpdateCategoryDto) {
+  async update(id: string, restaurantId: string, dto: UpdateCategoryDto) {
     // Check tồn tại
-    const category = await this.prisma.menuCategory.findUnique({
-      where: { id }
+    const category = await this.prisma.menuCategory.findFirst({
+        where: { id, restaurantId }
     });
     if (!category) throw new NotFoundException('Category not found');
 
@@ -48,11 +55,11 @@ export class MenuCategoryService {
     });
   }
 
-  async remove(id: string) {
+  async remove(id: string, restaurantId: string) {
     // Kiểm tra ràng buộc trước khi xóa
-    const category = await this.prisma.menuCategory.findUnique({
-      where: { id },
-      include: { items: { where: { isDeleted: false } } }
+    const category = await this.prisma.menuCategory.findFirst({
+        where: { id, restaurantId },
+        include: { items: { where: { isDeleted: false } } }
     });
 
     if (!category) throw new NotFoundException('Category not found');
@@ -68,11 +75,10 @@ export class MenuCategoryService {
       where: { id },
     });
   }
-
-  async updateStatus(id: string, status: MenuStatus) {
+  async updateStatus(id: string, restaurantId: string, status: MenuStatus) {
     // Check tồn tại
-    const category = await this.prisma.menuCategory.findUnique({
-      where: { id }
+    const category = await this.prisma.menuCategory.findFirst({
+        where: { id, restaurantId }
     });
     if (!category) throw new NotFoundException('Category not found');
 

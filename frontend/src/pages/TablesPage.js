@@ -92,11 +92,8 @@ const TablesPage = () => {
   };
 
   const handleToggleStatus = async (table) => {
-    // If currently INACTIVE -> user wants to Activate (send 'ACTIVE' which backend maps to AVAILABLE)
-    // If currently anything else (AVAILABLE/OCCUPIED...) -> user wants to Deactivate (send 'INACTIVE')
-    const isActive = table.status !== 'INACTIVE';
-    const newStatus = isActive ? 'INACTIVE' : 'ACTIVE';
-    const action = isActive ? 'deactivate' : 'reactivate';
+    const newStatus = table.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+    const action = newStatus === 'INACTIVE' ? 'deactivate' : 'reactivate';
 
     if (!window.confirm(`Are you sure you want to ${action} table ${table.tableNumber}?${newStatus === 'INACTIVE' ? '\n\nDeactivating will prevent new orders from being placed at this table.' : ''}`))
       return;
@@ -176,7 +173,7 @@ const TablesPage = () => {
 
   const stats = {
     total: tables.length,
-    active: tables.filter(t => t.status !== 'INACTIVE').length,
+    active: tables.filter(t => t.status === 'ACTIVE').length,
     inactive: tables.filter(t => t.status === 'INACTIVE').length,
   };
 
