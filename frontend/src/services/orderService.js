@@ -22,6 +22,16 @@ export const orderService = {
     },
 
     /**
+     * Get unpaid orders for a table (for checkout)
+     */
+    getUnpaidOrders: async (tableId) => {
+        const response = await axios.get(`${API_BASE}/unpaid`, {
+            params: { tableId }
+        });
+        return response.data;
+    },
+
+    /**
      * Get order status by ID
      */
     getOrderById: async (orderId) => {

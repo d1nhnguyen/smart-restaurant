@@ -60,6 +60,11 @@ export class OrdersController {
         return this.ordersService.findCurrentByTable(tableId);
     }
 
+    @Get('unpaid')
+    findUnpaidByTable(@Query('tableId', ParseUUIDPipe) tableId: string) {
+        return this.ordersService.findUnpaidByTable(tableId);
+    }
+
     @Get(':id')
     findOne(@Param('id', ParseUUIDPipe) id: string) {
         return this.ordersService.findOne(id);

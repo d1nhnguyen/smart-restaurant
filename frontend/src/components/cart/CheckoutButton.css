@@ -1,0 +1,75 @@
+.checkout-floating-btn {
+    position: fixed;
+    bottom: 160px;
+    /* Above cart button (cart is at 80px) */
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 999;
+    animation: slideInRight 0.3s ease-out;
+}
+
+.checkout-floating-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(39, 174, 96, 0.6);
+}
+
+.checkout-floating-btn:active {
+    transform: scale(0.95);
+}
+
+.checkout-icon {
+    font-size: 24px;
+}
+
+.checkout-count {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #e74c3c;
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    border: 2px solid white;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .checkout-floating-btn {
+        width: 55px;
+        height: 55px;
+        bottom: 150px;
+        /* Adjusted for mobile */
+    }
+
+    .checkout-icon {
+        font-size: 22px;
+    }
+}

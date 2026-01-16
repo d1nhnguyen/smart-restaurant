@@ -1,11 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
-import { PaymentStatus, OrderStatus } from '@prisma/client';
+import { PaymentStatus } from '@prisma/client';
 
 @Injectable()
 export class PaymentsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async createPayment(dto: CreatePaymentDto) {
     // Kiểm tra order tồn tại
@@ -30,18 +30,16 @@ export class PaymentsService {
       // 1. Cập nhật trạng thái Payment thành PAID
       const updatedPayment = await tx.payment.update({
         where: { id: paymentId },
-        data: { 
+        data: {
           status: PaymentStatus.PAID,
-          paidAt: new Date() 
+          paidAt: new Date()
         },
       });
 
-      // 2. Cập nhật trạng thái Order thành COMPLETED
       await tx.order.update({
         where: { id: payment.orderId },
-        data: { 
-          status: OrderStatus.COMPLETED,
-          completedAt: new Date()
+        data: {
+          paymentStatus: PaymentStatus.PAID
         },
       });
 

@@ -34,6 +34,7 @@ export const CartProvider = ({ children }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [activeOrder, setActiveOrder] = useState(null);
     const [activeOrders, setActiveOrders] = useState([]);
+    const [unpaidOrders, setUnpaidOrders] = useState([]);
     const [error, setError] = useState(null);
 
     const refreshActiveOrder = useCallback(async (tableId) => {
@@ -47,6 +48,16 @@ export const CartProvider = ({ children }) => {
             console.error('Failed to fetch active orders', err);
             setActiveOrder(null);
             setActiveOrders([]);
+        }
+    }, []);
+
+    const refreshUnpaidOrders = useCallback(async (tableId) => {
+        try {
+            const orders = await orderService.getUnpaidOrders(tableId);
+            setUnpaidOrders(Array.isArray(orders) ? orders : (orders ? [orders] : []));
+        } catch (err) {
+            console.error('Failed to fetch unpaid orders', err);
+            setUnpaidOrders([]);
         }
     }, []);
 
@@ -69,8 +80,9 @@ export const CartProvider = ({ children }) => {
                 }
             }
             refreshActiveOrder(table.id);
+            refreshUnpaidOrders(table.id);
         }
-    }, [table?.id, refreshActiveOrder]);
+    }, [table?.id, refreshActiveOrder, refreshUnpaidOrders]);
 
     useEffect(() => {
         if (table?.id) {
@@ -186,21 +198,26 @@ export const CartProvider = ({ children }) => {
     };
 
     const updateQuantity = (cartItemId, delta) => {
-        setCart((prev) => {
-            return prev.map(item => {
-                if (item.cartItemId === cartItemId) {
-                    const newQty = Math.max(0, item.quantity + delta);
-                    if (newQty === 0) return null;
-                    return {
-                        ...item,
-                        quantity: newQty,
-                        itemTotal: (item.price + item.modifiersTotal) * newQty
-                    };
-                }
-                return item;
-            }).filter(Boolean);
-        });
+        setCart(prev => prev.map(item => {
+            if (item.cartItemId === cartItemId) {
+                const newQty = Math.max(1, item.quantity + delta);
+                return {
+                    ...item,
+                    quantity: newQty,
+                    itemTotal: (item.price + item.modifiersTotal) * newQty
+                };
+            }
+            return item;
+        }));
         if (table?.id) refreshCartTimestamp(table.id);
+    };
+
+    const clearCart = () => {
+        setCart([]);
+        setOrderNotes('');
+        if (table?.id) {
+            clearCartData(table.id);
+        }
     };
 
     const placeOrder = async () => {
@@ -227,6 +244,10 @@ export const CartProvider = ({ children }) => {
             setOrderNotes('');
             setActiveOrder(result);
             setIsCartOpen(false);
+
+            await refreshActiveOrder(table.id);
+            await refreshUnpaidOrders(table.id);
+
             return result;
         } catch (err) {
             // Handle 409 Conflict - table already has active order
@@ -258,6 +279,7 @@ export const CartProvider = ({ children }) => {
             orderNotes, setOrderNotes,
             subtotal, total, taxAmount,
             isCartOpen, setIsCartOpen, isSubmitting, error, clearError,
+            unpaidOrders, refreshUnpaidOrders, token, clearCart,
             placeOrder, activeOrder, activeOrders, refreshActiveOrder
         }}>
             {children}

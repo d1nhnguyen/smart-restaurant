@@ -1,0 +1,280 @@
+/* Kitchen Staff Page Styles - Light Theme (Matching other pages) */
+
+.kds-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    background: #f8f9fa;
+    min-height: calc(100vh - 120px);
+}
+
+.kds-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    border-left: 5px solid #4a90e2;
+    transition: all 0.3s ease;
+}
+
+.kds-card.status-normal {
+    border-left-color: #4a90e2;
+}
+
+.kds-card.status-warning {
+    border-left-color: #f39c12;
+    background: #fff8e1;
+}
+
+.kds-card.status-danger {
+    border-left-color: #e74c3c;
+    background: #ffebee;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    50% {
+        box-shadow: 0 4px 16px rgba(231, 76, 60, 0.4);
+    }
+}
+
+.kds-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.kds-table-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.kds-table-label {
+    font-size: 12px;
+    opacity: 0.9;
+    font-weight: 500;
+}
+
+.kds-table-number {
+    color: white;
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.kds-order-timer {
+    font-size: 28px;
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+}
+
+.kds-card-body {
+    padding: 20px;
+}
+
+.kds-order-meta {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 16px;
+    font-weight: 600;
+}
+
+.kds-item-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.kds-item {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 12px;
+    border-left: 4px solid #cbd5e0;
+    transition: all 0.3s ease;
+}
+
+/* Item Status Colors */
+.kds-item.item-status-pending {
+    border-left-color: #cbd5e0;
+    background: #f8f9fa;
+}
+
+.kds-item.item-status-preparing {
+    border-left-color: #f39c12;
+    background: #fff8e1;
+}
+
+.kds-item.item-status-ready {
+    border-left-color: #27ae60;
+    background: #e8f5e9;
+    opacity: 0.7;
+}
+
+.kds-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.kds-item-main {
+    display: flex;
+    gap: 8px;
+    flex: 1;
+}
+
+.kds-item-qty {
+    font-weight: 700;
+    font-size: 16px;
+    color: #2c3e50;
+    min-width: 35px;
+}
+
+.kds-item-details {
+    flex: 1;
+}
+
+.kds-item-name {
+    font-weight: 600;
+    font-size: 16px;
+    color: #1a202c;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.kds-item-modifiers {
+    list-style: none;
+    padding: 0;
+    margin: 4px 0 0 0;
+    font-size: 13px;
+    color: #666;
+}
+
+.kds-item-modifiers li {
+    padding: 2px 0;
+}
+
+.kds-item-modifiers li:before {
+    content: "+ ";
+    color: #4a90e2;
+    font-weight: 600;
+}
+
+.kds-special-request {
+    margin: 8px 0 0;
+    padding: 8px;
+    background: #fff3cd;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #856404;
+    border-left: 3px solid #ffc107;
+}
+
+/* Item Status Button */
+.kds-item-status-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    min-width: 120px;
+}
+
+.kds-item-status-btn.status-pending {
+    background: #e2e8f0;
+    color: #4a5568;
+}
+
+.kds-item-status-btn.status-pending:hover {
+    background: #cbd5e0;
+    transform: translateY(-2px);
+}
+
+.kds-item-status-btn.status-preparing {
+    background: #f39c12;
+    color: white;
+}
+
+.kds-item-status-btn.status-preparing:hover {
+    background: #e67e22;
+    transform: translateY(-2px);
+}
+
+.kds-item-status-btn.status-ready {
+    background: #27ae60;
+    color: white;
+    cursor: not-allowed;
+}
+
+.kds-item-status-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.kds-card-footer {
+    padding: 16px 20px;
+    background: #f8f9fa;
+    border-top: 1px solid #e2e8f0;
+}
+
+.kds-btn-ready {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #cbd5e0;
+    color: #718096;
+}
+
+.kds-btn-ready.all-ready {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(17, 153, 142, 0.3);
+}
+
+.kds-btn-ready.all-ready:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(17, 153, 142, 0.4);
+}
+
+.kds-btn-ready:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.kds-loading-state,
+.kds-empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+    font-size: 18px;
+}
+
+.kds-order-count-badge {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 14px;
+    box-shadow: 0 2px 8px rgba(245, 87, 108, 0.3);
+}

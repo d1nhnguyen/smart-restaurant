@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { OrderStatus, OrderItemStatus, Prisma } from '@prisma/client';
+import { OrderStatus, OrderItemStatus, PaymentStatus, Prisma } from '@prisma/client';
 
 // Type definitions for better type safety
 interface ModifierValidationResult {
@@ -208,8 +208,6 @@ export class OrdersService {
         if (!table) {
             throw new NotFoundException('Table not found');
         }
-
-        // 2. Find ALL active orders (not completed or cancelled) for this table
         const activeOrders = await this.prisma.order.findMany({
             where: {
                 tableId,
@@ -240,6 +238,49 @@ export class OrdersService {
         });
 
         return activeOrders;
+    }
+
+    // Get UNPAID orders for checkout (paymentStatus = PENDING)
+    async findUnpaidByTable(tableId: string) {
+        const table = await this.prisma.table.findUnique({
+            where: { id: tableId },
+        });
+
+        if (!table) {
+            throw new NotFoundException('Table not found');
+        }
+
+        const unpaidOrders = await this.prisma.order.findMany({
+            where: {
+                tableId,
+                paymentStatus: PaymentStatus.PENDING, // Only unpaid
+                status: {
+                    notIn: [OrderStatus.CANCELLED],
+                },
+            },
+            include: {
+                table: {
+                    select: {
+                        id: true,
+                        tableNumber: true,
+                        location: true,
+                    },
+                },
+                items: {
+                    include: {
+                        selectedModifiers: true,
+                    },
+                    orderBy: {
+                        createdAt: 'asc',
+                    },
+                },
+            },
+            orderBy: {
+                createdAt: 'desc',
+            },
+        });
+
+        return unpaidOrders;
     }
 
     async findAll(status?: OrderStatus) {
@@ -287,7 +328,7 @@ export class OrdersService {
 
         // State Machine Validation
         const validTransitions: Record<OrderStatus, OrderStatus[]> = {
-            [OrderStatus.PENDING]: [OrderStatus.ACCEPTED, OrderStatus.CANCELLED],
+            [OrderStatus.PENDING]: [OrderStatus.ACCEPTED, OrderStatus.PREPARING, OrderStatus.CANCELLED],
             [OrderStatus.ACCEPTED]: [OrderStatus.PREPARING, OrderStatus.CANCELLED],
             [OrderStatus.PREPARING]: [OrderStatus.READY],
             [OrderStatus.READY]: [OrderStatus.SERVED],
@@ -338,9 +379,9 @@ export class OrdersService {
         });
     }
 
-    // Convenience methods for order status transitions
+    // Methods for order status transitions
     async acceptOrder(id: string) {
-        return this.updateStatus(id, OrderStatus.ACCEPTED);
+        return this.updateStatus(id, OrderStatus.PREPARING);
     }
 
     async rejectOrder(id: string) {

@@ -5,6 +5,7 @@ import OrderItemModal from '../components/OrderItemModal';
 import { useCart } from '../contexts/CartContext';
 import CartButton from '../components/cart/CartButton';
 import CartDrawer from '../components/cart/CartDrawer';
+import CheckoutButton from '../components/cart/CheckoutButton';
 import './MenuPage.css';
 
 const MenuPage = () => {
@@ -20,9 +21,9 @@ const MenuPage = () => {
   const [ordersExpanded, setOrdersExpanded] = useState(false);
 
   // KẾT HỢP: Lấy cart và total từ Context (thay vì orderItems cục bộ)
-  const { 
-    addToCart, table, setTable, error: cartError, clearError, 
-    activeOrders, token: contextToken, cart, total 
+  const {
+    addToCart, table, setTable, error: cartError, clearError,
+    activeOrders, token: contextToken, cart, total, placeOrder
   } = useCart();
 
   const urlToken = searchParams.get('token');
@@ -117,10 +118,19 @@ const MenuPage = () => {
 
   const handleItemClick = (item) => setSelectedItem(item);
 
-  // LOGIC THANH TOÁN: Điều chỉnh để dùng cart từ Context
-  const handleGoToCheckout = async () => {
+  // Place order from cart
+  const handlePlaceOrder = async () => {
     if (cart.length === 0) return;
-    navigate('/checkout'); 
+    try {
+      const order = await placeOrder();
+      if (order) {
+        // Navigate to order confirmation page
+        navigate(`/order-confirm/${order.id}`);
+      }
+    } catch (err) {
+      console.error('Failed to place order:', err);
+      // Error will be shown in cart error banner
+    }
   };
 
   return (
@@ -179,34 +189,31 @@ const MenuPage = () => {
       </nav>
 
       <main className="menu-grid">
-        {sortedItems.map(item => (
-          <div key={item.id} className="item-card" onClick={() => handleItemClick(item)}>
-            <div className="item-details">
-              <div className="item-name">{item.name}</div>
-              <div className="item-footer">
-                <span className="item-price">${Number(item.price).toFixed(2)}</span>
-                <button className="add-btn">+</button>
+        {sortedItems.map(item => {
+          const primaryPhoto = item.photos?.find(p => p.isPrimary) || item.photos?.[0];
+          return (
+            <div key={item.id} className="item-card" onClick={() => handleItemClick(item)}>
+              {primaryPhoto ? (
+                <img src={primaryPhoto.url} alt={item.name} className="item-img" />
+              ) : (
+                <div className="item-placeholder">🍽️</div>
+              )}
+              <div className="item-details">
+                <div className="item-name">{item.name}</div>
+                {item.description && <div className="item-desc">{item.description}</div>}
+                <div className="item-footer">
+                  <span className="item-price">${Number(item.price).toFixed(2)}</span>
+                  <button className="add-btn">+</button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </main>
 
+      <CheckoutButton />
       <CartButton />
       <CartDrawer />
-
-      {/* FLOAT BAR: Hiển thị khi có hàng trong cart Context */}
-      {cart && cart.length > 0 && (
-        <div className="order-float-bar">
-          <div className="order-summary">
-            <span className="count">{cart.length} món</span>
-            <span className="total">${total.toFixed(2)}</span>
-          </div>
-          <button className="checkout-btn" onClick={handleGoToCheckout}>
-            TIẾP TỤC THANH TOÁN ➔
-          </button>
-        </div>
-      )}
 
       {selectedItem && (
         <OrderItemModal
