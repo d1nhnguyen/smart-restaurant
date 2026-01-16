@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import OrderCard from '../components/OrderCard';
+import { useSocket } from '../hooks/useSocket';
 import './AdminOrderPage.css';
 
 const AdminOrderPage = () => {
@@ -11,6 +12,7 @@ const AdminOrderPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [activeTab, setActiveTab] = useState('all');
+    const { joinRoom, on, off, isConnected } = useSocket();
 
     const API_BASE_URL = 'http://localhost:3000/api';
 
@@ -98,14 +100,74 @@ const AdminOrderPage = () => {
         fetchOrders();
     }, []);
 
-    // Auto-refresh every 10 seconds
+    // Auto-refresh (reduced to fallback)
     useEffect(() => {
         const interval = setInterval(() => {
             fetchOrders();
-        }, 10000); // 10 seconds
+        }, 30000); // 30 seconds as fallback
 
         return () => clearInterval(interval);
     }, [activeTab]);
+
+    // WebSocket: Join admin room and listen for updates
+    useEffect(() => {
+        if (isConnected) {
+            joinRoom('admin');
+            console.log('🔌 Joined admin room');
+
+            // Listen for new orders
+            const handleOrderCreated = (order) => {
+                console.log('🍴 New order received:', order);
+                setOrders(prev => {
+                    const updated = [order, ...prev];
+                    filterOrders(updated, activeTab);
+                    return updated;
+                });
+            };
+
+            // Listen for order status updates
+            const handleOrderStatusUpdated = (data) => {
+                console.log('🔄 Order status updated:', data);
+                setOrders(prev => {
+                    const updated = prev.map(o => 
+                        o.id === data.orderId ? data.order : o
+                    );
+                    filterOrders(updated, activeTab);
+                    return updated;
+                });
+            };
+
+            // Listen for item status updates
+            const handleItemStatusUpdated = (data) => {
+                console.log('🍲 Item status updated:', data);
+                setOrders(prev => {
+                    const updated = prev.map(order => {
+                        if (order.id === data.orderId) {
+                            return {
+                                ...order,
+                                items: order.items.map(item =>
+                                    item.id === data.itemId ? { ...item, status: data.status } : item
+                                )
+                            };
+                        }
+                        return order;
+                    });
+                    filterOrders(updated, activeTab);
+                    return updated;
+                });
+            };
+
+            on('order:created', handleOrderCreated);
+            on('order:statusUpdated', handleOrderStatusUpdated);
+            on('orderItem:statusUpdated', handleItemStatusUpdated);
+
+            return () => {
+                off('order:created', handleOrderCreated);
+                off('order:statusUpdated', handleOrderStatusUpdated);
+                off('orderItem:statusUpdated', handleItemStatusUpdated);
+            };
+        }
+    }, [isConnected, activeTab, joinRoom, on, off]);
 
     // Calculate stats
     const stats = {
@@ -122,7 +184,17 @@ const AdminOrderPage = () => {
                 <div className="admin-header">
                     <div>
                         <h1>📋 Order Management</h1>
-                        <p className="page-subtitle">View and manage all restaurant orders</p>
+                        <p className="page-subtitle">
+                            View and manage all restaurant orders
+                            <span style={{
+                                marginLeft: '15px',
+                                fontSize: '13px',
+                                fontWeight: '600',
+                                color: isConnected ? '#27ae60' : '#e74c3c'
+                            }}>
+                                {isConnected ? '🟢 Live' : '🔴 Offline'}
+                            </span>
+                        </p>
                     </div>
                     <div className="order-stats">
                         <div className="stat-card">

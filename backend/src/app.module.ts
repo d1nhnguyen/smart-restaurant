@@ -7,8 +7,9 @@ import { AuthModule } from './auth/auth.module';
 import { OrdersModule } from './orders/orders.module';
 import { AppController } from './app.controller';
 import { KitchenModule } from './kitchen/kitchen.module';
-
 import { PaymentsModule } from './payments/payments.module';
+import { GatewayModule } from './gateway/gateway.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -21,6 +22,7 @@ import { PaymentsModule } from './payments/payments.module';
     OrdersModule,
     KitchenModule,
     PaymentsModule,
+    GatewayModule,
   ],
   controllers: [AppController],
 })

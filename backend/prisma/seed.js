@@ -3,8 +3,32 @@ const bcrypt = require('bcrypt');
 
 const prisma = new PrismaClient();
 
+async function cleanDatabase() {
+  console.log('🧹 Cleaning database...');
+  
+  // Delete in correct order to avoid FK constraints
+  await prisma.payment.deleteMany({});
+  await prisma.orderItemModifier.deleteMany({});
+  await prisma.orderItem.deleteMany({});
+  await prisma.order.deleteMany({});
+  await prisma.menuItemModifierGroup.deleteMany({});
+  await prisma.modifierOption.deleteMany({});
+  await prisma.modifierGroup.deleteMany({});
+  await prisma.menuItemPhoto.deleteMany({});
+  await prisma.menuItem.deleteMany({});
+  await prisma.menuCategory.deleteMany({});
+  await prisma.table.deleteMany({});
+  await prisma.staff.deleteMany({});
+  await prisma.user.deleteMany({});
+  
+  console.log('✅ Database cleaned successfully');
+}
+
 async function main() {
   console.log('🌱 Starting database seeding...');
+
+  // Clean database first
+  await cleanDatabase();
 
   // Create default admin user (Simplified: No restaurantId, no Role)
   const hashedPassword = await bcrypt.hash('admin123', 10);

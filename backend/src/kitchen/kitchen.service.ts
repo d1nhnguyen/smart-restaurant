@@ -1,10 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { OrderStatus, OrderItemStatus } from '@prisma/client';
+import { OrdersGateway } from '../gateway/orders.gateway';
 
 @Injectable()
 export class KitchenService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private ordersGateway: OrdersGateway,
+  ) {}
 
   // Lấy các đơn hàng có status là PREPARING
   async getPreparingOrders() {
@@ -28,26 +32,54 @@ export class KitchenService {
 
   // Đánh dấu toàn bộ Order là READY
   async markOrderReady(orderId: string) {
-    const order = await this.prisma.order.findUnique({ where: { id: orderId } });
+    const order = await this.prisma.order.findUnique({ 
+      where: { id: orderId },
+      include: {
+        table: true,
+        items: {
+          include: {
+            selectedModifiers: true,
+          },
+        },
+      },
+    });
     if (!order) throw new NotFoundException('Order không tồn tại');
 
-    return this.prisma.order.update({
+    const updatedOrder = await this.prisma.order.update({
       where: { id: orderId },
       data: { 
         status: OrderStatus.READY,
-        // Sử dụng updatedAt làm mốc thời gian Ready
+      },
+      include: {
+        table: true,
+        items: {
+          include: {
+            selectedModifiers: true,
+          },
+        },
       },
     });
+
+    // Emit WebSocket events
+    this.ordersGateway.emitOrderStatusUpdated(orderId, OrderStatus.READY, updatedOrder);
+    this.ordersGateway.emitOrderReady(orderId, updatedOrder);
+
+    return updatedOrder;
   }
 
   // Đánh dấu từng Item là READY (Optional)
   async markItemReady(orderId: string, itemId: string) {
-    return this.prisma.orderItem.update({
+    const updatedItem = await this.prisma.orderItem.update({
       where: { id: itemId, orderId: orderId },
       data: { 
         status: OrderItemStatus.READY,
-        preparedAt: new Date(), // Ghi nhận thời gian xong món
+        preparedAt: new Date(),
       },
     });
-  }
-}
+
+    // Emit WebSocket event for item status update
+    this.ordersGateway.emitOrderItemStatusUpdated(orderId, itemId, OrderItemStatus.READY);
+
+    return updatedItem;
+  };
+} 

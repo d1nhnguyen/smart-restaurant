@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import Sidebar from '../components/Sidebar';
+import { useSocket } from '../hooks/useSocket';
 import './KitchenStaffPage.css';
 
 const KitchenStaffPage = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { joinRoom, on, off, isConnected } = useSocket();
 
     const fetchOrders = useCallback(async () => {
         try {
@@ -20,9 +22,72 @@ const KitchenStaffPage = () => {
 
     useEffect(() => {
         fetchOrders();
-        const interval = setInterval(fetchOrders, 5000); // Polling mỗi 5 giây
+        // Reduce polling to fallback only
+        const interval = setInterval(fetchOrders, 30000);
         return () => clearInterval(interval);
     }, [fetchOrders]);
+
+    // WebSocket: Join kitchen room and listen for updates
+    useEffect(() => {
+        if (isConnected) {
+            joinRoom('kitchen');
+            console.log('🔌 Joined kitchen room');
+
+            // Listen for new orders
+            const handleOrderCreated = (order) => {
+                console.log('🍴 New order received:', order);
+                setOrders(prev => [order, ...prev]);
+            };
+
+            // Listen for order status updates
+            const handleOrderStatusUpdated = (data) => {
+                console.log('🔄 Order status updated:', data);
+                
+                if (data.status === 'PREPARING') {
+                    // Order moved to PREPARING - add or update in kitchen list
+                    setOrders(prev => {
+                        const existingOrder = prev.find(o => o.id === data.orderId);
+                        if (existingOrder) {
+                            // Update existing order
+                            return prev.map(o => o.id === data.orderId ? data.order : o);
+                        } else {
+                            // Add new order to kitchen
+                            return [data.order, ...prev];
+                        }
+                    });
+                } else {
+                    // Order moved away from PREPARING - remove from kitchen
+                    setOrders(prev => prev.filter(o => o.id !== data.orderId));
+                }
+            };
+
+            // Listen for item status updates
+            const handleItemStatusUpdated = (data) => {
+                console.log('🍲 Item status updated:', data);
+                setOrders(prev => prev.map(order => {
+                    if (order.id === data.orderId) {
+                        return {
+                            ...order,
+                            items: order.items.map(item =>
+                                item.id === data.itemId ? { ...item, status: data.status } : item
+                            )
+                        };
+                    }
+                    return order;
+                }));
+            };
+
+            on('order:created', handleOrderCreated);
+            on('order:statusUpdated', handleOrderStatusUpdated);
+            on('orderItem:statusUpdated', handleItemStatusUpdated);
+
+            return () => {
+                off('order:created', handleOrderCreated);
+                off('order:statusUpdated', handleOrderStatusUpdated);
+                off('orderItem:statusUpdated', handleItemStatusUpdated);
+            };
+        }
+    }, [isConnected, joinRoom, on, off]);
 
     const handleOrderReady = async (orderId) => {
         await axios.post(`/api/kitchen/orders/${orderId}/ready`);
@@ -57,6 +122,14 @@ const KitchenStaffPage = () => {
                         <p className="page-subtitle">Kitchen Display System</p>
                     </div>
                     <div className="header-actions">
+                        <span className="socket-status" style={{ 
+                            marginRight: '15px',
+                            fontSize: '13px',
+                            fontWeight: '600',
+                            color: isConnected ? '#27ae60' : '#e74c3c'
+                        }}>
+                            {isConnected ? '🟢 Live' : '🔴 Offline'}
+                        </span>
                         <span className="kds-order-count-badge">
                             Pending orders: {orders.length}
                         </span>

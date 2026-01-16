@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderStatus, OrderItemStatus, PaymentStatus, Prisma } from '@prisma/client';
+import { OrdersGateway } from '../gateway/orders.gateway';
 
 // Type definitions for better type safety
 interface ModifierValidationResult {
@@ -40,7 +41,10 @@ interface MenuItemWithModifiers {
 
 @Injectable()
 export class OrdersService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly ordersGateway: OrdersGateway,
+    ) { }
 
     async create(createOrderDto: CreateOrderDto) {
         const { tableId, items, notes } = createOrderDto;
@@ -170,6 +174,9 @@ export class OrdersService {
                     status: 'OCCUPIED',
                 },
             });
+
+            // Emit WebSocket event for new order
+            this.ordersGateway.emitOrderCreated(newOrder);
 
             return newOrder;
         });
@@ -373,6 +380,18 @@ export class OrdersService {
                         status: 'AVAILABLE',
                     },
                 });
+            }
+
+            // Emit WebSocket event for status update
+            this.ordersGateway.emitOrderStatusUpdated(
+                updatedOrder.id,
+                updatedOrder.status,
+                updatedOrder,
+            );
+
+            // If order is ready, emit special notification
+            if (newStatus === OrderStatus.READY) {
+                this.ordersGateway.emitOrderReady(updatedOrder.id, updatedOrder);
             }
 
             return updatedOrder;

@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import OrderItemModal from '../components/OrderItemModal';
 import { useCart } from '../contexts/CartContext';
+import { useSocket } from '../hooks/useSocket';
 import CartButton from '../components/cart/CartButton';
 import CartDrawer from '../components/cart/CartDrawer';
 import CheckoutButton from '../components/cart/CheckoutButton';
@@ -23,9 +24,10 @@ const MenuPage = () => {
   // KẾT HỢP: Lấy cart và total từ Context (thay vì orderItems cục bộ)
   const {
     addToCart, table, setTable, error: cartError, clearError,
-    activeOrders, token: contextToken, cart, total, placeOrder
+    activeOrders, token: contextToken, cart, total, placeOrder, refreshActiveOrder
   } = useCart();
 
+  const { joinRoom, on, off, isConnected } = useSocket();
   const urlToken = searchParams.get('token');
   const token = urlToken || contextToken;
 
@@ -63,6 +65,32 @@ const MenuPage = () => {
 
     fetchMenu();
   }, [token, table?.id, setTable]);
+
+  // WebSocket: Listen for order updates to refresh active orders banner
+  useEffect(() => {
+    if (table?.id && isConnected && activeOrders && activeOrders.length > 0) {
+      // Join rooms for all active orders
+      activeOrders.forEach(order => {
+        joinRoom('order', order.id);
+        console.log(`📦 MenuPage joined order:${order.id} for banner updates`);
+      });
+
+      // Listen for order status updates
+      const handleOrderStatusUpdated = (data) => {
+        console.log('📦 MenuPage - Order status updated:', data);
+        // Refresh active orders to update the banner
+        if (refreshActiveOrder) {
+          refreshActiveOrder(table.id);
+        }
+      };
+
+      on('order:statusUpdated', handleOrderStatusUpdated);
+
+      return () => {
+        off('order:statusUpdated', handleOrderStatusUpdated);
+      };
+    }
+  }, [table?.id, isConnected, activeOrders, joinRoom, on, off, refreshActiveOrder]);
 
   if (loading) {
     return (
