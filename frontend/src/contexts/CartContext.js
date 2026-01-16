@@ -33,15 +33,20 @@ export const CartProvider = ({ children }) => {
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [activeOrder, setActiveOrder] = useState(null);
+    const [activeOrders, setActiveOrders] = useState([]);
     const [error, setError] = useState(null);
 
     const refreshActiveOrder = useCallback(async (tableId) => {
         try {
-            const order = await orderService.getCurrentOrder(tableId);
-            setActiveOrder(order);
+            const orders = await orderService.getCurrentOrder(tableId);
+            // API now returns an array of orders
+            setActiveOrders(Array.isArray(orders) ? orders : (orders ? [orders] : []));
+            // Set single activeOrder to most recent for backward compatibility
+            setActiveOrder(Array.isArray(orders) && orders.length > 0 ? orders[0] : orders);
         } catch (err) {
-            console.error('Failed to fetch active order', err);
+            console.error('Failed to fetch active orders', err);
             setActiveOrder(null);
+            setActiveOrders([]);
         }
     }, []);
 
@@ -251,9 +256,9 @@ export const CartProvider = ({ children }) => {
             cart, cartCount,
             addToCart, removeFromCart, updateQuantity,
             orderNotes, setOrderNotes,
-            subtotal, total, taxAmount: 0,
+            subtotal, total, taxAmount,
             isCartOpen, setIsCartOpen, isSubmitting, error, clearError,
-            placeOrder, activeOrder, refreshActiveOrder
+            placeOrder, activeOrder, activeOrders, refreshActiveOrder
         }}>
             {children}
         </CartContext.Provider>

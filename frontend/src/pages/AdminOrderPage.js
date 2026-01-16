@@ -1,0 +1,224 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Sidebar from '../components/Sidebar';
+import OrderCard from '../components/OrderCard';
+import './AdminOrderPage.css';
+
+const AdminOrderPage = () => {
+    const navigate = useNavigate();
+    const [orders, setOrders] = useState([]);
+    const [filteredOrders, setFilteredOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [activeTab, setActiveTab] = useState('all');
+
+    const API_BASE_URL = 'http://localhost:3000/api';
+
+    // Fetch orders from API
+    const fetchOrders = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch(`${API_BASE_URL}/orders`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch orders');
+            }
+            const data = await response.json();
+            setOrders(data);
+            filterOrders(data, activeTab);
+            setError(null);
+        } catch (err) {
+            console.error('Error fetching orders:', err);
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Filter orders based on active tab
+    const filterOrders = (ordersList, tab) => {
+        let filtered = [];
+        switch (tab) {
+            case 'new':
+                filtered = ordersList.filter(o => o.status === 'PENDING');
+                break;
+            case 'accepted':
+                filtered = ordersList.filter(o => o.status === 'ACCEPTED');
+                break;
+            case 'preparing':
+                filtered = ordersList.filter(o => o.status === 'PREPARING');
+                break;
+            case 'ready':
+                filtered = ordersList.filter(o => o.status === 'READY');
+                break;
+            case 'served':
+                filtered = ordersList.filter(o => o.status === 'SERVED');
+                break;
+            case 'completed':
+                filtered = ordersList.filter(o => o.status === 'COMPLETED');
+                break;
+            case 'cancelled':
+                filtered = ordersList.filter(o => o.status === 'CANCELLED');
+                break;
+            default:
+                filtered = ordersList;
+        }
+        setFilteredOrders(filtered);
+    };
+
+    // Handle tab change
+    const handleTabChange = (tab) => {
+        setActiveTab(tab);
+        filterOrders(orders, tab);
+    };
+
+    // Handle order action
+    const handleOrderAction = async (orderId, action) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/orders/${orderId}/${action}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to ${action} order`);
+            }
+
+            // Refresh orders after action
+            fetchOrders();
+        } catch (err) {
+            console.error(`Error ${action} order:`, err);
+            alert(`Failed to ${action} order: ${err.message}`);
+        }
+    };
+
+    // Initial fetch
+    useEffect(() => {
+        fetchOrders();
+    }, []);
+
+    // Auto-refresh every 10 seconds
+    useEffect(() => {
+        const interval = setInterval(() => {
+            fetchOrders();
+        }, 10000); // 10 seconds
+
+        return () => clearInterval(interval);
+    }, [activeTab]);
+
+    // Calculate stats
+    const stats = {
+        total: orders.length,
+        pending: orders.filter(o => o.status === 'PENDING').length,
+        preparing: orders.filter(o => o.status === 'PREPARING').length,
+        ready: orders.filter(o => o.status === 'READY').length,
+    };
+
+    return (
+        <div className="admin-layout">
+            <Sidebar />
+            <div className="admin-content">
+                <div className="admin-header">
+                    <div>
+                        <h1>📋 Order Management</h1>
+                        <p className="page-subtitle">View and manage all restaurant orders</p>
+                    </div>
+                    <div className="order-stats">
+                        <div className="stat-card">
+                            <div className="stat-value">{stats.pending}</div>
+                            <div className="stat-label">New Orders</div>
+                        </div>
+                        <div className="stat-card">
+                            <div className="stat-value">{stats.preparing}</div>
+                            <div className="stat-label">Preparing</div>
+                        </div>
+                        <div className="stat-card">
+                            <div className="stat-value">{stats.ready}</div>
+                            <div className="stat-label">Ready</div>
+                        </div>
+                        <div className="stat-card">
+                            <div className="stat-value">{stats.total}</div>
+                            <div className="stat-label">Total</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="order-tabs">
+                    <button
+                        className={`tab-button ${activeTab === 'all' ? 'active' : ''}`}
+                        onClick={() => handleTabChange('all')}
+                    >
+                        All ({orders.length})
+                    </button>
+                    <button
+                        className={`tab-button ${activeTab === 'new' ? 'active' : ''}`}
+                        onClick={() => handleTabChange('new')}
+                    >
+                        New ({stats.pending})
+                    </button>
+                    <button
+                        className={`tab-button ${activeTab === 'accepted' ? 'active' : ''}`}
+                        onClick={() => handleTabChange('accepted')}
+                    >
+                        Accepted ({orders.filter(o => o.status === 'ACCEPTED').length})
+                    </button>
+                    <button
+                        className={`tab-button ${activeTab === 'preparing' ? 'active' : ''}`}
+                        onClick={() => handleTabChange('preparing')}
+                    >
+                        Preparing ({stats.preparing})
+                    </button>
+                    <button
+                        className={`tab-button ${activeTab === 'ready' ? 'active' : ''}`}
+                        onClick={() => handleTabChange('ready')}
+                    >
+                        Ready ({stats.ready})
+                    </button>
+                    <button
+                        className={`tab-button ${activeTab === 'served' ? 'active' : ''}`}
+                        onClick={() => handleTabChange('served')}
+                    >
+                        Served ({orders.filter(o => o.status === 'SERVED').length})
+                    </button>
+                    <button
+                        className={`tab-button ${activeTab === 'completed' ? 'active' : ''}`}
+                        onClick={() => handleTabChange('completed')}
+                    >
+                        Completed ({orders.filter(o => o.status === 'COMPLETED').length})
+                    </button>
+                    <button
+                        className={`tab-button ${activeTab === 'cancelled' ? 'active' : ''}`}
+                        onClick={() => handleTabChange('cancelled')}
+                    >
+                        Cancelled ({orders.filter(o => o.status === 'CANCELLED').length})
+                    </button>
+                </div>
+
+                <div className="orders-container">
+                    {loading && <div className="loading-message">Loading orders...</div>}
+                    {error && <div className="error-message">Error: {error}</div>}
+                    {!loading && !error && filteredOrders.length === 0 && (
+                        <div className="empty-message">
+                            <span style={{ fontSize: '48px' }}>📭</span>
+                            <p>No orders found</p>
+                        </div>
+                    )}
+                    {!loading && !error && filteredOrders.length > 0 && (
+                        <div className="orders-grid">
+                            {filteredOrders.map(order => (
+                                <OrderCard
+                                    key={order.id}
+                                    order={order}
+                                    onAction={handleOrderAction}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default AdminOrderPage;

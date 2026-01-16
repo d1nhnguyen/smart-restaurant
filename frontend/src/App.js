@@ -10,6 +10,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import AdminItemPage from './pages/AdminItemPage';
 import AdminCategoryPage from './pages/AdminCategoryPage';
 import AdminModifierPage from './pages/AdminModifierPage';
+import AdminOrderPage from './pages/AdminOrderPage';
 import { CartProvider } from './contexts/CartContext';
 
 import QRLandingPage from './pages/QRLandingPage';
@@ -34,14 +35,15 @@ function App() {
           <Route path="/admin/items" element={<AdminItemPage />} />
           <Route path="/admin/categories" element={<AdminCategoryPage />} />
           <Route path="/admin/modifiers" element={<AdminModifierPage />} />
+          <Route path="/admin/orders" element={<AdminOrderPage />} />
 
           {/* Public Customer Routes */}
           <Route path="/menu" element={<MenuPage />} />
           <Route path="/" element={<MenuPage />} /> {/* Default to menu if no path */}
 
-        </Routes>
-      </CartProvider>
-    </Router>
+        </Routes >
+      </CartProvider >
+    </Router >
   );
 }
 
