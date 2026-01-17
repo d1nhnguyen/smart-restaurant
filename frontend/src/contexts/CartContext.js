@@ -224,21 +224,42 @@ export const CartProvider = ({ children }) => {
         if (!table?.id || cart.length === 0) return;
         setIsSubmitting(true);
         setError(null);
-        try {
-            const orderData = {
-                tableId: table.id,
-                notes: orderNotes,
-                items: cart.map(item => ({
-                    menuItemId: item.menuItemId,
-                    quantity: item.quantity,
-                    specialRequest: item.specialRequest,
-                    modifiers: item.selectedModifiers.map(m => ({
-                        modifierOptionId: m.modifierOptionId
-                    }))
-                }))
-            };
 
-            const result = await orderService.createOrder(orderData);
+        try {
+            // Prepare items data
+            const itemsPayload = cart.map(item => ({
+                menuItemId: item.menuItemId,
+                quantity: item.quantity,
+                specialRequest: item.specialRequest,
+                modifiers: item.selectedModifiers.map(m => ({
+                    modifierOptionId: m.modifierOptionId
+                }))
+            }));
+
+            // Check for existing active order that can be modified (PENDING or ACCEPTED)
+            const modifiableOrder = activeOrders.find(o =>
+                o.status === 'PENDING' || o.status === 'ACCEPTED'
+            );
+
+            let result;
+
+            if (modifiableOrder) {
+                // Add items to existing order
+                result = await orderService.addItemsToOrder(modifiableOrder.id, {
+                    notes: orderNotes,
+                    items: itemsPayload
+                });
+                console.log(`✅ Added ${itemsPayload.length} items to existing order #${modifiableOrder.orderNumber}`);
+            } else {
+                // Create new order
+                result = await orderService.createOrder({
+                    tableId: table.id,
+                    notes: orderNotes,
+                    items: itemsPayload
+                });
+                console.log(`✅ Created new order #${result.orderNumber}`);
+            }
+
             clearCartData(table.id);
             setCart([]);
             setOrderNotes('');
@@ -250,6 +271,13 @@ export const CartProvider = ({ children }) => {
 
             return result;
         } catch (err) {
+            // Handle specific error for order already being prepared
+            if (err.response?.status === 400 && err.response?.data?.message?.includes('PREPARING')) {
+                setError('Cannot add items - order is already being prepared. Please wait for it to complete.');
+                await refreshActiveOrder(table.id);
+                return null;
+            }
+
             // Handle 409 Conflict - table already has active order
             if (err.response?.status === 409) {
                 setError('This table already has an active order. You can add more items to it.');
@@ -264,6 +292,11 @@ export const CartProvider = ({ children }) => {
             setIsSubmitting(false);
         }
     };
+
+    // Find order that can be modified (PENDING or ACCEPTED)
+    const modifiableOrder = activeOrders.find(o =>
+        o.status === 'PENDING' || o.status === 'ACCEPTED'
+    );
 
     const subtotal = cart.reduce((sum, item) => sum + item.itemTotal, 0);
     const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -280,9 +313,11 @@ export const CartProvider = ({ children }) => {
             subtotal, total, taxAmount,
             isCartOpen, setIsCartOpen, isSubmitting, error, clearError,
             unpaidOrders, refreshUnpaidOrders, token, clearCart,
-            placeOrder, activeOrder, activeOrders, refreshActiveOrder
+            placeOrder, activeOrder, activeOrders, refreshActiveOrder,
+            modifiableOrder  // NEW: Expose for UI to show "Add to Order" vs "Place New Order"
         }}>
             {children}
         </CartContext.Provider>
     );
 };
+

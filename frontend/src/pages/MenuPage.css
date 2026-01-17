@@ -295,6 +295,65 @@
     background: rgba(255, 255, 255, 0.3);
 }
 
+/* Order banner content layout */
+.banner-content .order-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.banner-content .order-number {
+    font-size: 14px;
+}
+
+.banner-content .order-status {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    display: inline-block;
+    width: fit-content;
+}
+
+.banner-content .order-status.pending {
+    background: rgba(255, 193, 7, 0.3);
+}
+
+.banner-content .order-status.accepted {
+    background: rgba(52, 152, 219, 0.3);
+}
+
+.banner-content .order-status.preparing {
+    background: rgba(255, 152, 0, 0.4);
+}
+
+.banner-content .order-status.ready {
+    background: rgba(40, 167, 69, 0.4);
+}
+
+.banner-content .order-status.served {
+    background: rgba(156, 39, 176, 0.3);
+}
+
+.banner-content .order-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.banner-content.status-locked {
+    opacity: 0.85;
+}
+
+.cannot-modify-badge {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
 /* Guest Landing Styles */
 .guest-landing {
     min-height: 100vh;

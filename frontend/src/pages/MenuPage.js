@@ -180,12 +180,28 @@ const MenuPage = () => {
           </div>
           {ordersExpanded && (
             <div className="orders-list">
-              {activeOrders.map(order => (
-                <div key={order.id} className="banner-content">
-                  <span>Order: <strong>#{order.orderNumber}</strong> ({order.status})</span>
-                  <button className="banner-btn" onClick={() => navigate(`/order-status/${order.id}`)}>View →</button>
-                </div>
-              ))}
+              {activeOrders.map(order => {
+                const canModify = order.status === 'PENDING' || order.status === 'ACCEPTED';
+                const statusClass = canModify ? 'status-modifiable' : 'status-locked';
+                return (
+                  <div key={order.id} className={`banner-content ${statusClass}`}>
+                    <div className="order-info">
+                      <span className="order-number">Order: <strong>#{order.orderNumber}</strong></span>
+                      <span className={`order-status ${order.status.toLowerCase()}`}>{order.status}</span>
+                    </div>
+                    <div className="order-actions">
+                      {!canModify && (
+                        <span className="cannot-modify-badge" title="Order is being prepared and cannot be modified">
+                          🔒 Locked
+                        </span>
+                      )}
+                      <button className="banner-btn" onClick={() => navigate(`/order-status/${order.id}`)}>
+                        View →
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

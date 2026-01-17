@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { AddItemsDto } from './dto/add-items.dto';
 import { OrderStatus, OrderItemStatus, PaymentStatus, Prisma } from '@prisma/client';
 import { OrdersGateway } from '../gateway/orders.gateway';
 
@@ -421,6 +422,167 @@ export class OrdersService {
 
     async completeOrder(id: string) {
         return this.updateStatus(id, OrderStatus.COMPLETED);
+    }
+
+    /**
+     * Add items to an existing order
+     * Business Rules:
+     * - Only allowed when order status is PENDING or ACCEPTED
+     * - Rejected when status is PREPARING, READY, SERVED, COMPLETED, or CANCELLED
+     * - Recalculates order totals after adding items
+     */
+    async addItemsToOrder(orderId: string, addItemsDto: AddItemsDto) {
+        const { items, notes } = addItemsDto;
+
+        // 1. Fetch the existing order
+        const order = await this.prisma.order.findUnique({
+            where: { id: orderId },
+            include: {
+                table: true,
+                items: true,
+            },
+        });
+
+        if (!order) {
+            throw new NotFoundException(`Order #${orderId} not found`);
+        }
+
+        // 2. Validate order status - only allow PENDING or ACCEPTED
+        const allowedStatuses: OrderStatus[] = [OrderStatus.PENDING, OrderStatus.ACCEPTED];
+        if (!allowedStatuses.includes(order.status)) {
+            throw new BadRequestException(
+                `Cannot add items to order - order is already ${order.status}. Only PENDING or ACCEPTED orders can be modified.`
+            );
+        }
+
+        // 3. Process items in a transaction
+        return this.prisma.$transaction(async (tx) => {
+            let addedSubtotal = 0;
+            const newOrderItemsData = [];
+
+            for (const item of items) {
+                // Fetch Menu Item WITH all modifier groups and options
+                const menuItem = await tx.menuItem.findUnique({
+                    where: { id: item.menuItemId },
+                    include: {
+                        modifierGroups: {
+                            where: { group: { status: 'ACTIVE' } },
+                            include: {
+                                group: {
+                                    include: {
+                                        options: {
+                                            where: { status: 'ACTIVE' },
+                                            orderBy: { createdAt: 'asc' },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                });
+
+                if (!menuItem) {
+                    throw new NotFoundException(`Menu item "${item.menuItemId}" not found`);
+                }
+
+                if (menuItem.status !== 'AVAILABLE') {
+                    throw new BadRequestException(`Menu item "${menuItem.name}" is not available`);
+                }
+
+                // Validate modifiers with full business rules
+                const { modifiersTotal, selectedModifiersData } = this.validateAndProcessModifiers(
+                    menuItem as any,
+                    item.modifiers || [],
+                );
+
+                const quantity = item.quantity;
+                const itemUnitPrice = Number(menuItem.price);
+                const itemSubtotal = (itemUnitPrice + modifiersTotal) * quantity;
+                addedSubtotal += itemSubtotal;
+
+                newOrderItemsData.push({
+                    menuItemId: menuItem.id,
+                    menuItemName: menuItem.name,
+                    menuItemPrice: itemUnitPrice,
+                    quantity,
+                    unitPrice: itemUnitPrice,
+                    modifiersTotal,
+                    subtotal: itemSubtotal,
+                    specialRequest: item.specialRequest,
+                    status: OrderItemStatus.PENDING,
+                    modifiers: selectedModifiersData,
+                });
+            }
+
+            // 4. Create new OrderItems
+            for (const orderItemData of newOrderItemsData) {
+                await tx.orderItem.create({
+                    data: {
+                        orderId: order.id,
+                        menuItemId: orderItemData.menuItemId,
+                        menuItemName: orderItemData.menuItemName,
+                        menuItemPrice: orderItemData.menuItemPrice,
+                        quantity: orderItemData.quantity,
+                        unitPrice: orderItemData.unitPrice,
+                        modifiersTotal: orderItemData.modifiersTotal,
+                        subtotal: orderItemData.subtotal,
+                        specialRequest: orderItemData.specialRequest,
+                        status: orderItemData.status,
+                        selectedModifiers: {
+                            create: orderItemData.modifiers.map((mod) => ({
+                                modifierOptionId: mod.modifierOptionId,
+                                modifierGroupName: mod.modifierGroupName,
+                                modifierOptionName: mod.modifierOptionName,
+                                priceAdjustment: mod.priceAdjustment,
+                            })),
+                        },
+                    },
+                });
+            }
+
+            // 5. Recalculate order totals
+            const TAX_RATE = 0.08;
+            const newSubtotal = Number(order.subtotalAmount) + addedSubtotal;
+            const newTaxAmount = newSubtotal * TAX_RATE;
+            const newTotalAmount = newSubtotal + newTaxAmount;
+
+            // 6. Update order with new totals and append notes if provided
+            const updatedNotes = notes
+                ? order.notes
+                    ? `${order.notes}\n[Added items] ${notes}`
+                    : `[Added items] ${notes}`
+                : order.notes;
+
+            const updatedOrder = await tx.order.update({
+                where: { id: order.id },
+                data: {
+                    subtotalAmount: newSubtotal,
+                    taxAmount: newTaxAmount,
+                    totalAmount: newTotalAmount,
+                    notes: updatedNotes,
+                },
+                include: {
+                    table: true,
+                    items: {
+                        include: {
+                            selectedModifiers: true,
+                        },
+                        orderBy: {
+                            createdAt: 'asc',
+                        },
+                    },
+                },
+            });
+
+            // 7. Emit WebSocket event for order items added
+            this.ordersGateway.emitOrderStatusUpdated(
+                updatedOrder.id,
+                updatedOrder.status,
+                updatedOrder,
+            );
+
+            return updatedOrder;
+        });
     }
 
     /**

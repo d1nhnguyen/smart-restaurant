@@ -12,6 +12,16 @@ export const orderService = {
     },
 
     /**
+     * Add items to an existing order
+     * @param {string} orderId - The ID of the order to add items to
+     * @param {object} itemsData - { notes?: string, items: [...] }
+     */
+    addItemsToOrder: async (orderId, itemsData) => {
+        const response = await axios.post(`${API_BASE}/${orderId}/items`, itemsData);
+        return response.data;
+    },
+
+    /**
      * Get current active order for a table
      */
     getCurrentOrder: async (tableId) => {
@@ -39,3 +49,4 @@ export const orderService = {
         return response.data;
     }
 };
+
