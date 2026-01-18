@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { orderService } from '../services/orderService';
-import { useCart } from '../contexts/CartContext';
-import { useSocket } from '../hooks/useSocket';
+import { orderService } from '../../services/orderService';
+import { useCart } from '../../contexts/CartContext';
+import { useSocket } from '../../hooks/useSocket';
 import './OrderTrackingPage.css';
 
 const OrderTrackingPage = () => {

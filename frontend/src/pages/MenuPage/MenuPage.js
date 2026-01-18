@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import OrderItemModal from '../components/OrderItemModal';
-import { useCart } from '../contexts/CartContext';
-import { useSocket } from '../hooks/useSocket';
-import CartButton from '../components/cart/CartButton';
-import CartDrawer from '../components/cart/CartDrawer';
-import CheckoutButton from '../components/cart/CheckoutButton';
+import OrderItemModal from '../../components/OrderItemModal';
+import { useCart } from '../../contexts/CartContext';
+import { useSocket } from '../../hooks/useSocket';
+import CartButton from '../../components/cart/CartButton';
+import CartDrawer from '../../components/cart/CartDrawer';
+import CheckoutButton from '../../components/cart/CheckoutButton';
 import './MenuPage.css';
 
 const MenuPage = () => {

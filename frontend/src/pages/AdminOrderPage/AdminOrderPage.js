@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Sidebar from '../components/Sidebar';
-import OrderCard from '../components/OrderCard';
-import { useSocket } from '../hooks/useSocket';
+import Sidebar from '../../components/Sidebar';
+import OrderCard from '../../components/OrderCard';
+import { useSocket } from '../../hooks/useSocket';
 import './AdminOrderPage.css';
 
 const AdminOrderPage = () => {

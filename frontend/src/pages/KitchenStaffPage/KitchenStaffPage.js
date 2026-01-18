@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import Sidebar from '../components/Sidebar';
-import { useSocket } from '../hooks/useSocket';
+import Sidebar from '../../components/Sidebar';
+import { useSocket } from '../../hooks/useSocket';
 import './KitchenStaffPage.css';
 
 const KitchenStaffPage = () => {
