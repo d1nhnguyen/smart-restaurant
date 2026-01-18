@@ -34,9 +34,7 @@ export class PaymentsController {
   async vnpayReturnPost(@Body() body: any) {
     const rawQueryString = body.rawQueryString;
 
-    console.log('\n=== Raw VNPay Query String ===');
-    console.log(rawQueryString);
-    console.log('==============================\n');
+    // Processing VNPay return callback
 
     // Parse params for data extraction (but use raw string for signature)
     const params: any = {};

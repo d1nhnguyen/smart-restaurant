@@ -106,13 +106,7 @@ export class VNPayService {
         const hmac = crypto.createHmac('sha512', this.hashSecret);
         const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
 
-        console.log('\n=== VNPay Signature Verification (RAW) ===');
-        console.log('VNPay Hash (received):', secureHash);
-        console.log('Sign Data (raw):      ', signData);
-        console.log('Our Hash (calculated):', signed);
-        console.log('Hash Secret:          ', this.hashSecret);
-        console.log('Match:', secureHash === signed ? '✅ YES' : '❌ NO');
-        console.log('=========================================\n');
+        // Signature verified
 
         if (secureHash !== signed) {
             return {
@@ -171,9 +165,7 @@ export class VNPayService {
         const vnpParams = { ...query };
         const secureHash = vnpParams.vnp_SecureHash;
 
-        console.log('\n=== VNPay Callback Data ===');
-        console.log('Params received:', vnpParams);
-        console.log('===========================\n');
+        // Processing VNPay callback
 
         delete vnpParams.vnp_SecureHash;
         delete vnpParams.vnp_SecureHashType;
@@ -186,13 +178,7 @@ export class VNPayService {
         const hmac = crypto.createHmac('sha512', this.hashSecret);
         const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
 
-        console.log('\n=== VNPay Signature Verification ===');
-        console.log('VNPay Hash (received):', secureHash);
-        console.log('Sign Data (to hash):  ', signData);
-        console.log('Our Hash (calculated):', signed);
-        console.log('Hash Secret Used:     ', this.hashSecret);
-        console.log('Match:', secureHash === signed ? '✅ YES' : '❌ NO');
-        console.log('====================================\n');
+        // Signature verified
 
         if (secureHash !== signed) {
             return {

@@ -39,13 +39,11 @@ const OrderTrackingPage = () => {
     useEffect(() => {
         if (orderId && isConnected) {
             joinRoom('order', orderId);
-            console.log(`🔌 Joined order tracking room for: order:${orderId}`);
-            console.log(`🔍 OrderId type: ${typeof orderId}, value: ${orderId}`);
+            // Joined order tracking room
 
             // Listen for status updates
             const handleStatusUpdate = (data) => {
-                console.log('📡 Order status updated - RAW DATA:', data);
-                console.log(`🔍 Comparing: data.orderId (${typeof data.orderId}) ${data.orderId} === orderId (${typeof orderId}) ${orderId}`);
+                // Order status updated
                 if (data.orderId === orderId) {
                     setOrder(data.order);
 
@@ -61,8 +59,7 @@ const OrderTrackingPage = () => {
             };
 
             const handleOrderReady = (data) => {
-                console.log('🎉 Order ready notification - RAW DATA:', data);
-                console.log(`🔍 Ready comparing: ${typeof data.orderId} ${data.orderId} === ${typeof orderId} ${orderId}`);
+                // Order ready notification received
                 if (data.orderId === orderId) {
                     setOrder(data.order);
                     setNotification('🎉 Your order is ready! Please pick it up.');
@@ -72,7 +69,7 @@ const OrderTrackingPage = () => {
 
             // Listen for item status updates
             const handleItemStatusUpdated = (data) => {
-                console.log('🍲 Item status updated:', data);
+                // Item status updated
                 if (data.orderId === orderId) {
                     // Fetch fresh order data to get updated items
                     fetchOrder();

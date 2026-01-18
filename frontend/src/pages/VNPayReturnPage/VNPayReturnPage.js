@@ -15,14 +15,14 @@ const VNPayReturnPage = () => {
                 // Get RAW query string from URL (preserves original VNPay encoding)
                 const rawQueryString = window.location.search.substring(1); // Remove '?'
 
-                console.log('Raw VNPay Query String:', rawQueryString);
+                // Capture raw query string
 
                 // Send raw query string to backend
                 const response = await axios.post('/api/payments/vnpay-return', {
                     rawQueryString: rawQueryString
                 });
 
-                console.log('Backend response:', response.data);
+                // Payment verification complete
 
                 if (response.data.success) {
                     // Navigate to success page with payment details

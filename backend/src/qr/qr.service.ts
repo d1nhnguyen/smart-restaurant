@@ -25,7 +25,7 @@ export class QrService {
   /**
    * Generate a new QR token for a table
    */
-  async generateQrToken(tableId: string): Promise<{ token: string; qrUrl: string }> {
+  async generateQrToken(tableId: string): Promise<{ token: string; qrUrl: string; sessionId: string }> {
     // Check if table exists
     const table = await this.prisma.table.findUnique({
       where: { id: tableId },
@@ -35,7 +35,10 @@ export class QrService {
       throw new NotFoundException(`Table with ID ${tableId} not found`);
     }
 
-    // Create payload
+    // Generate unique session ID
+    const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    // Create payload with sessionId
     const payload: QrTokenPayload = {
       tableId: table.id,
       tableNumber: table.tableNumber,
@@ -47,16 +50,21 @@ export class QrService {
       expiresIn: '365d', // Token valid for 1 year, but can be invalidated by regenerating
     });
 
-    // Save token to database
+    // Save token AND sessionId to database
     await this.prisma.table.update({
       where: { id: tableId },
-      data: { qrToken: token },
+      data: {
+        qrToken: token,
+        currentSessionId: sessionId
+      },
     });
 
     // Generate QR URL - Point to landing page for validation and context setup
     const qrUrl = `${this.frontendUrl}/table/${tableId}?token=${token}`;
 
-    return { token, qrUrl };
+    console.log(`✅ Generated new QR session ${sessionId} for table ${table.tableNumber}`);
+
+    return { token, qrUrl, sessionId };
   }
 
   /**
@@ -102,7 +110,7 @@ export class QrService {
           tableNumber: table.tableNumber,
           capacity: table.capacity,
           location: table.location,
-          // restaurantId removed (Single Tenant)
+          sessionId: table.currentSessionId, // Return current session ID
           restaurantName: 'Smart Restaurant',
         },
       };
