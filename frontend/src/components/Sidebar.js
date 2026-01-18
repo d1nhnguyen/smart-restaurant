@@ -61,7 +61,7 @@ const Sidebar = () => {
           Tables
         </Link>
 
-        <Link to="/admin/staff" className={getNavLinkClass('/admin/staff')}>
+        <Link to="/staff" className={getNavLinkClass('/staff')}>
           <span className="nav-icon">&#128101;</span>
           Kitchen Staff
         </Link>
@@ -71,7 +71,7 @@ const Sidebar = () => {
           Reports
         </Link>
 
-        <Link to="/admin/kds" className={getNavLinkClass('/admin/kds')}>
+        <Link to="/staff" className={getNavLinkClass('/staff') || getNavLinkClass('/admin/kds')}>
           <span className="nav-icon">&#128250;</span>
           Kitchen Display
         </Link>

@@ -34,6 +34,7 @@ export const CartProvider = ({ children }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [activeOrder, setActiveOrder] = useState(null);
     const [activeOrders, setActiveOrders] = useState([]);
+    const [unpaidOrders, setUnpaidOrders] = useState([]);
     const [error, setError] = useState(null);
 
     const refreshActiveOrder = useCallback(async (tableId) => {
@@ -47,6 +48,16 @@ export const CartProvider = ({ children }) => {
             console.error('Failed to fetch active orders', err);
             setActiveOrder(null);
             setActiveOrders([]);
+        }
+    }, []);
+
+    const refreshUnpaidOrders = useCallback(async (tableId) => {
+        try {
+            const orders = await orderService.getUnpaidOrders(tableId);
+            setUnpaidOrders(Array.isArray(orders) ? orders : (orders ? [orders] : []));
+        } catch (err) {
+            console.error('Failed to fetch unpaid orders', err);
+            setUnpaidOrders([]);
         }
     }, []);
 
@@ -69,14 +80,15 @@ export const CartProvider = ({ children }) => {
                 }
             }
             refreshActiveOrder(table.id);
+            refreshUnpaidOrders(table.id);
         }
-    }, [table?.id, refreshActiveOrder]);
+    }, [table, refreshActiveOrder, refreshUnpaidOrders]);
 
     useEffect(() => {
         if (table?.id) {
             saveCartData(table.id, cart, orderNotes);
         }
-    }, [cart, orderNotes, table?.id]);
+    }, [cart, orderNotes, table]);
 
     const handleSetTable = (tableId, tableNumber, qrToken) => {
         // If switching tables, clear the old cart and token
@@ -186,55 +198,68 @@ export const CartProvider = ({ children }) => {
     };
 
     const updateQuantity = (cartItemId, delta) => {
-        setCart((prev) => {
-            return prev.map(item => {
-                if (item.cartItemId === cartItemId) {
-                    const newQty = Math.max(0, item.quantity + delta);
-                    if (newQty === 0) return null;
-                    return {
-                        ...item,
-                        quantity: newQty,
-                        itemTotal: (item.price + item.modifiersTotal) * newQty
-                    };
-                }
-                return item;
-            }).filter(Boolean);
-        });
+        setCart(prev => prev.map(item => {
+            if (item.cartItemId === cartItemId) {
+                const newQty = Math.max(1, item.quantity + delta);
+                return {
+                    ...item,
+                    quantity: newQty,
+                    itemTotal: (item.price + item.modifiersTotal) * newQty
+                };
+            }
+            return item;
+        }));
         if (table?.id) refreshCartTimestamp(table.id);
+    };
+
+    const clearCart = () => {
+        setCart([]);
+        setOrderNotes('');
+        if (table?.id) {
+            clearCartData(table.id);
+        }
     };
 
     const placeOrder = async () => {
         if (!table?.id || cart.length === 0) return;
         setIsSubmitting(true);
         setError(null);
+
         try {
-            const orderData = {
+            // Prepare items data
+            const itemsPayload = cart.map(item => ({
+                menuItemId: item.menuItemId,
+                quantity: item.quantity,
+                specialRequest: item.specialRequest,
+                modifiers: item.selectedModifiers.map(m => ({
+                    modifierOptionId: m.modifierOptionId
+                }))
+            }));
+
+            // Always create a new order (standard flow as per documentation)
+            const result = await orderService.createOrder({
                 tableId: table.id,
                 notes: orderNotes,
-                items: cart.map(item => ({
-                    menuItemId: item.menuItemId,
-                    quantity: item.quantity,
-                    specialRequest: item.specialRequest,
-                    modifiers: item.selectedModifiers.map(m => ({
-                        modifierOptionId: m.modifierOptionId
-                    }))
-                }))
-            };
+                items: itemsPayload
+            });
+            console.log(`✅ Created new order #${result.orderNumber}`);
 
-            const result = await orderService.createOrder(orderData);
             clearCartData(table.id);
             setCart([]);
             setOrderNotes('');
             setActiveOrder(result);
             setIsCartOpen(false);
+
+            await refreshActiveOrder(table.id);
+            await refreshUnpaidOrders(table.id);
+
             return result;
         } catch (err) {
-            // Handle 409 Conflict - table already has active order
-            if (err.response?.status === 409) {
-                setError('This table already has an active order. You can add more items to it.');
-                await refreshActiveOrder(table.id);
-                return null;
-            }
+            console.error('Order submission error:', err);
+
+            // ALWAYS refresh active orders on ANY error to ensure state consistency
+            await refreshActiveOrder(table.id);
+            await refreshUnpaidOrders(table.id);
 
             const msg = err.response?.data?.message || 'Failed to place order. Please try again.';
             setError(msg);
@@ -258,9 +283,11 @@ export const CartProvider = ({ children }) => {
             orderNotes, setOrderNotes,
             subtotal, total, taxAmount,
             isCartOpen, setIsCartOpen, isSubmitting, error, clearError,
+            unpaidOrders, refreshUnpaidOrders, token, clearCart,
             placeOrder, activeOrder, activeOrders, refreshActiveOrder
         }}>
             {children}
         </CartContext.Provider>
     );
 };
+

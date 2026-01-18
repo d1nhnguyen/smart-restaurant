@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import Sidebar from '../components/Sidebar';
-import ModifierGroupModal from '../components/ModifierGroupModal';
+import Sidebar from '../../components/Sidebar';
+import ModifierGroupModal from '../../components/ModifierGroupModal';
 
 const AdminModifierPage = () => {
     const [modifierGroups, setModifierGroups] = useState([]);

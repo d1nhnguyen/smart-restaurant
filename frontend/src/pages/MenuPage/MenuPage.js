@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import OrderItemModal from '../components/OrderItemModal';
-import { useCart } from '../contexts/CartContext';
-import CartButton from '../components/cart/CartButton';
-import CartDrawer from '../components/cart/CartDrawer';
+import OrderItemModal from '../../components/OrderItemModal';
+import { useCart } from '../../contexts/CartContext';
+import { useSocket } from '../../hooks/useSocket';
+import CartButton from '../../components/cart/CartButton';
+import CartDrawer from '../../components/cart/CartDrawer';
+import CheckoutButton from '../../components/cart/CheckoutButton';
 import './MenuPage.css';
 
 const MenuPage = () => {
@@ -19,15 +21,19 @@ const MenuPage = () => {
   const [sortBy, setSortBy] = useState('');
   const [ordersExpanded, setOrdersExpanded] = useState(false);
 
-  const { addToCart, table, setTable, error: cartError, clearError, activeOrder, activeOrders, token: contextToken } = useCart();
+  // KẾT HỢP: Lấy cart và total từ Context (thay vì orderItems cục bộ)
+  const {
+    addToCart, table, setTable, error: cartError, clearError,
+    activeOrders, token: contextToken, cart, placeOrder, refreshActiveOrder
+  } = useCart();
 
+  const { joinRoom, on, off, isConnected } = useSocket();
   const urlToken = searchParams.get('token');
   const token = urlToken || contextToken;
 
   useEffect(() => {
     const isRoot = window.location.pathname === '/';
 
-    // If on root, don't fetch menu, just show landing
     if (isRoot) {
       setErrorStatus('Welcome! Please scan a QR code.');
       setLoading(false);
@@ -35,7 +41,6 @@ const MenuPage = () => {
     }
 
     const fetchMenu = async () => {
-      // Priority: use token from URL, but if missing, allow viewing if table info is in context
       if (!token && !table?.id) {
         setErrorStatus('Please scan a QR code to view the menu.');
         setLoading(false);
@@ -48,7 +53,6 @@ const MenuPage = () => {
         const data = response.data;
         setMenuData(data);
 
-        // Sync table info to context if it came from a token or is different
         if (data.table && (!table || table.id !== data.table.id)) {
           setTable(data.table.id, data.table.tableNumber, data.table.qrToken);
         }
@@ -60,7 +64,33 @@ const MenuPage = () => {
     };
 
     fetchMenu();
-  }, [token, table?.id, setTable]);
+  }, [token, table, setTable]);
+
+  // WebSocket: Listen for order updates to refresh active orders banner
+  useEffect(() => {
+    if (table?.id && isConnected && activeOrders && activeOrders.length > 0) {
+      // Join rooms for all active orders
+      activeOrders.forEach(order => {
+        joinRoom('order', order.id);
+        console.log(`📦 MenuPage joined order:${order.id} for banner updates`);
+      });
+
+      // Listen for order status updates
+      const handleOrderStatusUpdated = (data) => {
+        console.log('📦 MenuPage - Order status updated:', data);
+        // Refresh active orders to update the banner
+        if (refreshActiveOrder) {
+          refreshActiveOrder(table.id);
+        }
+      };
+
+      on('order:statusUpdated', handleOrderStatusUpdated);
+
+      return () => {
+        off('order:statusUpdated', handleOrderStatusUpdated);
+      };
+    }
+  }, [table?.id, isConnected, activeOrders, joinRoom, on, off, refreshActiveOrder]);
 
   if (loading) {
     return (
@@ -77,32 +107,7 @@ const MenuPage = () => {
         <div className="landing-content">
           <div className="landing-icon">🍽️</div>
           <h1>Welcome!</h1>
-          <p className="landing-message">
-            To view our menu and place an order, please scan the QR code on your table.
-          </p>
-
-          <div className="scan-instructions">
-            <div className="instruction-step">
-              <span className="step-icon">📱</span>
-              <span>Open your camera app</span>
-            </div>
-            <div className="instruction-step">
-              <span className="step-icon">🎯</span>
-              <span>Point at the QR code on your table</span>
-            </div>
-            <div className="instruction-step">
-              <span className="step-icon">👆</span>
-              <span>Tap the link that appears</span>
-            </div>
-          </div>
-
-          <div className="qr-visual">
-            <div className="qr-placeholder">
-              <span>📷</span>
-            </div>
-            <p>Look for this on your table</p>
-          </div>
-
+          <p className="landing-message">To view our menu and place an order, please scan the QR code.</p>
           <div className="staff-access">
             <span>Staff member? </span>
             <button onClick={() => navigate('/login')}>Login here</button>
@@ -112,16 +117,10 @@ const MenuPage = () => {
     );
   }
 
-  if (!menuData) {
-    return null;
-  }
+  if (!menuData) return null;
 
   const { categories, menuItems, table: tableFromApi } = menuData;
-
-  // Create a set of active category IDs for quick lookup
-  const activeCategoryIds = new Set(
-    categories.filter(cat => cat.status === 'ACTIVE').map(c => c.id)
-  );
+  const activeCategoryIds = new Set(categories.filter(cat => cat.status === 'ACTIVE').map(c => c.id));
 
   const filteredItems = menuItems.filter(item => {
     const belongsToActiveCategory = activeCategoryIds.has(item.categoryId);
@@ -145,13 +144,13 @@ const MenuPage = () => {
     setSelectedItem(null);
   };
 
-  const handleItemClick = (item) => {
-    setSelectedItem(item);
-  };
+  const handleItemClick = (item) => setSelectedItem(item);
+
+  // Place order from cart
+
 
   return (
     <div className="menu-page">
-      {/* Expiry / Cart Error Banner */}
       {cartError && (
         <div className="error-banner">
           <span>{cartError}</span>
@@ -159,43 +158,27 @@ const MenuPage = () => {
         </div>
       )}
 
-
-      {/* Active Orders Banner - Collapsible */}
       {activeOrders && activeOrders.length > 0 && (
         <div className="active-orders-banner">
-          {/* Compact button view */}
           <div className="banner-toggle" onClick={() => setOrdersExpanded(!ordersExpanded)}>
             <div className="banner-toggle-content">
-              <div className="banner-info">
-                <span className="banner-icon">📋</span>
-                <span><strong>{activeOrders.length}</strong> Active Order{activeOrders.length > 1 ? 's' : ''}</span>
-              </div>
-              <button className="toggle-btn">
-                {ordersExpanded ? '▲ Hide' : '▼ Show'}
-              </button>
+              <span><strong>{activeOrders.length}</strong> Active Order{activeOrders.length > 1 ? 's' : ''}</span>
+              <button className="toggle-btn">{ordersExpanded ? '▲ Hide' : '▼ Show'}</button>
             </div>
           </div>
-
-          {/* Expanded orders list */}
           {ordersExpanded && (
             <div className="orders-list">
               {activeOrders.map(order => (
                 <div key={order.id} className="banner-content">
-                  <div className="banner-info">
-                    <span>Order: <strong>#{order.orderNumber}</strong></span>
-                    <span className={`status-chip ${order.status.toLowerCase()}`}>
-                      {order.status}
-                    </span>
+                  <div className="order-info">
+                    <span className="order-number">Order: <strong>#{order.orderNumber}</strong></span>
+                    <span className={`order-status ${order.status.toLowerCase()}`}>{order.status}</span>
                   </div>
-                  <button
-                    className="banner-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/order-status/${order.id}`);
-                    }}
-                  >
-                    View →
-                  </button>
+                  <div className="order-actions">
+                    <button className="banner-btn" onClick={() => navigate(`/order-status/${order.id}`)}>
+                      View →
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -203,105 +186,58 @@ const MenuPage = () => {
         </div>
       )}
 
-      {/* 1. Brand Banner */}
       <header className="menu-header-banner">
         <h1>{tableFromApi?.restaurantName || 'Smart Restaurant'}</h1>
         <div className="table-info-pill">
           <span>Table {table?.tableNumber || tableFromApi?.tableNumber}</span>
-          <span style={{ opacity: 0.5 }}>|</span>
-          <span>{table?.location || tableFromApi?.location || 'Main Hall'}</span>
         </div>
       </header>
 
-      {/* 2. Sticky Search & Filter */}
       <div className="search-sticky">
         <div className="search-input-wrapper">
-          <span>🔍</span>
-          <input
-            type="text"
-            placeholder="Search favorites..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+          <input type="text" placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
         </div>
-
-        <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-          className="sort-select"
-        >
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="sort-select">
           <option value="">Sort by</option>
           <option value="name-asc">Name (A-Z)</option>
-          <option value="name-desc">Name (Z-A)</option>
           <option value="price-asc">Price (Low-High)</option>
-          <option value="price-desc">Price (High-Low)</option>
         </select>
       </div>
 
-      {/* 3. Category Scrolling Tabs */}
       <nav className="category-nav">
-        <button
-          className={`category-tab ${selectedCategory === 'All' ? 'active' : ''}`}
-          onClick={() => setSelectedCategory('All')}
-        >
-          All
-        </button>
+        <button className={`category-tab ${selectedCategory === 'All' ? 'active' : ''}`} onClick={() => setSelectedCategory('All')}>All</button>
         {categories.map(cat => (
-          <button
-            key={cat.id}
-            className={`category-tab ${selectedCategory === cat.id ? 'active' : ''}`}
-            onClick={() => setSelectedCategory(cat.id)}
-          >
-            {cat.name}
-          </button>
+          <button key={cat.id} className={`category-tab ${selectedCategory === cat.id ? 'active' : ''}`} onClick={() => setSelectedCategory(cat.id)}>{cat.name}</button>
         ))}
       </nav>
 
-      {/* 4. Menu Grid */}
       <main className="menu-grid">
         {sortedItems.map(item => {
           const primaryPhoto = item.photos?.find(p => p.isPrimary) || item.photos?.[0];
-
           return (
             <div key={item.id} className="item-card" onClick={() => handleItemClick(item)}>
               {primaryPhoto ? (
                 <img src={primaryPhoto.url} alt={item.name} className="item-img" />
               ) : (
-                <div className="item-placeholder">🍕</div>
+                <div className="item-placeholder">🍽️</div>
               )}
-
               <div className="item-details">
-                <div>
-                  <div className="item-name">{item.name}</div>
-                  <p className="item-desc">{item.description}</p>
-                </div>
-
+                <div className="item-name">{item.name}</div>
+                {item.description && <div className="item-desc">{item.description}</div>}
                 <div className="item-footer">
                   <span className="item-price">${Number(item.price).toFixed(2)}</span>
-                  <button className="add-btn" onClick={(e) => { e.stopPropagation(); handleItemClick(item); }}>+</button>
+                  <button className="add-btn">+</button>
                 </div>
               </div>
             </div>
           );
         })}
-
-        {sortedItems.length === 0 && (
-          <div style={{ textAlign: 'center', gridColumn: '1/-1', padding: '60px 20px', color: '#999' }}>
-            <p style={{ fontSize: '40px' }}>🔍</p>
-            <p>No items found. Try another search!</p>
-          </div>
-        )}
       </main>
 
-      {/* Cart Button & Drawer */}
+      <CheckoutButton />
       <CartButton />
       <CartDrawer />
 
-      <footer style={{ padding: '40px 20px', textAlign: 'center', opacity: 0.5, fontSize: '12px' }}>
-        Smart Restaurant System • Digital Menu
-      </footer>
-
-      {/* Order Item Modal */}
       {selectedItem && (
         <OrderItemModal
           item={selectedItem}

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import Sidebar from '../components/Sidebar';
-import TableCard from '../components/TableCard';
-import TableModal from '../components/TableModal';
-import QRCodeModal from '../components/QRCodeModal';
+import Sidebar from '../../components/Sidebar';
+import TableCard from '../../components/TableCard';
+import TableModal from '../../components/TableModal';
+import QRCodeModal from '../../components/QRCodeModal';
 import axios from 'axios';
 import { useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
-import TablePrintTicket from '../components/TablePrintTicket';
+import TablePrintTicket from '../../components/TablePrintTicket';
 
 const TablesPage = () => {
   const [tables, setTables] = useState([]);

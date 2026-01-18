@@ -4,17 +4,25 @@ import { useCart } from '../../contexts/CartContext';
 import './CartDrawer.css';
 
 const CartDrawer = () => {
-    const navigate = useNavigate();
     const {
         cart, isCartOpen, setIsCartOpen, updateQuantity, removeFromCart,
-        subtotal, total, taxAmount, orderNotes, setOrderNotes, table
+        subtotal, total, taxAmount, orderNotes, setOrderNotes, table, placeOrder,
+        isSubmitting
     } = useCart();
 
     if (!isCartOpen) return null;
 
-    const handleGoToCheckout = () => {
-        setIsCartOpen(false);
-        navigate('/checkout');
+    const handlePlaceOrder = async () => {
+        try {
+            const order = await placeOrder();
+            if (order) {
+                setIsCartOpen(false);
+                alert(`Order #${order.orderNumber} placed successfully! ✅`);
+            }
+        } catch (err) {
+            console.error('Failed to place order:', err);
+            alert('Failed to place order. Please try again.');
+        }
     };
 
     const handleRemoveItem = (cartItemId, itemName) => {
@@ -69,6 +77,7 @@ const CartDrawer = () => {
                     )}
                 </div>
 
+
                 {cart.length > 0 && (
                     <div className="cart-drawer-footer">
                         <div className="special-notes">
@@ -83,8 +92,16 @@ const CartDrawer = () => {
                             <div className="summary-row"><span>Tax (8%)</span><span>${taxAmount.toFixed(2)}</span></div>
                             <div className="summary-row total"><span>Total</span><span>${total.toFixed(2)}</span></div>
                         </div>
-                        <button className="place-order-btn" onClick={handleGoToCheckout}>
-                            Proceed to Checkout
+                        <button
+                            className="place-order-btn"
+                            onClick={handlePlaceOrder}
+                            disabled={isSubmitting}
+                        >
+                            {isSubmitting ? (
+                                '⏳ Processing...'
+                            ) : (
+                                <>🍽️ Confirm Order</>
+                            )}
                         </button>
                     </div>
                 )}
