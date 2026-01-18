@@ -48,14 +48,14 @@ const OrderTrackingPage = () => {
                 console.log(`🔍 Comparing: data.orderId (${typeof data.orderId}) ${data.orderId} === orderId (${typeof orderId}) ${orderId}`);
                 if (data.orderId === orderId) {
                     setOrder(data.order);
-                    
+
                     // Show notification
                     if (data.status === 'READY') {
                         setNotification('🔔 Your order is ready!');
                     } else {
                         setNotification(`Order status: ${data.status}`);
                     }
-                    
+
                     setTimeout(() => setNotification(null), 5000);
                 }
             };
@@ -158,6 +158,17 @@ const OrderTrackingPage = () => {
                             <span className="label">Total:</span>
                             <span className="value">${Number(order.totalAmount).toFixed(2)}</span>
                         </div>
+                    </div>
+                </div>
+
+                {/* Payment Status Banner */}
+                <div className={`payment-status-card ${order.paymentStatus?.toLowerCase() || 'pending'}`}>
+                    <div className="payment-status-icon">
+                        {order.paymentStatus === 'PAID' ? '✅' : '💳'}
+                    </div>
+                    <div className="payment-status-text">
+                        <h3>{order.paymentStatus === 'PAID' ? 'PAID' : 'UNPAID'}</h3>
+                        <p>{order.paymentStatus === 'PAID' ? 'Thank you for your payment!' : 'Please pay at the counter'}</p>
                     </div>
                 </div>
 

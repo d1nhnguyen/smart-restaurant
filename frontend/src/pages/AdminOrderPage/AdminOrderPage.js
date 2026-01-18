@@ -129,7 +129,7 @@ const AdminOrderPage = () => {
             const handleOrderStatusUpdated = (data) => {
                 console.log('🔄 Order status updated:', data);
                 setOrders(prev => {
-                    const updated = prev.map(o => 
+                    const updated = prev.map(o =>
                         o.id === data.orderId ? data.order : o
                     );
                     filterOrders(updated, activeTab);

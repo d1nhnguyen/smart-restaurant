@@ -175,7 +175,7 @@ const OrderCard = ({ order, onAction }) => {
 
             <div className="order-total">
                 <div className="total-row">
-                    <span>Subtotal:</span>
+                    <span>Subtotal: </span>
                     <span>{formatCurrency(order.subtotalAmount)}</span>
                 </div>
                 <div className="total-row">
@@ -183,8 +183,23 @@ const OrderCard = ({ order, onAction }) => {
                     <span>{formatCurrency(order.taxAmount)}</span>
                 </div>
                 <div className="total-row total-final">
-                    <span>Total:</span>
+                    <span>Total: </span>
                     <span>{formatCurrency(order.totalAmount)}</span>
+                </div>
+
+                <div className="payment-info-row">
+                    <span className={`payment-status-badge ${order.paymentStatus === 'PAID' ? 'paid' : 'unpaid'}`}>
+                        {order.paymentStatus === 'PAID' ? '✅ PAID' : '💳 UNPAID'}
+                    </span>
+                    {order.paymentStatus !== 'PAID' && order.status !== 'CANCELLED' && (
+                        <button
+                            className="btn-mark-paid"
+                            onClick={() => onAction(order.id, 'mark-paid')}
+                            title="Mark as Paid (Cash)"
+                        >
+                            Mark Paid
+                        </button>
+                    )}
                 </div>
             </div>
 
