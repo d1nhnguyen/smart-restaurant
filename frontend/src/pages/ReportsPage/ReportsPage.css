@@ -221,3 +221,100 @@
         flex-direction: column;
     }
 }
+
+@media print {
+
+    @page {
+        size: auto;
+        margin: 10mm;
+    }
+
+    /* Hide everything initially */
+    body * {
+        visibility: hidden;
+    }
+
+    /* Only show the printable report and its children */
+    .printable-report,
+    .printable-report * {
+        visibility: visible;
+    }
+
+    /* Position the printable report at the top left */
+    .printable-report {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        background: white;
+        z-index: 9999;
+    }
+
+    /* Adjust layout for print */
+    .admin-layout,
+    .admin-sidebar,
+    .admin-header,
+    .btn-primary,
+    .filter-select {
+        display: none !important;
+    }
+
+    .admin-main {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        overflow: visible !important;
+    }
+
+    /* Compact Stats Grid for Print */
+    .stats-grid {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 10px !important;
+        margin-bottom: 20px !important;
+    }
+
+    .stat-card {
+        padding: 10px !important;
+        gap: 10px !important;
+        box-shadow: none !important;
+        border: 1px solid #eee;
+    }
+
+    .stat-icon {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 16px !important;
+    }
+
+    .stat-value {
+        font-size: 18px !important;
+        margin-bottom: 2px !important;
+    }
+
+    .stat-label {
+        font-size: 11px !important;
+    }
+
+    /* Ensure charts and cards look good */
+    .chart-card,
+    .table-card {
+        box-shadow: none !important;
+        border: 1px solid #ccc;
+        break-inside: avoid;
+        page-break-inside: avoid;
+        margin-bottom: 15px !important;
+        padding: 15px !important;
+    }
+
+    .reports-page .charts-row {
+        gap: 15px !important;
+    }
+
+    .reports-page {
+        height: auto;
+        overflow: visible;
+    }
+}

@@ -1,11 +1,21 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
+import { useReactToPrint } from 'react-to-print';
 import Sidebar from '../../components/Sidebar';
 import './ReportsPage.css';
 
 const ReportsPage = () => {
     const [dateFilter, setDateFilter] = useState('7days'); // 7days, 30days, month, lastmonth
     const [loading, setLoading] = useState(true);
+    const componentRef = useRef();
+
+    const handlePrint = useReactToPrint({
+        contentRef: componentRef,
+        documentTitle: `Reports-${new Date().toISOString().split('T')[0]}`,
+        onBeforeGetContent: () => console.log('Preparing to print...'),
+        onAfterPrint: () => console.log('Print finished'),
+        onPrintError: (error) => console.error('Print failed:', error),
+    });
 
     const [summary, setSummary] = useState({
         totalRevenue: 0,
@@ -24,6 +34,7 @@ const ReportsPage = () => {
         const start = new Date();
 
         switch (dateFilter) {
+            // ... (rest of switch case)
             case '30days':
                 start.setDate(end.getDate() - 30);
                 break;
@@ -42,6 +53,7 @@ const ReportsPage = () => {
         }
         return { start, end };
     }, [dateFilter]);
+
 
     const fetchData = useCallback(async () => {
         try {
@@ -79,11 +91,13 @@ const ReportsPage = () => {
         } finally {
             setLoading(false);
         }
-    }, [dateFilter, getDateRange]);
+    }, [getDateRange]);
 
     useEffect(() => {
         fetchData();
     }, [fetchData]);
+
+    // ... (rest of chart renderers)
 
     // SVG Chart Generators 
     // Simple Line Chart for Revenue
@@ -162,6 +176,14 @@ const ReportsPage = () => {
                         <p className="page-subtitle">Track your restaurant's performance</p>
                     </div>
                     <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                        <button
+                            className="btn-primary"
+                            onClick={handlePrint}
+                            disabled={loading}
+                            style={{ marginRight: '10px', backgroundColor: loading ? '#95a5a6' : '#34495e' }}
+                        >
+                            &#128196; Export PDF
+                        </button>
                         <select
                             className="filter-select"
                             value={dateFilter}
@@ -178,8 +200,9 @@ const ReportsPage = () => {
                 {loading ? (
                     <div style={{ textAlign: 'center', padding: '40px' }}>Loading...</div>
                 ) : (
-                    <>
+                    <div ref={componentRef} className="printable-report">
                         {/* Summary Stats */}
+
                         <div className="stats-grid">
                             <div className="stat-card">
                                 <div className="stat-icon" style={{ background: '#e8f8f5', color: '#27ae60' }}>&#128176;</div>
@@ -294,10 +317,10 @@ const ReportsPage = () => {
                                 </tbody>
                             </table>
                         </div>
-                    </>
+                    </div>
                 )}
             </div>
-        </div>
+        </div >
     );
 };
 
