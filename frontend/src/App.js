@@ -22,6 +22,7 @@ import KitchenStaffPage from './pages/KitchenStaffPage/KitchenStaffPage';
 
 import PaymentSuccessPage from './pages/PaymentSuccessPage/PaymentSuccessPage';
 import PaymentFailedPage from './pages/PaymentFailedPage/PaymentFailedPage';
+import AccountManagementPage from './pages/AccountManagementPage/AccountManagementPage';
 
 function App() {
   return (
@@ -41,6 +42,7 @@ function App() {
           <Route path="/admin/categories" element={<AdminCategoryPage />} />
           <Route path="/admin/modifiers" element={<AdminModifierPage />} />
           <Route path="/admin/orders" element={<AdminOrderPage />} />
+          <Route path="/admin/accounts" element={<AccountManagementPage />} />
           <Route path="/admin/kds" element={<KitchenStaffPage />} />
           <Route path="/staff" element={<KitchenStaffPage />} />
 

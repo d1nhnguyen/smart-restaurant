@@ -71,9 +71,9 @@ const Sidebar = () => {
           Reports
         </Link>
 
-        <Link to="/staff" className={getNavLinkClass('/staff') || getNavLinkClass('/admin/kds')}>
-          <span className="nav-icon">&#128250;</span>
-          Kitchen Display
+        <Link to="/admin/accounts" className={getNavLinkClass('/admin/accounts')}>
+          <span className="nav-icon">&#128100;</span>
+          Account
         </Link>
       </nav>
 

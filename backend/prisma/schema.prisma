@@ -67,6 +67,12 @@ enum ModifierSelectionType {
   MULTIPLE
 }
 
+enum UserRole {
+  ADMIN
+  STAFF
+  WAITER
+}
+
 enum StaffRole {
   CHEF
   COOK
@@ -334,12 +340,14 @@ model User {
   email       String    @unique @db.VarChar(255)
   password    String    @db.VarChar(255)
   name        String?   @db.VarChar(100)
+  role        UserRole  @default(STAFF)
   isActive    Boolean   @default(true) @map("is_active")
   lastLoginAt DateTime? @map("last_login_at")
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
 
   @@index([email])
+  @@index([role])
   @@map("users")
 }
 
