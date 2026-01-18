@@ -4,11 +4,10 @@ import { useCart } from '../../contexts/CartContext';
 import './CartDrawer.css';
 
 const CartDrawer = () => {
-    const navigate = useNavigate();
     const {
         cart, isCartOpen, setIsCartOpen, updateQuantity, removeFromCart,
         subtotal, total, taxAmount, orderNotes, setOrderNotes, table, placeOrder,
-        modifiableOrder, isSubmitting
+        isSubmitting
     } = useCart();
 
     if (!isCartOpen) return null;
@@ -81,11 +80,6 @@ const CartDrawer = () => {
 
                 {cart.length > 0 && (
                     <div className="cart-drawer-footer">
-                        {modifiableOrder && (
-                            <div className="adding-to-order-banner">
-                                <span>📝 Adding to Order <strong>#{modifiableOrder.orderNumber}</strong></span>
-                            </div>
-                        )}
                         <div className="special-notes">
                             <label>Special instructions for the kitchen</label>
                             <textarea
@@ -99,16 +93,14 @@ const CartDrawer = () => {
                             <div className="summary-row total"><span>Total</span><span>${total.toFixed(2)}</span></div>
                         </div>
                         <button
-                            className={`place-order-btn ${modifiableOrder ? 'adding-items' : ''}`}
+                            className="place-order-btn"
                             onClick={handlePlaceOrder}
                             disabled={isSubmitting}
                         >
                             {isSubmitting ? (
                                 '⏳ Processing...'
-                            ) : modifiableOrder ? (
-                                <>📝 Add to Order #{modifiableOrder.orderNumber}</>
                             ) : (
-                                <>🍽️ Place New Order</>
+                                <>🍽️ Confirm Order</>
                             )}
                         </button>
                     </div>

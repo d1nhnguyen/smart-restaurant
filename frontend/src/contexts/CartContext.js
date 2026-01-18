@@ -82,13 +82,13 @@ export const CartProvider = ({ children }) => {
             refreshActiveOrder(table.id);
             refreshUnpaidOrders(table.id);
         }
-    }, [table?.id, refreshActiveOrder, refreshUnpaidOrders]);
+    }, [table, refreshActiveOrder, refreshUnpaidOrders]);
 
     useEffect(() => {
         if (table?.id) {
             saveCartData(table.id, cart, orderNotes);
         }
-    }, [cart, orderNotes, table?.id]);
+    }, [cart, orderNotes, table]);
 
     const handleSetTable = (tableId, tableNumber, qrToken) => {
         // If switching tables, clear the old cart and token
@@ -236,29 +236,13 @@ export const CartProvider = ({ children }) => {
                 }))
             }));
 
-            // Check for existing active order that can be modified (PENDING or ACCEPTED)
-            const modifiableOrder = activeOrders.find(o =>
-                o.status === 'PENDING' || o.status === 'ACCEPTED'
-            );
-
-            let result;
-
-            if (modifiableOrder) {
-                // Add items to existing order
-                result = await orderService.addItemsToOrder(modifiableOrder.id, {
-                    notes: orderNotes,
-                    items: itemsPayload
-                });
-                console.log(`✅ Added ${itemsPayload.length} items to existing order #${modifiableOrder.orderNumber}`);
-            } else {
-                // Create new order
-                result = await orderService.createOrder({
-                    tableId: table.id,
-                    notes: orderNotes,
-                    items: itemsPayload
-                });
-                console.log(`✅ Created new order #${result.orderNumber}`);
-            }
+            // Always create a new order (standard flow as per documentation)
+            const result = await orderService.createOrder({
+                tableId: table.id,
+                notes: orderNotes,
+                items: itemsPayload
+            });
+            console.log(`✅ Created new order #${result.orderNumber}`);
 
             clearCartData(table.id);
             setCart([]);
@@ -271,19 +255,11 @@ export const CartProvider = ({ children }) => {
 
             return result;
         } catch (err) {
-            // Handle specific error for order already being prepared
-            if (err.response?.status === 400 && err.response?.data?.message?.includes('PREPARING')) {
-                setError('Cannot add items - order is already being prepared. Please wait for it to complete.');
-                await refreshActiveOrder(table.id);
-                return null;
-            }
+            console.error('Order submission error:', err);
 
-            // Handle 409 Conflict - table already has active order
-            if (err.response?.status === 409) {
-                setError('This table already has an active order. You can add more items to it.');
-                await refreshActiveOrder(table.id);
-                return null;
-            }
+            // ALWAYS refresh active orders on ANY error to ensure state consistency
+            await refreshActiveOrder(table.id);
+            await refreshUnpaidOrders(table.id);
 
             const msg = err.response?.data?.message || 'Failed to place order. Please try again.';
             setError(msg);
@@ -292,11 +268,6 @@ export const CartProvider = ({ children }) => {
             setIsSubmitting(false);
         }
     };
-
-    // Find order that can be modified (PENDING or ACCEPTED)
-    const modifiableOrder = activeOrders.find(o =>
-        o.status === 'PENDING' || o.status === 'ACCEPTED'
-    );
 
     const subtotal = cart.reduce((sum, item) => sum + item.itemTotal, 0);
     const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -313,8 +284,7 @@ export const CartProvider = ({ children }) => {
             subtotal, total, taxAmount,
             isCartOpen, setIsCartOpen, isSubmitting, error, clearError,
             unpaidOrders, refreshUnpaidOrders, token, clearCart,
-            placeOrder, activeOrder, activeOrders, refreshActiveOrder,
-            modifiableOrder  // NEW: Expose for UI to show "Add to Order" vs "Place New Order"
+            placeOrder, activeOrder, activeOrders, refreshActiveOrder
         }}>
             {children}
         </CartContext.Provider>

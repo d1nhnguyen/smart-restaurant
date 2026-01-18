@@ -19,6 +19,7 @@ import CheckoutPage from './pages/CheckoutPage';
 import OrderConfirmPage from './pages/OrderConfirmPage';
 
 import KitchenStaffPage from './pages/KitchenStaffPage';
+import KDSPage from './pages/KDSPage';
 
 import PaymentSuccessPage from './pages/PaymentSuccessPage';
 import PaymentFailedPage from './pages/PaymentFailedPage';
@@ -41,6 +42,7 @@ function App() {
           <Route path="/admin/categories" element={<AdminCategoryPage />} />
           <Route path="/admin/modifiers" element={<AdminModifierPage />} />
           <Route path="/admin/orders" element={<AdminOrderPage />} />
+          <Route path="/admin/kds" element={<KDSPage />} />
           <Route path="/staff" element={<KitchenStaffPage />} />
 
           {/* Public Customer Routes */}

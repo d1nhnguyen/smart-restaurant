@@ -24,7 +24,7 @@ const MenuPage = () => {
   // KẾT HỢP: Lấy cart và total từ Context (thay vì orderItems cục bộ)
   const {
     addToCart, table, setTable, error: cartError, clearError,
-    activeOrders, token: contextToken, cart, total, placeOrder, refreshActiveOrder
+    activeOrders, token: contextToken, cart, placeOrder, refreshActiveOrder
   } = useCart();
 
   const { joinRoom, on, off, isConnected } = useSocket();
@@ -64,7 +64,7 @@ const MenuPage = () => {
     };
 
     fetchMenu();
-  }, [token, table?.id, setTable]);
+  }, [token, table, setTable]);
 
   // WebSocket: Listen for order updates to refresh active orders banner
   useEffect(() => {
@@ -147,19 +147,7 @@ const MenuPage = () => {
   const handleItemClick = (item) => setSelectedItem(item);
 
   // Place order from cart
-  const handlePlaceOrder = async () => {
-    if (cart.length === 0) return;
-    try {
-      const order = await placeOrder();
-      if (order) {
-        // Navigate to order confirmation page
-        navigate(`/order-confirm/${order.id}`);
-      }
-    } catch (err) {
-      console.error('Failed to place order:', err);
-      // Error will be shown in cart error banner
-    }
-  };
+
 
   return (
     <div className="menu-page">
@@ -180,28 +168,19 @@ const MenuPage = () => {
           </div>
           {ordersExpanded && (
             <div className="orders-list">
-              {activeOrders.map(order => {
-                const canModify = order.status === 'PENDING' || order.status === 'ACCEPTED';
-                const statusClass = canModify ? 'status-modifiable' : 'status-locked';
-                return (
-                  <div key={order.id} className={`banner-content ${statusClass}`}>
-                    <div className="order-info">
-                      <span className="order-number">Order: <strong>#{order.orderNumber}</strong></span>
-                      <span className={`order-status ${order.status.toLowerCase()}`}>{order.status}</span>
-                    </div>
-                    <div className="order-actions">
-                      {!canModify && (
-                        <span className="cannot-modify-badge" title="Order is being prepared and cannot be modified">
-                          🔒 Locked
-                        </span>
-                      )}
-                      <button className="banner-btn" onClick={() => navigate(`/order-status/${order.id}`)}>
-                        View →
-                      </button>
-                    </div>
+              {activeOrders.map(order => (
+                <div key={order.id} className="banner-content">
+                  <div className="order-info">
+                    <span className="order-number">Order: <strong>#{order.orderNumber}</strong></span>
+                    <span className={`order-status ${order.status.toLowerCase()}`}>{order.status}</span>
                   </div>
-                );
-              })}
+                  <div className="order-actions">
+                    <button className="banner-btn" onClick={() => navigate(`/order-status/${order.id}`)}>
+                      View →
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
