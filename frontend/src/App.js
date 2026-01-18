@@ -37,15 +37,22 @@ function App() {
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/order-success/:orderId" element={<OrderConfirmPage />} />
 
-          {/* Admin Routes */}
-          <Route path="/admin/tables" element={<TablesPage />} />
-          <Route path="/admin/items" element={<AdminItemPage />} />
-          <Route path="/admin/categories" element={<AdminCategoryPage />} />
-          <Route path="/admin/modifiers" element={<AdminModifierPage />} />
-          <Route path="/admin/orders" element={<AdminOrderPage />} />
-          <Route path="/admin/accounts" element={<AccountManagementPage />} />
-          <Route path="/admin/kds" element={<KitchenStaffPage />} />
-          <Route path="/staff" element={<KitchenStaffPage />} />
+          {/* Admin Routes - Role Protected */}
+          <Route path="/orders" element={<ProtectedRoute allowedRoles={['ADMIN', 'WAITER']}><AdminOrderPage /></ProtectedRoute>} />
+          <Route path="/staff" element={<ProtectedRoute allowedRoles={['ADMIN', 'STAFF']}><KitchenStaffPage /></ProtectedRoute>} />
+          <Route path="/tables" element={<ProtectedRoute allowedRoles={['ADMIN']}><TablesPage /></ProtectedRoute>} />
+          <Route path="/categories" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminCategoryPage /></ProtectedRoute>} />
+          <Route path="/modifiers" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminModifierPage /></ProtectedRoute>} />
+          <Route path="/accounts" element={<ProtectedRoute allowedRoles={['ADMIN']}><AccountManagementPage /></ProtectedRoute>} />
+
+          {/* Legacy admin paths - redirect */}
+          <Route path="/admin/tables" element={<ProtectedRoute allowedRoles={['ADMIN']}><TablesPage /></ProtectedRoute>} />
+          <Route path="/admin/items" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminItemPage /></ProtectedRoute>} />
+          <Route path="/admin/categories" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminCategoryPage /></ProtectedRoute>} />
+          <Route path="/admin/modifiers" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminModifierPage /></ProtectedRoute>} />
+          <Route path="/admin/orders" element={<ProtectedRoute allowedRoles={['ADMIN', 'WAITER']}><AdminOrderPage /></ProtectedRoute>} />
+          <Route path="/admin/accounts" element={<ProtectedRoute allowedRoles={['ADMIN']}><AccountManagementPage /></ProtectedRoute>} />
+          <Route path="/admin/kds" element={<ProtectedRoute allowedRoles={['ADMIN', 'STAFF']}><KitchenStaffPage /></ProtectedRoute>} />
 
           {/* Public Customer Routes */}
           <Route path="/menu" element={<MenuPage />} />

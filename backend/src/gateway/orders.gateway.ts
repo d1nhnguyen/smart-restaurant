@@ -80,15 +80,18 @@ export class OrdersGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return { success: true, message: 'Waiter has been notified' };
   }
 
-  // Emit order created event (to kitchen and waiters)
+  // Emit order created event (only to admin/waiter, NOT kitchen)
   emitOrderCreated(order: any) {
     this.logger.log(`Emitting order:created for order ${order.orderNumber}`);
-    this.server.to('kitchen').to('waiter').to('admin').emit('order:created', order);
+    // Only emit to admin - kitchen will receive when order is accepted (PREPARING)
+    this.server.to('admin').emit('order:created', order);
   }
 
   // Emit order status updated (to customer tracking specific order)
   emitOrderStatusUpdated(orderId: string, status: string, order: any) {
     this.logger.log(`Emitting order:statusUpdated for order ${orderId} - ${status}`);
+
+    // Always emit to order tracking room
     this.server.to(`order:${orderId}`).emit('order:statusUpdated', {
       orderId,
       status,
@@ -96,13 +99,29 @@ export class OrdersGateway implements OnGatewayConnection, OnGatewayDisconnect {
       timestamp: new Date().toISOString(),
     });
 
-    // Also emit to kitchen and admin
-    this.server.to('kitchen').to('admin').emit('order:statusUpdated', {
+    // Always emit to admin
+    this.server.to('admin').emit('order:statusUpdated', {
       orderId,
       status,
       order,
       timestamp: new Date().toISOString(),
     });
+
+    // ONLY send to kitchen when order becomes PREPARING (after waiter accepts)
+    if (status === 'PREPARING') {
+      this.logger.log(`Sending order ${orderId} to kitchen (status: PREPARING)`);
+      this.server.to('kitchen').emit('order:created', order);
+    }
+
+    // Update kitchen when order status changes (READY, SERVED, etc.)
+    if (status === 'READY' || status === 'SERVED' || status === 'COMPLETED' || status === 'CANCELLED') {
+      this.server.to('kitchen').emit('order:statusUpdated', {
+        orderId,
+        status,
+        order,
+        timestamp: new Date().toISOString(),
+      });
+    }
   }
 
   // Emit order item status updated
