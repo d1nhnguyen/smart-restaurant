@@ -23,6 +23,7 @@ import KitchenStaffPage from './pages/KitchenStaffPage/KitchenStaffPage';
 import PaymentSuccessPage from './pages/PaymentSuccessPage/PaymentSuccessPage';
 import PaymentFailedPage from './pages/PaymentFailedPage/PaymentFailedPage';
 import AccountManagementPage from './pages/AccountManagementPage/AccountManagementPage';
+import VNPayReturnPage from './pages/VNPayReturnPage/VNPayReturnPage';
 
 function App() {
   return (
@@ -50,6 +51,7 @@ function App() {
           <Route path="/menu" element={<MenuPage />} />
           <Route path="/" element={<MenuPage />} /> {/* Default to menu if no path */}
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/payment/vnpay-return" element={<VNPayReturnPage />} />
           <Route path="/payment/success" element={<PaymentSuccessPage />} />
           <Route path="/payment/failed" element={<PaymentFailedPage />} />
 

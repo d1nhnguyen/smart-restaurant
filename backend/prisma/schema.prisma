@@ -42,6 +42,7 @@ enum PaymentMethod {
   MOMO
   ZALOPAY
   BANK_TRANSFER
+  VNPAY
 }
 
 enum PaymentStatus {

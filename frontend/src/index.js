@@ -27,9 +27,18 @@ axios.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Redirect to login on unauthorized access
-      authService.logout();
-      window.location.href = '/login';
+      // Public pages that don't require login
+      const publicPaths = ['/menu', '/', '/table/', '/order-status/', '/checkout', '/payment/'];
+      const currentPath = window.location.pathname;
+
+      // Only redirect to login if not on a public page
+      const isPublicPage = publicPaths.some(path => currentPath.startsWith(path));
+
+      if (!isPublicPage) {
+        // Redirect to login on unauthorized access for protected pages
+        authService.logout();
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

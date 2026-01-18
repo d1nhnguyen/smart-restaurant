@@ -5,11 +5,25 @@ const PaymentSuccessPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Expect orders array and totalAmount from CheckoutPage
-  const { orders, totalAmount } = location.state || {
-    orders: [],
-    totalAmount: 0
-  };
+  // Handle both checkout flow (orders array) and VNPay return flow (single payment)
+  const stateData = location.state || {};
+
+  let orders = [];
+  let totalAmount = 0;
+
+  // VNPay return flow
+  if (stateData.orderId && stateData.amount) {
+    orders = [{
+      id: stateData.orderId,
+      orderNumber: stateData.orderId.substring(0, 8),
+      totalAmount: stateData.amount
+    }];
+    totalAmount = stateData.amount;
+  } else if (stateData.orders) {
+    // Normal checkout flow
+    orders = stateData.orders;
+    totalAmount = stateData.totalAmount || 0;
+  }
 
   const [showContent, setShowContent] = useState(false);
 
@@ -97,7 +111,7 @@ const PaymentSuccessPage = () => {
             Đơn hàng đã thanh toán
           </p>
 
-          {orders.map((order, index) => (
+          {orders && orders.length > 0 ? orders.map((order, index) => (
             <div key={order.id || index} style={{
               display: 'flex',
               justifyContent: 'space-between',
@@ -110,17 +124,19 @@ const PaymentSuccessPage = () => {
                 fontWeight: '600',
                 color: '#2d3748'
               }}>
-                #{order.orderNumber}
+                #{order.orderNumber || 'N/A'}
               </span>
               <span style={{
                 fontSize: '14px',
                 fontWeight: '700',
                 color: '#667eea'
               }}>
-                ${Number(order.totalAmount).toFixed(2)}
+                ${Number(order.totalAmount || 0).toFixed(2)}
               </span>
             </div>
-          ))}
+          )) : (
+            <p style={{ textAlign: 'center', color: '#718096' }}>No orders found</p>
+          )}
         </div>
 
         {/* Total Amount */}
