@@ -31,6 +31,7 @@
         transform: translateX(-50%) translateY(-100%);
         opacity: 0;
     }
+
     to {
         transform: translateX(-50%) translateY(0);
         opacity: 1;
@@ -114,6 +115,44 @@
 .info-item .value {
     font-weight: 600;
     font-size: 15px;
+}
+
+.payment-status-card {
+    background: #fff;
+    padding: 15px 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border-left: 5px solid #ccc;
+}
+
+.payment-status-card.paid {
+    border-left-color: #2ecc71;
+    background: #f0fdf4;
+}
+
+.payment-status-card.pending {
+    border-left-color: #f1c40f;
+    background: #fef9e7;
+}
+
+.payment-status-icon {
+    font-size: 24px;
+}
+
+.payment-status-text h3 {
+    margin: 0;
+    font-size: 16px;
+    color: #2c3e50;
+}
+
+.payment-status-text p {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: #7f8c8d;
 }
 
 .status-banner {

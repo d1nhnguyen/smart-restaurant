@@ -424,6 +424,56 @@ export class OrdersService {
         return this.updateStatus(id, OrderStatus.COMPLETED);
     }
 
+    async markOrderAsPaid(id: string) {
+        const order = await this.prisma.order.findUnique({ where: { id } });
+        if (!order) {
+            throw new NotFoundException(`Order #${id} not found`);
+        }
+
+        if (order.paymentStatus === PaymentStatus.PAID) {
+            return order; // Already paid
+        }
+
+        return this.prisma.$transaction(async (tx) => {
+            // 1. Create a Payment Record (Assumed CASH for manual marking)
+            await tx.payment.create({
+                data: {
+                    orderId: id,
+                    amount: order.totalAmount,
+                    method: 'CASH',
+                    status: PaymentStatus.PAID,
+                    paidAt: new Date(),
+                    notes: 'Manual payment confirmation by staff',
+                },
+            });
+
+            // 2. Update Order Payment Status
+            const updatedOrder = await tx.order.update({
+                where: { id },
+                data: {
+                    paymentStatus: PaymentStatus.PAID,
+                },
+                include: {
+                    table: true,
+                    items: {
+                        include: {
+                            selectedModifiers: true,
+                        },
+                    },
+                },
+            });
+
+            // 3. Emit update
+            this.ordersGateway.emitOrderStatusUpdated(
+                updatedOrder.id,
+                updatedOrder.status,
+                updatedOrder,
+            );
+
+            return updatedOrder;
+        });
+    }
+
     /**
      * Add items to an existing order
      * Business Rules:

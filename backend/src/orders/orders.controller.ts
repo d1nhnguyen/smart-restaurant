@@ -64,6 +64,11 @@ export class OrdersController {
         return this.ordersService.completeOrder(id);
     }
 
+    @Post(':id/mark-paid')
+    markAsPaidManual(@Param('id', ParseUUIDPipe) id: string) {
+        return this.ordersService.markOrderAsPaid(id);
+    }
+
     @Get('current')
     findCurrentByTable(@Query('tableId', ParseUUIDPipe) tableId: string) {
         return this.ordersService.findCurrentByTable(tableId);

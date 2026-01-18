@@ -145,8 +145,9 @@
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    margin-left: 50px;
     margin-top: 6px;
+    padding-left: 50px;
+    /* Align with item name if desired, but ensure responsiveness */
 }
 
 .modifier-tag {
@@ -159,14 +160,19 @@
 }
 
 .item-special-request {
-    margin-left: 50px;
     margin-top: 8px;
+    margin-left: 50px;
+    /* Align with item name and modifiers */
     padding: 8px 12px;
     background: #fffbeb;
     border-left: 3px solid #f59e0b;
     font-size: 13px;
     color: #92400e;
     border-radius: 4px;
+    /* Ensure it stays within container */
+    width: fit-content;
+    max-width: calc(100% - 50px);
+    box-sizing: border-box;
 }
 
 /* Order Notes */
@@ -189,6 +195,9 @@
     margin: 15px 0;
     padding-top: 15px;
     border-top: 2px solid #f7fafc;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .total-row {
@@ -307,4 +316,47 @@
     .item-special-request {
         margin-left: 0;
     }
+}
+
+/* Payment Info */
+.payment-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed #e2e8f0;
+}
+
+.payment-status-badge {
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.payment-status-badge.paid {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.payment-status-badge.unpaid {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.btn-mark-paid {
+    background: #6c5ce7;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn-mark-paid:hover {
+    background: #5b4cc4;
 }
