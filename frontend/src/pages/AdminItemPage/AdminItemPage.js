@@ -109,7 +109,7 @@ const AdminItemPage = () => {
 
         // Attach modifier groups
         if (selectedModifierGroups && selectedModifierGroups.length > 0) {
-          console.log('Sending modifier groups for update:', selectedModifierGroups);
+          // Updating item with modifiers
           await axios.post(`/api/admin/menu/items/${editingItem.id}/modifier-groups`, {
             groupIds: selectedModifierGroups
           });
@@ -122,7 +122,7 @@ const AdminItemPage = () => {
 
         // Attach modifier groups to new item
         if (selectedModifierGroups && selectedModifierGroups.length > 0) {
-          console.log('Sending modifier groups for new item:', selectedModifierGroups);
+          // Creating item with modifiers
           await axios.post(`/api/admin/menu/items/${res.data.id}/modifier-groups`, {
             groupIds: selectedModifierGroups
           });

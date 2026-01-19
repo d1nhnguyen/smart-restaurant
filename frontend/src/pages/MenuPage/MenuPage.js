@@ -72,12 +72,12 @@ const MenuPage = () => {
       // Join rooms for all active orders
       activeOrders.forEach(order => {
         joinRoom('order', order.id);
-        console.log(`📦 MenuPage joined order:${order.id} for banner updates`);
+        // Joined order room for updates
       });
 
       // Listen for order status updates
       const handleOrderStatusUpdated = (data) => {
-        console.log('📦 MenuPage - Order status updated:', data);
+        // Order status updated
         // Refresh active orders to update the banner
         if (refreshActiveOrder) {
           refreshActiveOrder(table.id);

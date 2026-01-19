@@ -8,7 +8,7 @@ const CheckoutButton = () => {
     const { unpaidOrders } = useCart();
 
     // DEBUG: Log unpaidOrders
-    console.log('CheckoutButton - unpaidOrders:', unpaidOrders);
+    // CheckoutButton rendered
 
     // Only show if there are unpaid orders
     if (!unpaidOrders || unpaidOrders.length === 0) return null;

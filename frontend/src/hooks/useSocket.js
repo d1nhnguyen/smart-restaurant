@@ -19,13 +19,13 @@ export const useSocket = () => {
 
     // Connection event handlers
     socketRef.current.on('connect', () => {
-      console.log('✅ Socket connected:', socketRef.current.id);
+      // Socket connected
       setIsConnected(true);
       setError(null);
     });
 
     socketRef.current.on('disconnect', (reason) => {
-      console.log('❌ Socket disconnected:', reason);
+      // Socket disconnected
       setIsConnected(false);
     });
 
@@ -48,11 +48,11 @@ export const useSocket = () => {
       if (roomId) {
         // For order rooms with specific ID
         socketRef.current.emit(`join:${roomType}`, roomId);
-        console.log(`📍 Joining room: join:${roomType} with ID:`, roomId);
+        // Joining room
       } else {
         // For general rooms (kitchen, waiter, admin)
         socketRef.current.emit(`join:${roomType}`);
-        console.log(`📍 Joining room: join:${roomType}`);
+        // Joining room
       }
     }
   }, [isConnected]);
@@ -62,10 +62,10 @@ export const useSocket = () => {
     if (socketRef.current && isConnected) {
       if (roomId) {
         socketRef.current.emit(`leave:${roomType}`, roomId);
-        console.log(`👋 Leaving room: leave:${roomType} with ID:`, roomId);
+        // Leaving room
       } else {
         socketRef.current.emit(`leave:${roomType}`);
-        console.log(`👋 Leaving room: leave:${roomType}`);
+        // Leaving room
       }
     }
   }, [isConnected]);

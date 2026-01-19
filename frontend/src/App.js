@@ -7,6 +7,7 @@ import MenuPage from './pages/MenuPage/MenuPage';
 import LoginPage from './pages/LoginPage/LoginPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
+import AdminDashboardPage from './pages/AdminDashboardPage/AdminDashboardPage';
 import AdminItemPage from './pages/AdminItemPage/AdminItemPage';
 import AdminCategoryPage from './pages/AdminCategoryPage/AdminCategoryPage';
 import AdminModifierPage from './pages/AdminModifierPage/AdminModifierPage';
@@ -23,12 +24,14 @@ import ReportsPage from './pages/ReportsPage/ReportsPage';
 
 import PaymentSuccessPage from './pages/PaymentSuccessPage/PaymentSuccessPage';
 import PaymentFailedPage from './pages/PaymentFailedPage/PaymentFailedPage';
+import AccountManagementPage from './pages/AccountManagementPage/AccountManagementPage';
+import VNPayReturnPage from './pages/VNPayReturnPage/VNPayReturnPage';
 
 function App() {
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <CartProvider>
-        <Routes>
+                <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/table/:tableId" element={<QRLandingPage />} />
@@ -36,24 +39,23 @@ function App() {
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/order-success/:orderId" element={<OrderConfirmPage />} />
 
-          {/* Admin Routes */}
-          <Route path="/admin/tables" element={<TablesPage />} />
-          <Route path="/admin/items" element={<AdminItemPage />} />
-          <Route path="/admin/categories" element={<AdminCategoryPage />} />
-          <Route path="/admin/modifiers" element={<AdminModifierPage />} />
-          <Route path="/admin/orders" element={<AdminOrderPage />} />
-          <Route path="/admin/kds" element={<KitchenStaffPage />} />
-          <Route path="/admin/reports" element={<ReportsPage />} />
-          <Route path="/staff" element={<KitchenStaffPage />} />
+          {/* Admin & Staff Routes - Tối giản */}
+          <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminDashboardPage /></ProtectedRoute>} />
+          <Route path="/orders" element={<ProtectedRoute allowedRoles={['ADMIN', 'WAITER']}><AdminOrderPage /></ProtectedRoute>} />
+          <Route path="/staff" element={<ProtectedRoute allowedRoles={['ADMIN', 'STAFF']}><KitchenStaffPage /></ProtectedRoute>} />
+          <Route path="/tables" element={<ProtectedRoute allowedRoles={['ADMIN']}><TablesPage /></ProtectedRoute>} />
+          <Route path="/categories" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminCategoryPage /></ProtectedRoute>} />
+          <Route path="/items" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminItemPage /></ProtectedRoute>} />
+          <Route path="/modifiers" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminModifierPage /></ProtectedRoute>} />
+          <Route path="/accounts" element={<ProtectedRoute allowedRoles={['ADMIN']}><AccountManagementPage /></ProtectedRoute>} />
 
           {/* Public Customer Routes */}
           <Route path="/menu" element={<MenuPage />} />
-          <Route path="/" element={<MenuPage />} /> {/* Default to menu if no path */}
-          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/" element={<MenuPage />} />
+          <Route path="/payment/vnpay-return" element={<VNPayReturnPage />} />
           <Route path="/payment/success" element={<PaymentSuccessPage />} />
           <Route path="/payment/failed" element={<PaymentFailedPage />} />
-
-        </Routes >
+        </Routes>
       </CartProvider >
     </Router >
   );

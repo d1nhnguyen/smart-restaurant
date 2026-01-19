@@ -8,8 +8,7 @@ const OrderItemModal = ({ item, onClose, onAddToOrder }) => {
 
   const modifierGroups = item.modifierGroups || [];
 
-  console.log('OrderItemModal - item:', item);
-  console.log('OrderItemModal - modifierGroups:', modifierGroups);
+  // OrderItemModal loaded
 
   // Calculate total price
   const calculateTotal = () => {
