@@ -6,6 +6,7 @@ import TablesPage from './pages/TablesPage/TablesPage';
 import MenuPage from './pages/MenuPage/MenuPage';
 import LoginPage from './pages/LoginPage/LoginPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import GuestRoute from './components/GuestRoute';
 
 import AdminDashboardPage from './pages/AdminDashboardPage/AdminDashboardPage';
 import AdminItemPage from './pages/AdminItemPage/AdminItemPage';
@@ -33,7 +34,8 @@ function App() {
       <CartProvider>
         <Routes>
           {/* Public Routes */}
-          <Route path="/login" element={<LoginPage />} />
+
+          <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
           <Route path="/table/:tableId" element={<QRLandingPage />} />
           <Route path="/order-status/:orderId" element={<OrderTrackingPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
