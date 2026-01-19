@@ -8,7 +8,7 @@ const AdminDashboardPage = () => {
   const navigate = useNavigate();
   const { isConnected, on, off } = useSocket();
   const [loading, setLoading] = useState(true);
-  
+
   // Đảm bảo khởi tạo các mảng là mảng trống để tránh lỗi .map()
   const [dashboardData, setDashboardData] = useState({
     stats: { revenue: 0, orders: 0, activeTables: 0 },
@@ -103,7 +103,7 @@ const AdminDashboardPage = () => {
         <div className="table-card">
           <div className="table-header">
             <h3>Recent Orders</h3>
-            <button className="view-all" onClick={() => navigate('/admin/orders')}>View All →</button>
+            <button className="view-all" onClick={() => navigate('/orders')}>View All →</button>
           </div>
           <table className="data-table">
             <thead>
@@ -133,7 +133,7 @@ const AdminDashboardPage = () => {
             </tbody>
           </table>
         </div>
-        
+
         <h3 style={{ marginBottom: '15px' }}>Live Table Status Map</h3>
         <div className="tables-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '15px', marginBottom: '35px' }}>
           {/* Sử dụng optional chaining ?. để an toàn */}
