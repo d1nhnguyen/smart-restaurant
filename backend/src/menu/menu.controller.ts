@@ -35,6 +35,10 @@ import { UpdateModifierOptionDto } from './dto/update-modifier-option.dto';
 import { AttachModifierGroupsDto } from './dto/attach-modifier-groups.dto';
 import { multerOptions } from '../utils/file-upload.utils';
 
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { UserRole } from '@prisma/client';
+
 @Controller('') // Đổi thành Root để định nghĩa path linh hoạt cho cả Guest và Admin
 export class MenuController {
   constructor(
@@ -49,7 +53,8 @@ export class MenuController {
    * GET /api/menu/admin
    */
   @Get('admin')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   async getAdminMenu() {
     return {
       success: true,
@@ -175,21 +180,29 @@ export class MenuController {
   // --- Category Endpoints ---
 
   @Get('admin/menu/categories')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   findAllCategories() {
     return this.categoryService.findAll();
   }
 
   @Post('admin/menu/categories')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   createCategory(@Body() dto: CreateCategoryDto) {
     return this.categoryService.create(dto);
   }
 
   @Patch('admin/menu/categories/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   updateCategory(@Param('id') id: string, @Body() dto: UpdateCategoryDto) {
     return this.categoryService.update(id, dto);
   }
 
   @Patch('admin/menu/categories/:id/status')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   updateCategoryStatus(@Param('id') id: string, @Body() dto: UpdateStatusDto) {
     return this.categoryService.updateStatus(id, dto.status);
   }
@@ -197,27 +210,37 @@ export class MenuController {
   // --- Item Endpoints ---
 
   @Get('admin/menu/items')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @UsePipes(new ValidationPipe({ transform: true }))
   findAllItems(@Query() query: GetItemsFilterDto) {
     return this.itemService.findAll(query);
   }
 
   @Get('admin/menu/items/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   findOneItem(@Param('id') id: string) {
     return this.itemService.findOne(id);
   }
 
   @Post('admin/menu/items')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   createItem(@Body() dto: CreateMenuItemDto) {
     return this.itemService.create(dto);
   }
 
   @Patch('admin/menu/items/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   updateItem(@Param('id') id: string, @Body() dto: UpdateMenuItemDto) {
     return this.itemService.update(id, dto);
   }
 
   @Delete('admin/menu/items/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   removeItem(@Param('id') id: string) {
     return this.itemService.remove(id);
   }
@@ -225,26 +248,36 @@ export class MenuController {
   // --- Modifier Group Endpoints ---
 
   @Get('admin/menu/modifier-groups')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   findAllModifierGroups() {
     return this.modifierGroupService.findAll();
   }
 
   @Get('admin/menu/modifier-groups/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   findOneModifierGroup(@Param('id') id: string) {
     return this.modifierGroupService.findOne(id);
   }
 
   @Post('admin/menu/modifier-groups')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   createModifierGroup(@Body() dto: CreateModifierGroupDto) {
     return this.modifierGroupService.create(dto);
   }
 
   @Put('admin/menu/modifier-groups/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   updateModifierGroup(@Param('id') id: string, @Body() dto: UpdateModifierGroupDto) {
     return this.modifierGroupService.update(id, dto);
   }
 
   @Delete('admin/menu/modifier-groups/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   removeModifierGroup(@Param('id') id: string) {
     return this.modifierGroupService.remove(id);
   }
@@ -252,16 +285,22 @@ export class MenuController {
   // --- Modifier Option Endpoints ---
 
   @Post('admin/menu/modifier-groups/:id/options')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   createModifierOption(@Param('id') groupId: string, @Body() dto: CreateModifierOptionDto) {
     return this.modifierGroupService.createOption(groupId, dto);
   }
 
   @Put('admin/menu/modifier-options/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   updateModifierOption(@Param('id') optionId: string, @Body() dto: UpdateModifierOptionDto) {
     return this.modifierGroupService.updateOption(optionId, dto);
   }
 
   @Delete('admin/menu/modifier-options/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   removeModifierOption(@Param('id') optionId: string) {
     return this.modifierGroupService.removeOption(optionId);
   }
@@ -269,6 +308,8 @@ export class MenuController {
   // --- Attach/Detach Modifier Groups to Items ---
 
   @Post('admin/menu/items/:id/modifier-groups')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   attachModifierGroupsToItem(@Param('id') itemId: string, @Body() dto: AttachModifierGroupsDto) {
     return this.modifierGroupService.attachGroupsToItem(itemId, dto.groupIds);
   }
@@ -278,6 +319,8 @@ export class MenuController {
   // ==================================================================
 
   @Post('admin/menu/items/:id/photos')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @UseInterceptors(FilesInterceptor('files', 10, multerOptions))
   async uploadPhotos(
     @Param('id') id: string,
@@ -287,6 +330,8 @@ export class MenuController {
   }
 
   @Delete('admin/menu/items/:id/photos/:photoId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   async deletePhoto(
     @Param('id') id: string,
     @Param('photoId') photoId: string,
@@ -295,6 +340,8 @@ export class MenuController {
   }
 
   @Patch('admin/menu/items/:id/photos/:photoId/primary')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   async setPrimaryPhoto(
     @Param('id') id: string,
     @Param('photoId') photoId: string,
