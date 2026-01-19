@@ -58,6 +58,22 @@
         "specialInstructions": "Ghi chú",
         "specialInstructionsPlaceholder": "Ghi chú cho nhà hàng"
     },
+    "orderItemModal": {
+        "basePrice": "Giá gốc",
+        "customizeOrder": "Tùy chỉnh món ăn",
+        "required": "Bắt buộc",
+        "chooseOne": "Chọn một",
+        "chooseMultiple": "Chọn nhiều",
+        "free": "Miễn phí",
+        "specialInstructions": "Yêu cầu đặc biệt (Tùy chọn)",
+        "specialInstructionsPlaceholder": "Bạn có yêu cầu gì đặc biệt? (Ví dụ: không hành, thêm cay)",
+        "addToOrder": "Thêm vào giỏ",
+        "pleaseSelect": "Vui lòng chọn",
+        "pleaseSelectAtLeast": "Vui lòng chọn ít nhất",
+        "canOnlySelectUpTo": "Bạn chỉ có thể chọn tối đa",
+        "options": "lựa chọn",
+        "for": "cho"
+    },
     "checkout": {
         "title": "Thanh toán",
         "customerInfo": "Thông tin khách hàng",

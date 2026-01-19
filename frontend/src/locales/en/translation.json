@@ -57,6 +57,22 @@
         "specialInstructions": "Special Instructions",
         "specialInstructionsPlaceholder": "Special Instructions for restaurant"
     },
+    "orderItemModal": {
+        "basePrice": "Base Price",
+        "customizeOrder": "Customize Your Order",
+        "required": "Required",
+        "chooseOne": "Choose one",
+        "chooseMultiple": "Choose multiple",
+        "free": "Free",
+        "specialInstructions": "Special Instructions (Optional)",
+        "specialInstructionsPlaceholder": "Any special requests? (e.g., no onions, extra spicy)",
+        "addToOrder": "Add to Order",
+        "pleaseSelect": "Please select",
+        "pleaseSelectAtLeast": "Please select at least",
+        "canOnlySelectUpTo": "You can only select up to",
+        "options": "option(s)",
+        "for": "for"
+    },
     "checkout": {
         "title": "Checkout",
         "customerInfo": "Customer Information",
