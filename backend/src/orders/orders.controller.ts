@@ -83,4 +83,8 @@ export class OrdersController {
     findOne(@Param('id', ParseUUIDPipe) id: string) {
         return this.ordersService.findOne(id);
     }
+    @Get('dashboard/stats')
+    async getDashboardStats() {
+        return this.ordersService.getDashboardStats();
+    }
 }

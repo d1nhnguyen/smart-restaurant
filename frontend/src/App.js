@@ -7,6 +7,7 @@ import MenuPage from './pages/MenuPage/MenuPage';
 import LoginPage from './pages/LoginPage/LoginPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
+import AdminDashboardPage from './pages/AdminDashboardPage/AdminDashboardPage';
 import AdminItemPage from './pages/AdminItemPage/AdminItemPage';
 import AdminCategoryPage from './pages/AdminCategoryPage/AdminCategoryPage';
 import AdminModifierPage from './pages/AdminModifierPage/AdminModifierPage';
@@ -36,6 +37,7 @@ function App() {
           <Route path="/order-success/:orderId" element={<OrderConfirmPage />} />
 
           {/* Admin Routes */}
+          <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
           <Route path="/admin/tables" element={<TablesPage />} />
           <Route path="/admin/items" element={<AdminItemPage />} />
           <Route path="/admin/categories" element={<AdminCategoryPage />} />
