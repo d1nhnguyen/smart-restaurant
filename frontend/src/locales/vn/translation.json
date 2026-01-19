@@ -42,7 +42,8 @@
         "activeOrders": "Đơn hàng đang xử lý",
         "hide": "Ẩn",
         "show": "Hiện",
-        "view": "Xem"
+        "view": "Xem",
+        "chefPick": "Chef đề xuất"
     },
     "cart": {
         "title": "Giỏ hàng của bạn",
