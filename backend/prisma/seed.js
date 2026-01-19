@@ -116,7 +116,7 @@ async function main() {
       },
     });
 
-    for (let i = 1; i <= 5; i++) {
+    for (let i = 1; i <= 10; i++) {
       await prisma.menuItem.create({
         data: {
           categoryId: category.id,
@@ -125,13 +125,13 @@ async function main() {
           price: Number((Math.random() * 20 + 5).toFixed(2)), // Decimal ok
           prepTimeMinutes: Math.floor(Math.random() * 15) + 5,
           status: ItemStatus.AVAILABLE,
-          isChefRecommended: category.name === 'Chef Specials',
+          isChefRecommended: category.name === 'Chef Specials' && i <= 3, // First 3 items of Chef Specials
           isDeleted: false,
         },
       });
     }
 
-    console.log(`✅ Category "${category.name}" seeded with 5 items`);
+    console.log(`✅ Category "${category.name}" seeded with 10 items`);
   }
 
   // Create sample modifier groups (Simplified: No restaurantId)

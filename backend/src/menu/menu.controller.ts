@@ -115,7 +115,12 @@ export class MenuController {
   @Get('menu')
   async getMenu(
     @Query('token') token?: string,
-    @Query('tableId') tableId?: string
+    @Query('tableId') tableId?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+    @Query('categoryId') categoryId?: string,
+    @Query('sort') sort?: string,
   ) {
     if (!token && !tableId) {
       throw new BadRequestException('Token or Table ID is required.');
@@ -143,17 +148,51 @@ export class MenuController {
     const activeCategories = allCategories.filter(cat => cat.status === 'ACTIVE');
     const activeCategoryIds = activeCategories.map(c => c.id);
 
-    // Lấy tất cả items có ảnh kèm theo
+    // Parse pagination params with defaults
+    const pageNum = parseInt(page) || 1;
+    const limitNum = parseInt(limit) || 20;
+
+    // If filtering by category, only apply if it's an active category
+    let effectiveCategoryId = categoryId;
+    if (categoryId && !activeCategoryIds.includes(categoryId)) {
+      // Category is not active, return empty results
+      return {
+        success: true,
+        table: {
+          ...tableInfo,
+          qrToken: token || tableInfo.qrToken
+        },
+        message: `Welcome to Table ${tableInfo.tableNumber}!`,
+        categories: activeCategories,
+        menuItems: [],
+        pagination: {
+          page: 1,
+          limit: limitNum,
+          total: 0,
+          totalPages: 0,
+          hasMore: false,
+        },
+      };
+    }
+
+    // Fetch items with pagination and filters
     const items = await this.itemService.findAll({
-      page: 1,
-      limit: 1000, // Lấy hết để group 
+      page: pageNum,
+      limit: limitNum,
       status: 'AVAILABLE' as any,
+      search: search || undefined,
+      categoryId: effectiveCategoryId || undefined,
+      sort: sort as any || undefined,
     });
 
-    // Chỉ giữ lại items thuộc về categories ACTIVE
-    const activeItems = items.data.filter(item =>
-      activeCategoryIds.includes(item.categoryId)
-    );
+    // Note: items.data is already filtered by categoryId if provided
+    // We only need to filter by active categories if NO categoryId was provided
+    const finalItems = effectiveCategoryId
+      ? items.data // Already filtered by specific category
+      : items.data.filter(item => activeCategoryIds.includes(item.categoryId));
+
+    // Calculate hasMore for infinite scroll
+    const hasMore = items.meta.page < items.meta.totalPages;
 
     return {
       success: true,
@@ -163,7 +202,14 @@ export class MenuController {
       },
       message: `Welcome to Table ${tableInfo.tableNumber}!`,
       categories: activeCategories,
-      menuItems: activeItems,
+      menuItems: finalItems,
+      pagination: {
+        page: items.meta.page,
+        limit: items.meta.limit,
+        total: items.meta.total,
+        totalPages: items.meta.totalPages,
+        hasMore,
+      },
     };
   }
 
