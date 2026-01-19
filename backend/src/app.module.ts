@@ -19,7 +19,7 @@ import { UsersModule } from './users/users.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    // Rate limiting: 100 requests per minute globally
+    // Rate limiting: 1000 requests per minute globally
     ThrottlerModule.forRoot([
       {
         ttl: 60000,

@@ -40,7 +40,8 @@
         "activeOrders": "Active Orders",
         "hide": "Hide",
         "show": "Show",
-        "view": "View"
+        "view": "View",
+        "chefPick": "Chef's Pick"
     },
     "cart": {
         "title": "Your Cart",

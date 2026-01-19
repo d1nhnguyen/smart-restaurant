@@ -245,7 +245,17 @@ const MenuPage = () => {
         {sortedItems.map(item => {
           const primaryPhoto = item.photos?.find(p => p.isPrimary) || item.photos?.[0];
           return (
-            <div key={item.id} className="item-card" onClick={() => handleItemClick(item)}>
+            <div
+              key={item.id}
+              className={`item-card ${item.isChefRecommended ? 'chef-recommended' : ''}`}
+              onClick={() => handleItemClick(item)}
+            >
+              {item.isChefRecommended && (
+                <div className="chef-badge">
+                  <span className="chef-icon">⭐</span>
+                  <span className="chef-text">{t('menu.chefPick')}</span>
+                </div>
+              )}
               {primaryPhoto ? (
                 <img src={primaryPhoto.url} alt={item.name} className="item-img" />
               ) : (
