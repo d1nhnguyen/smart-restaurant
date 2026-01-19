@@ -42,8 +42,14 @@ const LoginPage = () => {
       localStorage.setItem('token', data.access_token);
       localStorage.setItem('user', JSON.stringify(data.user));
 
-      // Redirect to admin tables page
-      navigate('/admin/tables');
+      // Redirect based on role
+      if (data.user.role === 'WAITER') {
+        navigate('/orders'); // WAITER only sees Orders
+      } else if (data.user.role === 'STAFF') {
+        navigate('/staff'); // STAFF only sees Kitchen
+      } else {
+        navigate('/orders'); // ADMIN sees everything, default to Orders
+      }
     } catch (err) {
       setError(err.message || 'An error occurred');
     } finally {

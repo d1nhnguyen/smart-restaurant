@@ -67,6 +67,25 @@ const CheckoutPage = () => {
         setLoading(true);
         setError(null);
         try {
+            // VNPay flow - redirect to payment gateway
+            if (paymentMethod === 'VNPAY') {
+                // For VNPay, we'll process all orders together
+                const totalOrderIds = unpaidOrders.map(o => o.id).join(',');
+                const orderInfo = `Payment for ${unpaidOrders.length} order(s): ${unpaidOrders.map(o => `#${o.orderNumber}`).join(', ')}`;
+
+                const response = await axios.post('/api/payments/vnpay/create', {
+                    orderId: unpaidOrders[0].id, // Use first order ID as reference
+                    amount: total,
+                    orderInfo: orderInfo,
+                    language: 'vn'
+                });
+
+                // Redirect to VNPay payment page
+                window.location.href = response.data.paymentUrl;
+                return;
+            }
+
+            // Original flow for other payment methods
             // Create payments for all active orders
             const paymentPromises = unpaidOrders.map(async (order) => {
                 const orderTotal = Number(order.totalAmount);
@@ -163,7 +182,7 @@ const CheckoutPage = () => {
                 <section className="payment-method-section">
                     <h2>Payment Method</h2>
                     <div className="payment-method-grid">
-                        {['CARD', 'MOMO', 'ZALOPAY', 'CASH'].map(method => (
+                        {['CARD', 'MOMO', 'ZALOPAY', 'VNPAY', 'CASH'].map(method => (
                             <label key={method} className={`payment-option ${paymentMethod === method ? 'active' : ''}`}>
                                 <input
                                     type="radio"
@@ -172,7 +191,7 @@ const CheckoutPage = () => {
                                     checked={paymentMethod === method}
                                     onChange={(e) => setPaymentMethod(e.target.value)}
                                 />
-                                {method}
+                                {method === 'VNPAY' ? 'VNPay' : method}
                             </label>
                         ))}
                     </div>

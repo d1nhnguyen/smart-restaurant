@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 async function cleanDatabase() {
   console.log('🧹 Cleaning database...');
-  
+
   // Delete in correct order to avoid FK constraints
   await prisma.payment.deleteMany({});
   await prisma.orderItemModifier.deleteMany({});
@@ -20,7 +20,7 @@ async function cleanDatabase() {
   await prisma.table.deleteMany({});
   await prisma.staff.deleteMany({});
   await prisma.user.deleteMany({});
-  
+
   console.log('✅ Database cleaned successfully');
 }
 
@@ -35,11 +35,14 @@ async function main() {
 
   const adminUser = await prisma.user.upsert({
     where: { email: 'admin@smartrestaurant.com' },
-    update: {},
+    update: {
+      role: 'ADMIN',
+    },
     create: {
       email: 'admin@smartrestaurant.com',
       password: hashedPassword,
       name: 'Admin User',
+      role: 'ADMIN',
       isActive: true,
     },
   });
@@ -343,7 +346,7 @@ async function main() {
 
   for (const o of ordersData) {
     const subtotal = o.items.reduce((sum, i) => sum + (Number(i.item.price) * i.qty), 0);
-    
+
     await prisma.order.upsert({
       where: { orderNumber: o.orderNumber },
       update: {},

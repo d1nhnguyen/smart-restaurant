@@ -31,18 +31,18 @@ const KitchenStaffPage = () => {
     useEffect(() => {
         if (isConnected) {
             joinRoom('kitchen');
-            console.log('🔌 Joined kitchen room');
+            // Joined kitchen room
 
             // Listen for new orders
             const handleOrderCreated = (order) => {
-                console.log('🍴 New order received:', order);
+                // New order received
                 setOrders(prev => [order, ...prev]);
             };
 
             // Listen for order status updates
             const handleOrderStatusUpdated = (data) => {
-                console.log('🔄 Order status updated:', data);
-                
+                // Order status updated
+
                 if (data.status === 'PREPARING') {
                     // Order moved to PREPARING - add or update in kitchen list
                     setOrders(prev => {
@@ -63,7 +63,7 @@ const KitchenStaffPage = () => {
 
             // Listen for item status updates
             const handleItemStatusUpdated = (data) => {
-                console.log('🍲 Item status updated:', data);
+                // Item status updated
                 setOrders(prev => prev.map(order => {
                     if (order.id === data.orderId) {
                         return {
@@ -122,7 +122,7 @@ const KitchenStaffPage = () => {
                         <p className="page-subtitle">Kitchen Display System</p>
                     </div>
                     <div className="header-actions">
-                        <span className="socket-status" style={{ 
+                        <span className="socket-status" style={{
                             marginRight: '15px',
                             fontSize: '13px',
                             fontWeight: '600',

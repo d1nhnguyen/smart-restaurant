@@ -113,11 +113,11 @@ const AdminOrderPage = () => {
     useEffect(() => {
         if (isConnected) {
             joinRoom('admin');
-            console.log('🔌 Joined admin room');
+            // Joined admin room
 
             // Listen for new orders
             const handleOrderCreated = (order) => {
-                console.log('🍴 New order received:', order);
+                // New order received
                 setOrders(prev => {
                     const updated = [order, ...prev];
                     filterOrders(updated, activeTab);
@@ -127,7 +127,7 @@ const AdminOrderPage = () => {
 
             // Listen for order status updates
             const handleOrderStatusUpdated = (data) => {
-                console.log('🔄 Order status updated:', data);
+                // Order status updated
                 setOrders(prev => {
                     const updated = prev.map(o =>
                         o.id === data.orderId ? data.order : o
@@ -139,7 +139,7 @@ const AdminOrderPage = () => {
 
             // Listen for item status updates
             const handleItemStatusUpdated = (data) => {
-                console.log('🍲 Item status updated:', data);
+                // Item status updated
                 setOrders(prev => {
                     const updated = prev.map(order => {
                         if (order.id === data.orderId) {

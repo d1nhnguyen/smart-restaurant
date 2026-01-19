@@ -91,11 +91,28 @@ export const CartProvider = ({ children }) => {
     }, [cart, orderNotes, table]);
 
     const handleSetTable = (tableId, tableNumber, qrToken) => {
-        // If switching tables, clear the old cart and token
-        if (table && table.id !== tableId) {
-            clearCartData(table.id);
+        // Check if this is a different session:
+        // 1. Different table, OR
+        // 2. Same table but different QR token (admin regenerated QR)
+        const isNewSession = (table && table.id !== tableId) ||
+            (qrToken && token && token !== qrToken);
+
+        if (isNewSession) {
+            // New session detected - clearing old cart
+
+            //Clear old table's cart
+            if (table?.id) {
+                clearCartData(table.id);
+            }
+
+            // Clear cart state
             setCart([]);
             setOrderNotes('');
+            setActiveOrder(null);
+            setActiveOrders([]);
+            setUnpaidOrders([]);
+
+            // Clear old token
             localStorage.removeItem('qr_token');
             setToken(null);
         }
@@ -242,7 +259,7 @@ export const CartProvider = ({ children }) => {
                 notes: orderNotes,
                 items: itemsPayload
             });
-            console.log(`✅ Created new order #${result.orderNumber}`);
+            // Order created successfully
 
             clearCartData(table.id);
             setCart([]);

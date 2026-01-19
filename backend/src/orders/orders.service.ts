@@ -50,8 +50,11 @@ export class OrdersService {
     async create(createOrderDto: CreateOrderDto) {
         const { tableId, items, notes } = createOrderDto;
 
-        // 1. Validate Table
-        const table = await this.prisma.table.findUnique({ where: { id: tableId } });
+        // 1. Validate Table and get sessionId
+        const table = await this.prisma.table.findUnique({
+            where: { id: tableId },
+            select: { id: true, status: true, currentSessionId: true }
+        });
         if (!table) {
             throw new NotFoundException('Table not found');
         }
@@ -129,6 +132,7 @@ export class OrdersService {
             const newOrder = await tx.order.create({
                 data: {
                     tableId,
+                    sessionId: table.currentSessionId, // Add current session ID
                     orderNumber,
                     orderDate: new Date(),
                     status: OrderStatus.PENDING,
@@ -208,9 +212,10 @@ export class OrdersService {
     }
 
     async findCurrentByTable(tableId: string) {
-        // 1. Check if table exists
+        // 1. Check if table exists and get current session
         const table = await this.prisma.table.findUnique({
             where: { id: tableId },
+            select: { id: true, currentSessionId: true }
         });
 
         if (!table) {
@@ -219,6 +224,7 @@ export class OrdersService {
         const activeOrders = await this.prisma.order.findMany({
             where: {
                 tableId,
+                sessionId: table.currentSessionId, // Only current session
                 status: {
                     notIn: [OrderStatus.COMPLETED, OrderStatus.CANCELLED],
                 },
@@ -252,6 +258,7 @@ export class OrdersService {
     async findUnpaidByTable(tableId: string) {
         const table = await this.prisma.table.findUnique({
             where: { id: tableId },
+            select: { id: true, currentSessionId: true }
         });
 
         if (!table) {
@@ -261,6 +268,7 @@ export class OrdersService {
         const unpaidOrders = await this.prisma.order.findMany({
             where: {
                 tableId,
+                sessionId: table.currentSessionId, // Only current session
                 paymentStatus: PaymentStatus.PENDING, // Only unpaid
                 status: {
                     notIn: [OrderStatus.CANCELLED],
