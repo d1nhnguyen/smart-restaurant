@@ -252,7 +252,7 @@ const ReportsPage = () => {
                             {/* Peak Hours */}
                             <div className="chart-card">
                                 <div className="chart-header">
-                                    <h3>Peak Hours</h3>
+                                    <h3>Peak Hours (Orders)</h3>
                                 </div>
                                 <div className="peak-hours">
                                     {/* Filter to show only relevant hours (e.g. 8AM to 10PM) or top active ones */}
