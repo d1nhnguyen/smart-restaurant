@@ -158,6 +158,11 @@
     height: 100%;
     background: #3498db;
     border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.reports-page .hour-progress.peak {
+    background: #e74c3c;
 }
 
 .reports-page .hour-value {

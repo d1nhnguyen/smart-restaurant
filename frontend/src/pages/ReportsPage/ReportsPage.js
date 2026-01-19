@@ -166,7 +166,7 @@ const ReportsPage = () => {
     };
 
     return (
-        <div className="admin-layout">
+        <div className="admin-layout reports-page">
             <Sidebar />
             <div className="admin-content" ref={componentRef}>
                 {/* Header */}
