@@ -789,4 +789,38 @@ export class OrdersService {
         const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
         return `${dateStr}-${randomStr}`;
     }
+    async getDashboardStats() {
+        const [revenueStats, totalOrders, allTables, recentOrders] = await Promise.all([
+            this.prisma.order.aggregate({
+            _sum: { totalAmount: true },
+            where: { paymentStatus: 'PAID' }
+            }),
+            this.prisma.order.count(),
+            // Lấy toàn bộ danh sách bàn và trạng thái hiện tại
+            this.prisma.table.findMany({
+            orderBy: { tableNumber: 'asc' },
+            select: {
+                id: true,
+                tableNumber: true,
+                status: true
+            }
+            }),
+            this.prisma.order.findMany({
+            take: 5,
+            orderBy: { createdAt: 'desc' },
+            include: { table: true }
+            })
+        ]);
+
+        return {
+            stats: {
+            revenue: Number(revenueStats._sum.totalAmount || 0),
+            orders: totalOrders,
+            // Đếm số bàn đang phục vụ cho thẻ thống kê chính
+            activeTables: allTables.filter(t => t.status === 'OCCUPIED').length 
+            },
+            tables: allTables, // Trả về danh sách toàn bộ các bàn
+            recentOrders
+        };
+    }
 }

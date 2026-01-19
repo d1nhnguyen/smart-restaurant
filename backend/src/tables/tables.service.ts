@@ -4,12 +4,14 @@ import { QrService } from '../qr/qr.service';
 import { CreateTableDto } from './dto/create-table.dto';
 import { UpdateTableDto } from './dto/update-table.dto';
 import { TableStatus } from '@prisma/client';
+import { OrdersGateway } from '../gateway/orders.gateway';
 
 @Injectable()
 export class TablesService {
   constructor(
     private prisma: PrismaService,
     private qrService: QrService,
+    private ordersGateway: OrdersGateway,
   ) { }
 
   async create(createTableDto: CreateTableDto) {
@@ -97,14 +99,19 @@ export class TablesService {
   }
 
   async updateStatus(id: string, status: TableStatus) {
-    await this.findOne(id); // Check if exists
+    await this.findOne(id);
 
-    return this.prisma.table.update({
+    const updatedTable = await this.prisma.table.update({
       where: { id },
       data: { status },
     });
-  }
 
+    if (this.ordersGateway && this.ordersGateway.server) {
+      this.ordersGateway.server.emit('table:statusUpdated', updatedTable);
+    }
+
+    return updatedTable;
+  }
   async remove(id: string) {
     await this.findOne(id); // Check if exists
 

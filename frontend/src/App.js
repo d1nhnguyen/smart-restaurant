@@ -7,6 +7,7 @@ import MenuPage from './pages/MenuPage/MenuPage';
 import LoginPage from './pages/LoginPage/LoginPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
+import AdminDashboardPage from './pages/AdminDashboardPage/AdminDashboardPage';
 import AdminItemPage from './pages/AdminItemPage/AdminItemPage';
 import AdminCategoryPage from './pages/AdminCategoryPage/AdminCategoryPage';
 import AdminModifierPage from './pages/AdminModifierPage/AdminModifierPage';
@@ -29,7 +30,7 @@ function App() {
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <CartProvider>
-        <Routes>
+                <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/table/:tableId" element={<QRLandingPage />} />
@@ -37,32 +38,23 @@ function App() {
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/order-success/:orderId" element={<OrderConfirmPage />} />
 
-          {/* Admin Routes - Role Protected */}
+          {/* Admin & Staff Routes - Tối giản */}
+          <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminDashboardPage /></ProtectedRoute>} />
           <Route path="/orders" element={<ProtectedRoute allowedRoles={['ADMIN', 'WAITER']}><AdminOrderPage /></ProtectedRoute>} />
           <Route path="/staff" element={<ProtectedRoute allowedRoles={['ADMIN', 'STAFF']}><KitchenStaffPage /></ProtectedRoute>} />
           <Route path="/tables" element={<ProtectedRoute allowedRoles={['ADMIN']}><TablesPage /></ProtectedRoute>} />
           <Route path="/categories" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminCategoryPage /></ProtectedRoute>} />
+          <Route path="/items" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminItemPage /></ProtectedRoute>} />
           <Route path="/modifiers" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminModifierPage /></ProtectedRoute>} />
           <Route path="/accounts" element={<ProtectedRoute allowedRoles={['ADMIN']}><AccountManagementPage /></ProtectedRoute>} />
 
-          {/* Legacy admin paths - redirect */}
-          <Route path="/admin/tables" element={<ProtectedRoute allowedRoles={['ADMIN']}><TablesPage /></ProtectedRoute>} />
-          <Route path="/admin/items" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminItemPage /></ProtectedRoute>} />
-          <Route path="/admin/categories" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminCategoryPage /></ProtectedRoute>} />
-          <Route path="/admin/modifiers" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminModifierPage /></ProtectedRoute>} />
-          <Route path="/admin/orders" element={<ProtectedRoute allowedRoles={['ADMIN', 'WAITER']}><AdminOrderPage /></ProtectedRoute>} />
-          <Route path="/admin/accounts" element={<ProtectedRoute allowedRoles={['ADMIN']}><AccountManagementPage /></ProtectedRoute>} />
-          <Route path="/admin/kds" element={<ProtectedRoute allowedRoles={['ADMIN', 'STAFF']}><KitchenStaffPage /></ProtectedRoute>} />
-
           {/* Public Customer Routes */}
           <Route path="/menu" element={<MenuPage />} />
-          <Route path="/" element={<MenuPage />} /> {/* Default to menu if no path */}
-          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/" element={<MenuPage />} />
           <Route path="/payment/vnpay-return" element={<VNPayReturnPage />} />
           <Route path="/payment/success" element={<PaymentSuccessPage />} />
           <Route path="/payment/failed" element={<PaymentFailedPage />} />
-
-        </Routes >
+        </Routes>
       </CartProvider >
     </Router >
   );
