@@ -31,12 +31,16 @@ async function main() {
   await cleanDatabase();
 
   // Create default admin user (Simplified: No restaurantId, no Role)
-  const hashedPassword = await bcrypt.hash('admin123', 10);
+  // Password must meet complexity requirements: 8+ chars, uppercase, lowercase, number
+  const hashedPassword = await bcrypt.hash('Admin@123', 10);
 
   const adminUser = await prisma.user.upsert({
     where: { email: 'admin@smartrestaurant.com' },
     update: {
       role: 'ADMIN',
+      password: hashedPassword,
+      failedLoginAttempts: 0,
+      lockedUntil: null,
     },
     create: {
       email: 'admin@smartrestaurant.com',
@@ -44,11 +48,12 @@ async function main() {
       name: 'Admin User',
       role: 'ADMIN',
       isActive: true,
+      failedLoginAttempts: 0,
     },
   });
 
   console.log(`✅ Created admin user: ${adminUser.email}`);
-  console.log(`   Password: admin123`);
+  console.log(`   Password: Admin@123`);
 
   // Create sample kitchen staff (Simplified: No restaurantId)
   await prisma.staff.createMany({
