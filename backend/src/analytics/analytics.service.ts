@@ -143,6 +143,7 @@ export class AnalyticsService {
             where: {
                 order: {
                     status: { not: OrderStatus.CANCELLED }, // Exclude cancelled orders
+                    paymentStatus: PaymentStatus.PAID,      // Only include PAID orders
                     createdAt: {
                         gte: startDate,
                         lte: endDate,
