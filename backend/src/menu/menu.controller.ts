@@ -38,6 +38,7 @@ import { multerOptions } from '../utils/file-upload.utils';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { UserRole } from '@prisma/client';
+import { AnalyticsService } from '../analytics/analytics.service';
 
 @Controller('') // Đổi thành Root để định nghĩa path linh hoạt cho cả Guest và Admin
 export class MenuController {
@@ -46,6 +47,7 @@ export class MenuController {
     private readonly categoryService: MenuCategoryService, // Inject thêm service Admin
     private readonly itemService: MenuItemService,         // Inject thêm service Admin
     private readonly modifierGroupService: ModifierGroupService, // Inject modifier service
+    private readonly analyticsService: AnalyticsService,
   ) { }
 
   /**
@@ -150,10 +152,23 @@ export class MenuController {
       status: 'AVAILABLE' as any,
     });
 
-    // Chỉ giữ lại items thuộc về categories ACTIVE
-    const activeItems = items.data.filter(item =>
-      activeCategoryIds.includes(item.categoryId)
-    );
+    // Fetch popularity data for the last 30 days
+    const end = new Date();
+    const start = new Date();
+    start.setDate(end.getDate() - 30);
+    const topItems = await this.analyticsService.getTopSellingItems(start, end);
+
+    // Create a map for quick lookup
+    const popularityMap = new Map(topItems.map(item => [item.id, item.quantity]));
+
+    // Chỉ giữ lại items thuộc về categories ACTIVE và thêm popularity score
+    const activeItems = items.data
+      .filter(item => activeCategoryIds.includes(item.categoryId))
+      .map(item => ({
+        ...item,
+        popularityScore: popularityMap.get(item.id) || 0,
+        isPopular: popularityMap.has(item.id) && popularityMap.get(item.id) > 0,
+      }));
 
     return {
       success: true,

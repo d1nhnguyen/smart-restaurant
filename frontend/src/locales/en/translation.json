@@ -28,6 +28,8 @@
         "sortNameDesc": "Name (Z-A)",
         "sortPriceAsc": "Price (Low-High)",
         "sortPriceDesc": "Price (High-Low)",
+        "sortPopularity": "Popularity",
+        "popularity": "Popular",
         "allCategories": "All",
         "addToCart": "Add to Cart",
         "viewCart": "View Cart",
