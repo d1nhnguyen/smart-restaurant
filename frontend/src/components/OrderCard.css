@@ -360,3 +360,26 @@
 .btn-mark-paid:hover {
     background: #5b4cc4;
 }
+
+.payment-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.btn-print-bill {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-print-bill:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+}

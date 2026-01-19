@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import Fuse from 'fuse.js';
 import { useTranslation } from 'react-i18next';
 import OrderItemModal from '../../components/OrderItemModal';
 import { useCart } from '../../contexts/CartContext';
@@ -32,7 +33,7 @@ const MenuPage = () => {
   };
 
   const [selectedCategory, setSelectedCategory] = useState(getURLParam('category', 'All'));
-  const [searchTerm, setSearchTerm] = useState(getURLParam('search', ''));
+  const [searchTerm, setSearchTerm] = useState(''); // Don't initialize from URL to prevent sync
   const [sortBy, setSortBy] = useState(getURLParam('sort', ''));
 
   const [selectedItem, setSelectedItem] = useState(null);
@@ -52,24 +53,31 @@ const MenuPage = () => {
   const urlToken = searchParams.get('token');
   const token = urlToken || contextToken;
 
-  // Update URL when filters change
+  // Update URL using navigate (not setSearchParams) for filter and sort only
   const updateURL = (updates) => {
-    const newParams = new URLSearchParams(searchParams);
 
-    Object.entries(updates).forEach(([key, value]) => {
-      if (value && value !== '' && value !== 'All') {
-        newParams.set(key, value);
-      } else {
-        newParams.delete(key);
-      }
-    });
+    // Build new URL params manually
+    const params = new URLSearchParams();
 
     // Always preserve token
     if (token) {
-      newParams.set('token', token);
+      params.set('token', token);
     }
 
-    setSearchParams(newParams);
+    // Add current category if not being updated
+    const newCategory = updates.category !== undefined ? updates.category : selectedCategory;
+    if (newCategory && newCategory !== 'All') {
+      params.set('category', newCategory);
+    }
+
+    // Add current sort if not being updated
+    const newSort = updates.sort !== undefined ? updates.sort : sortBy;
+    if (newSort) {
+      params.set('sort', newSort);
+    }
+
+    // Navigate to new URL (replace to avoid polluting history)
+    navigate(`?${params.toString()}`, { replace: true });
   };
 
   // Fetch menu data with pagination - wrapped in useCallback for stable reference
@@ -97,9 +105,7 @@ const MenuPage = () => {
       if (selectedCategory && selectedCategory !== 'All') {
         params.set('categoryId', selectedCategory);
       }
-      if (searchTerm) {
-        params.set('search', searchTerm);
-      }
+      // Note: search is now client-side with Fuse.js, not sent to backend
       if (sortBy) {
         params.set('sort', sortBy);
       }
@@ -142,11 +148,12 @@ const MenuPage = () => {
     }
 
     // Reset pagination and fetch from page 1
+    // NOTE: Removed searchTerm from dependencies - search handled separately
     setPage(1);
     setMenuItems([]);
     fetchMenu(1, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, table?.id, selectedCategory, searchTerm, sortBy]);
+  }, [token, table?.id, selectedCategory, sortBy]); // searchTerm is client-side only
 
   // WebSocket: Listen for order updates
   useEffect(() => {
@@ -207,7 +214,7 @@ const MenuPage = () => {
 
   const handleSearchChange = (search) => {
     setSearchTerm(search);
-    updateURL({ search });
+    // Don't update URL for search - only for filter and sort
   };
 
   const handleSortChange = (sort) => {
@@ -240,8 +247,41 @@ const MenuPage = () => {
     );
   }
 
-  // Display items (already filtered by server)
-  const displayItems = menuItems;
+  // Client-side fuzzy search with Fuse.js for instant results
+  const getFilteredItems = () => {
+    // Filter by category first
+    const categoryFiltered = selectedCategory === 'All'
+      ? menuItems
+      : menuItems.filter(item => item.categoryId === selectedCategory);
+
+    // Apply fuzzy search if there's a search term
+    if (searchTerm.trim()) {
+      const fuse = new Fuse(categoryFiltered, {
+        keys: ['name', 'description'],
+        threshold: 0.4,
+        ignoreLocation: true,
+        includeScore: false,
+      });
+      const results = fuse.search(searchTerm);
+      return results.map(result => result.item);
+    }
+
+    // Apply sorting
+    const sorted = [...categoryFiltered].sort((a, b) => {
+      switch (sortBy) {
+        case 'name-asc': return a.name.localeCompare(b.name);
+        case 'name-desc': return b.name.localeCompare(a.name);
+        case 'price-asc': return Number(a.price) - Number(b.price);
+        case 'price-desc': return Number(b.price) - Number(a.price);
+        case 'popularity': return (b.popularityScore || 0) - (a.popularityScore || 0);
+        default: return 0;
+      }
+    });
+
+    return sorted;
+  };
+
+  const displayItems = getFilteredItems();
 
 
   const handleAddToOrder = (orderData) => {

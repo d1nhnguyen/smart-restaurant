@@ -1,0 +1,245 @@
+/* WaiterBill.css - Print-optimized bill for waiter */
+
+.waiter-bill {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px;
+    background: white;
+    font-family: 'Courier New', monospace;
+    color: #000;
+    line-height: 1.6;
+}
+
+.bill-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.bill-header h1 {
+    font-size: 28px;
+    margin: 0 0 8px 0;
+    letter-spacing: 2px;
+}
+
+.bill-subtitle {
+    font-size: 14px;
+    color: #666;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.bill-divider {
+    border-bottom: 2px dashed #333;
+    margin: 20px 0;
+}
+
+.bill-info-section {
+    margin-bottom: 20px;
+}
+
+.bill-info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-size: 14px;
+}
+
+.bill-info-row .label {
+    font-weight: bold;
+    color: #333;
+}
+
+.bill-info-row .value {
+    color: #000;
+}
+
+.bill-items-section h3 {
+    font-size: 16px;
+    margin: 0 0 15px 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.bill-items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.bill-items-table thead th {
+    text-align: left;
+    padding: 10px 4px;
+    border-bottom: 2px solid #333;
+    font-size: 13px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.bill-items-table tbody td {
+    padding: 12px 4px;
+    border-bottom: 1px dotted #999;
+    font-size: 13px;
+    vertical-align: top;
+}
+
+.qty-col {
+    width: 50px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.item-col {
+    width: auto;
+}
+
+.item-name-text {
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.item-mods-text {
+    margin: 4px 0;
+}
+
+.mod-text {
+    display: block;
+    font-size: 11px;
+    color: #666;
+    font-style: italic;
+    margin-left: 10px;
+}
+
+.item-note-text {
+    font-size: 11px;
+    color: #666;
+    font-style: italic;
+    margin-top: 4px;
+}
+
+.price-col {
+    width: 80px;
+    text-align: right;
+}
+
+.amount-col {
+    width: 90px;
+    text-align: right;
+    font-weight: bold;
+}
+
+.bill-totals-section {
+    margin: 20px 0;
+    padding: 15px 0;
+}
+
+.total-line {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-size: 14px;
+}
+
+.grand-total-line {
+    font-size: 18px;
+    font-weight: bold;
+    padding-top: 15px;
+    margin-top: 10px;
+    border-top: 2px solid #333;
+}
+
+.bill-payment-section {
+    margin: 20px 0;
+    padding: 15px;
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+}
+
+.payment-status-line,
+.payment-method-line {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 14px;
+}
+
+.payment-status-line span:first-child,
+.payment-method-line span:first-child {
+    font-weight: bold;
+}
+
+.paid-badge {
+    background: #d4edda;
+    color: #155724;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.bill-footer {
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 2px dashed #333;
+}
+
+.thanks-text {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 0 0 8px 0;
+}
+
+.footer-text {
+    font-size: 14px;
+    color: #666;
+    margin: 0 0 15px 0;
+}
+
+.print-time {
+    font-size: 11px;
+    color: #999;
+    margin: 0;
+}
+
+/* Print-specific styles */
+@media print {
+    .waiter-bill {
+        padding: 20px;
+        max-width: 100%;
+    }
+
+    .bill-divider {
+        border-color: #000;
+    }
+
+    .bill-items-table thead th {
+        border-bottom-color: #000;
+    }
+
+    .grand-total-line {
+        border-top-color: #000;
+    }
+
+    .bill-payment-section {
+        background: white;
+        border-color: #000;
+    }
+
+    .bill-footer {
+        border-top-color: #000;
+    }
+
+    /* Ensure black text */
+    * {
+        color: #000 !important;
+    }
+
+    /* Page break control */
+    .bill-items-section {
+        page-break-inside: avoid;
+    }
+
+    .bill-totals-section {
+        page-break-inside: avoid;
+    }
+}

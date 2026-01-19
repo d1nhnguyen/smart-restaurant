@@ -12,9 +12,9 @@ const ReportsPage = () => {
     const handlePrint = useReactToPrint({
         contentRef: componentRef,
         documentTitle: `Reports-${new Date().toISOString().split('T')[0]}`,
-        onBeforeGetContent: () => console.log('Preparing to print...'),
-        onAfterPrint: () => console.log('Print finished'),
-        onPrintError: (error) => console.error('Print failed:', error),
+        onBeforeGetContent: () => { },
+        onAfterPrint: () => { },
+        onPrintError: (error) => { },
     });
 
     const [summary, setSummary] = useState({

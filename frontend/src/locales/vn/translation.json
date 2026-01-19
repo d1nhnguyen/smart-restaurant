@@ -50,6 +50,7 @@
         "empty": "Giỏ hàng trống",
         "subtotal": "Tạm tính",
         "total": "Tổng cộng",
+        "note": "Ghi chú",
         "proceedToCheckout": "Tiến hành thanh toán",
         "item": "món",
         "items": "món",
@@ -129,7 +130,7 @@
         "callWaiter": "Gọi nhân viên",
         "totalPaid": "Tổng thanh toán",
         "addMore": "Thêm món",
-        "realTimeUpdates": "Được cập nhật thời gian thực",
+        "realTimeUpdates": "Trạng thái đơn hàng sẽ tự động cập nhật",
         "backToMenu": "Quay lại thực đơn"
     },
     "orderConfirm": {
