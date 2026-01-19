@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import './i18n'; // Initialize i18n
 import './styles.css';
 import './custom-styles.css';
 import TablesPage from './pages/TablesPage/TablesPage';

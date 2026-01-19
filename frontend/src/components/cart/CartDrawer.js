@@ -1,9 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useCart } from '../../contexts/CartContext';
 import './CartDrawer.css';
 
 const CartDrawer = () => {
+    const { t } = useTranslation();
     const {
         cart, isCartOpen, setIsCartOpen, updateQuantity, removeFromCart,
         subtotal, total, taxAmount, orderNotes, setOrderNotes, table, placeOrder,
@@ -17,16 +19,16 @@ const CartDrawer = () => {
             const order = await placeOrder();
             if (order) {
                 setIsCartOpen(false);
-                alert(`Order #${order.orderNumber} placed successfully! ✅`);
+                alert(`${t('orderTracking.orderNumber')} #${order.orderNumber} ${t('common.success')}! ✅`);
             }
         } catch (err) {
             console.error('Failed to place order:', err);
-            alert('Failed to place order. Please try again.');
+            alert(t('checkout.failedToPlaceOrder'));
         }
     };
 
     const handleRemoveItem = (cartItemId, itemName) => {
-        if (window.confirm(`Remove "${itemName}" from cart?`)) {
+        if (window.confirm(`${t('cart.removeConfirm')} "${itemName}"?`)) {
             removeFromCart(cartItemId);
         }
     };
@@ -36,16 +38,16 @@ const CartDrawer = () => {
             <div className="cart-drawer-backdrop" onClick={() => setIsCartOpen(false)}></div>
             <div className="cart-drawer-content">
                 <div className="cart-drawer-header">
-                    <h2>Your Cart {table && <span className="table-badge">Table {table.tableNumber}</span>}</h2>
-                    <button className="close-drawer" onClick={() => setIsCartOpen(false)} aria-label="Close cart">&times;</button>
+                    <h2>{t('cart.title')} {table && <span className="table-badge">{t('menu.table')} {table.tableNumber}</span>}</h2>
+                    <button className="close-drawer" onClick={() => setIsCartOpen(false)} aria-label={t('common.close')}>&times;</button>
                 </div>
 
                 <div className="cart-items-list">
                     {cart.length === 0 ? (
                         <div className="empty-cart">
                             <div className="empty-icon">🛒</div>
-                            <p>Your cart is empty</p>
-                            <button className="continue-btn" onClick={() => setIsCartOpen(false)}>Continue Browsing</button>
+                            <p>{t('cart.empty')}</p>
+                            <button className="continue-btn" onClick={() => setIsCartOpen(false)}>{t('cart.continueBrowsing')}</button>
                         </div>
                     ) : (
                         cart.map((item) => (
@@ -61,16 +63,16 @@ const CartDrawer = () => {
                                         </div>
                                     )}
                                     {item.specialRequest && (
-                                        <div className="cart-item-special">Note: {item.specialRequest}</div>
+                                        <div className="cart-item-special">{t('cart.note')}: {item.specialRequest}</div>
                                     )}
                                 </div>
                                 <div className="cart-item-actions">
                                     <div className="quantity-controls">
-                                        <button onClick={() => updateQuantity(item.cartItemId, -1)} aria-label="Decrease quantity">−</button>
+                                        <button onClick={() => updateQuantity(item.cartItemId, -1)} aria-label={t('cart.decreaseQuantity')}>−</button>
                                         <span>{item.quantity}</span>
-                                        <button onClick={() => updateQuantity(item.cartItemId, 1)} aria-label="Increase quantity">+</button>
+                                        <button onClick={() => updateQuantity(item.cartItemId, 1)} aria-label={t('cart.increaseQuantity')}>+</button>
                                     </div>
-                                    <button className="remove-item" onClick={() => handleRemoveItem(item.cartItemId, item.name)} aria-label="Remove item">🗑️</button>
+                                    <button className="remove-item" onClick={() => handleRemoveItem(item.cartItemId, item.name)} aria-label={t('cart.remove')}>🗑️</button>
                                 </div>
                             </div>
                         ))
@@ -81,16 +83,16 @@ const CartDrawer = () => {
                 {cart.length > 0 && (
                     <div className="cart-drawer-footer">
                         <div className="special-notes">
-                            <label>Special instructions for the kitchen</label>
+                            <label>{t('cart.specialInstructions')}</label>
                             <textarea
                                 value={orderNotes} onChange={(e) => setOrderNotes(e.target.value)}
-                                placeholder="Any dietary requirements or general notes?"
+                                placeholder={t('cart.specialInstructionsPlaceholder')}
                             ></textarea>
                         </div>
                         <div className="summary-section">
-                            <div className="summary-row"><span>Subtotal</span><span>${subtotal.toFixed(2)}</span></div>
-                            <div className="summary-row"><span>Tax (8%)</span><span>${taxAmount.toFixed(2)}</span></div>
-                            <div className="summary-row total"><span>Total</span><span>${total.toFixed(2)}</span></div>
+                            <div className="summary-row"><span>{t('cart.subtotal')}</span><span>${subtotal.toFixed(2)}</span></div>
+                            <div className="summary-row"><span>{t('cart.tax')}</span><span>${taxAmount.toFixed(2)}</span></div>
+                            <div className="summary-row total"><span>{t('cart.total')}</span><span>${total.toFixed(2)}</span></div>
                         </div>
                         <button
                             className="place-order-btn"
@@ -98,9 +100,9 @@ const CartDrawer = () => {
                             disabled={isSubmitting}
                         >
                             {isSubmitting ? (
-                                '⏳ Processing...'
+                                `⏳ ${t('checkout.processing')}`
                             ) : (
-                                <>🍽️ Confirm Order</>
+                                <>🍽️ {t('cart.confirmOrder')}</>
                             )}
                         </button>
                     </div>

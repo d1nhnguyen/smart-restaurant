@@ -2,15 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Fuse from 'fuse.js';
+import { useTranslation } from 'react-i18next';
 import OrderItemModal from '../../components/OrderItemModal';
 import { useCart } from '../../contexts/CartContext';
 import { useSocket } from '../../hooks/useSocket';
 import CartButton from '../../components/cart/CartButton';
 import CartDrawer from '../../components/cart/CartDrawer';
 import CheckoutButton from '../../components/cart/CheckoutButton';
+import LanguageSwitcher from '../../components/LanguageSwitcher';
 import './MenuPage.css';
 
 const MenuPage = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -107,11 +110,11 @@ const MenuPage = () => {
       <div className="guest-landing">
         <div className="landing-content">
           <div className="landing-icon">🍽️</div>
-          <h1>Welcome!</h1>
-          <p className="landing-message">To view our menu and place an order, please scan the QR code.</p>
+          <h1>{t('menu.welcomeMessage')}</h1>
+          <p className="landing-message">{t('menu.scanQR')}</p>
           <div className="staff-access">
-            <span>Staff member? </span>
-            <button onClick={() => navigate('/login')}>Login here</button>
+            <span>{t('auth.staffMember')} </span>
+            <button onClick={() => navigate('/login')}>{t('auth.loginHere')}</button>
           </div>
         </div>
       </div>
@@ -161,113 +164,119 @@ const MenuPage = () => {
   });
 
   const handleAddToOrder = (orderData) => {
-        addToCart(orderData);
-      setSelectedItem(null);
+    addToCart(orderData);
+    setSelectedItem(null);
   };
 
   const handleItemClick = (item) => setSelectedItem(item);
 
-      // Place order from cart
+  // Place order from cart
 
 
-      return (
-      <div className="menu-page">
-        {cartError && (
-          <div className="error-banner">
-            <span>{cartError}</span>
-            <button onClick={clearError}>✕</button>
-          </div>
-        )}
-
-        {activeOrders && activeOrders.length > 0 && (
-          <div className="active-orders-banner">
-            <div className="banner-toggle" onClick={() => setOrdersExpanded(!ordersExpanded)}>
-              <div className="banner-toggle-content">
-                <span><strong>{activeOrders.length}</strong> Active Order{activeOrders.length > 1 ? 's' : ''}</span>
-                <button className="toggle-btn">{ordersExpanded ? '▲ Hide' : '▼ Show'}</button>
-              </div>
-            </div>
-            {ordersExpanded && (
-              <div className="orders-list">
-                {activeOrders.map(order => (
-                  <div key={order.id} className="banner-content">
-                    <div className="order-info">
-                      <span className="order-number">Order: <strong>#{order.orderNumber}</strong></span>
-                      <span className={`order-status ${order.status.toLowerCase()}`}>{order.status}</span>
-                    </div>
-                    <div className="order-actions">
-                      <button className="banner-btn" onClick={() => navigate(`/order-status/${order.id}`)}>
-                        View →
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        <header className="menu-header-banner">
-          <h1>{tableFromApi?.restaurantName || 'Smart Restaurant'}</h1>
-          <div className="table-info-pill">
-            <span>Table {table?.tableNumber || tableFromApi?.tableNumber}</span>
-          </div>
-        </header>
-
-        <div className="search-sticky">
-          <div className="search-input-wrapper">
-            <input type="text" placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-          </div>
-          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="sort-select">
-            <option value="">Sort by</option>
-            <option value="name-asc">Name (A-Z)</option>
-            <option value="price-asc">Price (Low-High)</option>
-          </select>
+  return (
+    <div className="menu-page">
+      {cartError && (
+        <div className="error-banner">
+          <span>{cartError}</span>
+          <button onClick={clearError}>✕</button>
         </div>
+      )}
 
-        <nav className="category-nav">
-          <button className={`category-tab ${selectedCategory === 'All' ? 'active' : ''}`} onClick={() => setSelectedCategory('All')}>All</button>
-          {categories.map(cat => (
-            <button key={cat.id} className={`category-tab ${selectedCategory === cat.id ? 'active' : ''}`} onClick={() => setSelectedCategory(cat.id)}>{cat.name}</button>
-          ))}
-        </nav>
-
-        <main className="menu-grid">
-          {sortedItems.map(item => {
-            const primaryPhoto = item.photos?.find(p => p.isPrimary) || item.photos?.[0];
-            return (
-              <div key={item.id} className="item-card" onClick={() => handleItemClick(item)}>
-                {primaryPhoto ? (
-                  <img src={primaryPhoto.url} alt={item.name} className="item-img" />
-                ) : (
-                  <div className="item-placeholder">🍽️</div>
-                )}
-                <div className="item-details">
-                  <div className="item-name">{item.name}</div>
-                  {item.description && <div className="item-desc">{item.description}</div>}
-                  <div className="item-footer">
-                    <span className="item-price">${Number(item.price).toFixed(2)}</span>
-                    <button className="add-btn">+</button>
+      {activeOrders && activeOrders.length > 0 && (
+        <div className="active-orders-banner">
+          <div className="banner-toggle" onClick={() => setOrdersExpanded(!ordersExpanded)}>
+            <div className="banner-toggle-content">
+              <span><strong>{activeOrders.length}</strong> {activeOrders.length > 1 ? t('menu.activeOrders') : t('menu.activeOrder')}</span>
+              <button className="toggle-btn">{ordersExpanded ? `▲ ${t('menu.hide')}` : `▼ ${t('menu.show')}`}</button>
+            </div>
+          </div>
+          {ordersExpanded && (
+            <div className="orders-list">
+              {activeOrders.map(order => (
+                <div key={order.id} className="banner-content">
+                  <div className="order-info">
+                    <span className="order-number">{t('orderTracking.orderNumber')}: <strong>#{order.orderNumber}</strong></span>
+                    <span className={`order-status ${order.status.toLowerCase()}`}>{order.status}</span>
+                  </div>
+                  <div className="order-actions">
+                    <button className="banner-btn" onClick={() => navigate(`/order-status/${order.id}`)}>
+                      {t('menu.view')} →
+                    </button>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </main>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
-        <CheckoutButton />
-        <CartButton />
-        <CartDrawer />
 
-        {selectedItem && (
-          <OrderItemModal
-            item={selectedItem}
-            onClose={() => setSelectedItem(null)}
-            onAddToOrder={handleAddToOrder}
-          />
-        )}
+
+      <header className="menu-header-banner">
+        <h1>{tableFromApi?.restaurantName || 'Smart Restaurant'}</h1>
+        <div className="table-info-pill">
+          <span>{t('menu.table')} {table?.tableNumber || tableFromApi?.tableNumber}</span>
+        </div>
+      </header>
+
+      <div className="search-sticky">
+        <div className="search-input-wrapper">
+          <input type="text" placeholder={t('menu.searchPlaceholder')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+        </div>
+        {/* Language Switcher - Always visible */}
+        <div>
+          <LanguageSwitcher />
+        </div>
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="sort-select">
+          <option value="">{t('menu.sortBy')}</option>
+          <option value="name-asc">{t('menu.sortNameAsc')}</option>
+          <option value="price-asc">{t('menu.sortPriceAsc')}</option>
+        </select>
       </div>
-      );
+
+      <nav className="category-nav">
+        <button className={`category-tab ${selectedCategory === 'All' ? 'active' : ''}`} onClick={() => setSelectedCategory('All')}>{t('common.all')}</button>
+        {categories.map(cat => (
+          <button key={cat.id} className={`category-tab ${selectedCategory === cat.id ? 'active' : ''}`} onClick={() => setSelectedCategory(cat.id)}>{cat.name}</button>
+        ))}
+      </nav>
+
+      <main className="menu-grid">
+        {sortedItems.map(item => {
+          const primaryPhoto = item.photos?.find(p => p.isPrimary) || item.photos?.[0];
+          return (
+            <div key={item.id} className="item-card" onClick={() => handleItemClick(item)}>
+              {primaryPhoto ? (
+                <img src={primaryPhoto.url} alt={item.name} className="item-img" />
+              ) : (
+                <div className="item-placeholder">🍽️</div>
+              )}
+              <div className="item-details">
+                <div className="item-name">{item.name}</div>
+                {item.description && <div className="item-desc">{item.description}</div>}
+                <div className="item-footer">
+                  <span className="item-price">${Number(item.price).toFixed(2)}</span>
+                  <button className="add-btn">+</button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </main>
+
+      <CheckoutButton />
+      <CartButton />
+      <CartDrawer />
+
+      {selectedItem && (
+        <OrderItemModal
+          item={selectedItem}
+          onClose={() => setSelectedItem(null)}
+          onAddToOrder={handleAddToOrder}
+        />
+      )}
+    </div>
+  );
 };
 
-      export default MenuPage;
+export default MenuPage;
