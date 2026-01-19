@@ -165,7 +165,7 @@ const AdminOrderPage = () => {
                 off('orderItem:statusUpdated', handleItemStatusUpdated);
             };
         }
-    }, [isConnected, activeTab, joinRoom, on, off]);
+    }, [isConnected, activeTab, joinRoom, on, off, filterOrders]);
 
     // Calculate stats
     const stats = {
