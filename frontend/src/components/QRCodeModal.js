@@ -67,17 +67,19 @@ const QRCodeModal = ({ table, qrUrl, onClose, onRegenerate }) => {
             <div className="detail-row">
               <span className="detail-label">Status:</span>
               <span className={`detail-value status-${table.status.toLowerCase()}`}>
-                {table.status === 'ACTIVE' ? '✅ Active' : '❌ Inactive'}
+                {table.status === 'INACTIVE'
+                  ? '❌ Inactive'
+                  : `✅ ${table.status.charAt(0) + table.status.slice(1).toLowerCase()}`}
               </span>
             </div>
             {qrUrl && (
               <div className="detail-row">
                 <span className="detail-label">QR URL:</span>
-                <a 
-                  href={qrUrl} 
-                  target="_blank" 
+                <a
+                  href={qrUrl}
+                  target="_blank"
                   rel="noopener noreferrer"
-                  className="detail-value url-value" 
+                  className="detail-value url-value"
                   title={qrUrl}
                   style={{ color: '#007bff', textDecoration: 'underline', cursor: 'pointer' }}
                 >
