@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import Fuse from 'fuse.js';
 import { useTranslation } from 'react-i18next';
 import OrderItemModal from '../../components/OrderItemModal';
 import { useCart } from '../../contexts/CartContext';
@@ -240,42 +239,7 @@ const MenuPage = () => {
 
   // Display items (already filtered by server)
   const displayItems = menuItems;
-  if (!menuData) return null;
 
-  const { categories, menuItems, table: tableFromApi } = menuData;
-  const activeCategoryIds = new Set(categories.filter(cat => cat.status === 'ACTIVE').map(c => c.id));
-
-  const categoryFilteredItems = menuItems.filter(item => {
-    const belongsToActiveCategory = activeCategoryIds.has(item.categoryId);
-    const matchesCategory = selectedCategory === 'All' || item.categoryId === selectedCategory;
-    return belongsToActiveCategory && matchesCategory;
-  });
-
-  let filteredItems;
-  if (searchTerm.trim()) {
-    const fuse = new Fuse(categoryFilteredItems, {
-      keys: ['name', 'description'],
-      threshold: 0.4,
-      ignoreLocation: true,
-      includeScore: false,
-    });
-
-    const fuzzyResults = fuse.search(searchTerm);
-    filteredItems = fuzzyResults.map(result => result.item);
-  } else {
-    filteredItems = categoryFilteredItems;
-  }
-
-  const sortedItems = [...filteredItems].sort((a, b) => {
-    switch (sortBy) {
-      case 'name-asc': return a.name.localeCompare(b.name);
-      case 'name-desc': return b.name.localeCompare(a.name);
-      case 'price-asc': return Number(a.price) - Number(b.price);
-      case 'price-desc': return Number(b.price) - Number(a.price);
-      case 'popularity': return (b.popularityScore || 0) - (a.popularityScore || 0);
-      default: return 0;
-    }
-  });
 
   const handleAddToOrder = (orderData) => {
     addToCart(orderData);

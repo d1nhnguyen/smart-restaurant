@@ -37,8 +37,8 @@
         order: 1;
     }
 
-    .search-sticky > div:has(.language-switcher),
-    .search-sticky > div:nth-child(2) {
+    .search-sticky>div:has(.language-switcher),
+    .search-sticky>div:nth-child(2) {
         order: 2;
         flex: 0 0 auto;
     }
@@ -616,6 +616,8 @@
     .chef-icon {
         font-size: 12px;
     }
+}
+
 .popular-tag {
     position: absolute;
     top: 10px;
