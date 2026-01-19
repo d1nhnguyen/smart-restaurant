@@ -31,7 +31,7 @@ function App() {
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <CartProvider>
-                <Routes>
+        <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/table/:tableId" element={<QRLandingPage />} />
@@ -48,6 +48,7 @@ function App() {
           <Route path="/items" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminItemPage /></ProtectedRoute>} />
           <Route path="/modifiers" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminModifierPage /></ProtectedRoute>} />
           <Route path="/accounts" element={<ProtectedRoute allowedRoles={['ADMIN']}><AccountManagementPage /></ProtectedRoute>} />
+          <Route path="/reports" element={<ProtectedRoute allowedRoles={['ADMIN']}><ReportsPage /></ProtectedRoute>} />
 
           {/* Public Customer Routes */}
           <Route path="/menu" element={<MenuPage />} />
