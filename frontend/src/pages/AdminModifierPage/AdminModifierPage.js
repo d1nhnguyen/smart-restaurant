@@ -56,7 +56,7 @@ const AdminModifierPage = () => {
     return (
         <div className="admin-layout">
             <Sidebar />
-            <div className="admin-main">
+            <div className="admin-content">
                 <div className="admin-header">
                     <div>
                         <h1 className="page-title">Modifier Groups</h1>
@@ -75,62 +75,64 @@ const AdminModifierPage = () => {
                             No modifier groups found.
                         </div>
                     ) : (
-                        <table className="data-table">
-                            <thead>
-                                <tr>
-                                    <th style={{ width: '80px', textAlign: 'center' }}>Order</th>
-                                    <th>Name</th>
-                                    <th>Type</th>
-                                    <th>Required</th>
-                                    <th>Options</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {modifierGroups.map((group) => (
-                                    <tr key={group.id}>
-                                        <td style={{ textAlign: 'center', fontWeight: 'bold' }}>
-                                            {group.displayOrder}
-                                        </td>
-                                        <td style={{ fontWeight: '600' }}>{group.name}</td>
-                                        <td>
-                                            <span className="status-badge" style={{ backgroundColor: '#f0f0f0', color: '#333' }}>
-                                                {group.selectionType}
-                                            </span>
-                                        </td>
-                                        <td>{group.isRequired ? '✅ Yes' : '❌ No'}</td>
-                                        <td>
-                                            <div className="modifier-options-summary">
-                                                {group.options?.map(opt => (
-                                                    <span key={opt.id} className="tab-count" style={{ marginRight: '5px', fontSize: '11px' }}>
-                                                        {opt.name} ({opt.priceAdjustment > 0 ? `+$${opt.priceAdjustment}` : 'Free'})
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <span className={`status-badge ${group.status === 'ACTIVE' ? 'active' : 'inactive'}`}>
-                                                {group.status}
-                                            </span>
-                                        </td>
-                                        <td className="actions-cell">
-                                            <button className="action-btn" title="Edit" onClick={() => handleEditGroup(group)}>
-                                                ✎
-                                            </button>
-                                            <button
-                                                className="action-btn"
-                                                title="Delete"
-                                                style={{ color: '#e74c3c' }}
-                                                onClick={() => handleDeleteGroup(group.id)}
-                                            >
-                                                🗑
-                                            </button>
-                                        </td>
+                        <div className="data-table-wrapper">
+                            <table className="data-table">
+                                <thead>
+                                    <tr>
+                                        <th style={{ width: '80px', textAlign: 'center' }}>Order</th>
+                                        <th>Name</th>
+                                        <th>Type</th>
+                                        <th>Required</th>
+                                        <th>Options</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {modifierGroups.map((group) => (
+                                        <tr key={group.id}>
+                                            <td style={{ textAlign: 'center', fontWeight: 'bold' }}>
+                                                {group.displayOrder}
+                                            </td>
+                                            <td style={{ fontWeight: '600' }}>{group.name}</td>
+                                            <td>
+                                                <span className="status-badge" style={{ backgroundColor: '#f0f0f0', color: '#333' }}>
+                                                    {group.selectionType}
+                                                </span>
+                                            </td>
+                                            <td>{group.isRequired ? '✅ Yes' : '❌ No'}</td>
+                                            <td>
+                                                <div className="modifier-options-summary">
+                                                    {group.options?.map(opt => (
+                                                        <span key={opt.id} className="tab-count" style={{ marginRight: '5px', fontSize: '11px' }}>
+                                                            {opt.name} ({opt.priceAdjustment > 0 ? `+$${opt.priceAdjustment}` : 'Free'})
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span className={`status-badge ${group.status === 'ACTIVE' ? 'active' : 'inactive'}`}>
+                                                    {group.status}
+                                                </span>
+                                            </td>
+                                            <td className="actions-cell">
+                                                <button className="action-btn" title="Edit" onClick={() => handleEditGroup(group)}>
+                                                    ✎
+                                                </button>
+                                                <button
+                                                    className="action-btn"
+                                                    title="Delete"
+                                                    style={{ color: '#e74c3c' }}
+                                                    onClick={() => handleDeleteGroup(group.id)}
+                                                >
+                                                    🗑
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     )}
                 </div>
             </div>

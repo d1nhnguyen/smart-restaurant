@@ -88,7 +88,7 @@ const AdminCategoryPage = () => {
   return (
     <div className="admin-layout">
       <Sidebar />
-      <div className="admin-main">
+      <div className="admin-content">
 
         {/* Header */}
         <div className="admin-header">
@@ -110,60 +110,62 @@ const AdminCategoryPage = () => {
               No categories found.
             </div>
           ) : (
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th style={{ width: '80px', textAlign: 'center' }}>Order</th>
-                  <th>Name</th>
-                  <th>Description</th>
-                  <th style={{ textAlign: 'center' }}>Items</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {categories.map((cat) => (
-                  <tr key={cat.id}>
-                    <td style={{ textAlign: 'center', fontWeight: 'bold' }}>
-                      {cat.displayOrder}
-                    </td>
-                    <td style={{ fontWeight: '600', fontSize: '15px' }}>
-                      {cat.name}
-                    </td>
-                    <td style={{ color: '#666', fontSize: '14px' }}>
-                      {cat.description || '-'}
-                    </td>
-                    <td style={{ textAlign: 'center' }}>
-                      <span className="tab-count" style={{ fontSize: '12px' }}>
-                        {cat._count?.items || 0}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`status-badge ${cat.status === 'ACTIVE' ? 'active' : 'inactive'}`}>
-                        {cat.status}
-                      </span>
-                    </td>
-                    <td>
-                      <button
-                        className="action-btn"
-                        title="Edit"
-                        onClick={() => handleEditCategory(cat)}
-                      >
-                        ✎
-                      </button>
-                      <button
-                        className="action-btn"
-                        title="Delete"
-                        onClick={() => handleDeleteCategory(cat.id)}
-                        style={{ marginLeft: '10px', color: '#e74c3c' }}
-                      >
-                        🗑
-                      </button>
-                    </td>
+            <div className="data-table-wrapper">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: '80px', textAlign: 'center' }}>Order</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th style={{ textAlign: 'center' }}>Items</th>
+                    <th>Status</th>
+                    <th>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {categories.map((cat) => (
+                    <tr key={cat.id}>
+                      <td style={{ textAlign: 'center', fontWeight: 'bold' }}>
+                        {cat.displayOrder}
+                      </td>
+                      <td style={{ fontWeight: '600', fontSize: '15px' }}>
+                        {cat.name}
+                      </td>
+                      <td style={{ color: '#666', fontSize: '14px' }}>
+                        {cat.description || '-'}
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        <span className="tab-count" style={{ fontSize: '12px' }}>
+                          {cat._count?.items || 0}
+                        </span>
+                      </td>
+                      <td>
+                        <span className={`status-badge ${cat.status === 'ACTIVE' ? 'active' : 'inactive'}`}>
+                          {cat.status}
+                        </span>
+                      </td>
+                      <td>
+                        <button
+                          className="action-btn"
+                          title="Edit"
+                          onClick={() => handleEditCategory(cat)}
+                        >
+                          ✎
+                        </button>
+                        <button
+                          className="action-btn"
+                          title="Delete"
+                          onClick={() => handleDeleteCategory(cat.id)}
+                          style={{ marginLeft: '10px', color: '#e74c3c' }}
+                        >
+                          🗑
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </div>

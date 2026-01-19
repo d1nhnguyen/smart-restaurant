@@ -35,9 +35,9 @@ export class MenuItemService {
     const { page, limit, search, categoryId, status, sort } = query;
     const skip = (page - 1) * limit;
 
-    // Build Where Clause
+    // Build Where Clause - simple contains search for backend
     const where: Prisma.MenuItemWhereInput = {
-      isDeleted: false, // Chỉ lấy item chưa bị xóa
+      isDeleted: false,
       categoryId: categoryId || undefined,
       status: status || undefined,
       name: search ? { contains: search, mode: 'insensitive' } : undefined,
@@ -85,11 +85,9 @@ export class MenuItemService {
             },
           },
         },
-
       }),
       this.prisma.menuItem.count({ where }),
     ]);
-
 
     return {
       data: items,

@@ -198,20 +198,20 @@ const AdminOrderPage = () => {
                     </div>
                     <div className="order-stats">
                         <div className="stat-card">
-                            <div className="stat-value">{stats.pending}</div>
                             <div className="stat-label">New Orders</div>
+                            <div className="stat-value">{stats.pending}</div>
                         </div>
                         <div className="stat-card">
-                            <div className="stat-value">{stats.preparing}</div>
                             <div className="stat-label">Preparing</div>
+                            <div className="stat-value">{stats.preparing}</div>
                         </div>
                         <div className="stat-card">
-                            <div className="stat-value">{stats.ready}</div>
                             <div className="stat-label">Ready</div>
+                            <div className="stat-value">{stats.ready}</div>
                         </div>
                         <div className="stat-card">
-                            <div className="stat-value">{stats.total}</div>
                             <div className="stat-label">Total</div>
+                            <div className="stat-value">{stats.total}</div>
                         </div>
                     </div>
                 </div>

@@ -275,7 +275,7 @@ const TablesPage = () => {
   return (
     <div className="admin-layout">
       <Sidebar />
-      <div className="admin-main">
+      <div className="admin-content">
         {/* Header */}
         <div className="admin-header">
           <div>
@@ -284,20 +284,20 @@ const TablesPage = () => {
           </div>
 
           {/* Action buttons */}
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div className="filters-bar" style={{ margin: 0 }}>
             <button
               className="btn-primary"
               onClick={handleBulkRegenerateQR}
               title="Regenerate all QR Codes"
             >
-              🔄 Regenerate All QR
+              🔄 Regenerate All
             </button>
             <button
               className="btn-primary"
               onClick={handleDownloadAll}
               title="Download all QR Codes as ZIP"
             >
-              📦 Download All QR
+              📦 Download ZIP
             </button>
             <button className="btn-primary"
               onClick={handleAddTable}>
@@ -307,7 +307,7 @@ const TablesPage = () => {
         </div>
 
         {/* Stats */}
-        <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+        <div className="stats-grid">
           <div className="stat-card">
             <div className="stat-icon" style={{ background: '#e8f8f5', color: '#27ae60' }}>
               &#129689;
@@ -339,9 +339,9 @@ const TablesPage = () => {
 
         {/* Tables List */}
         <div className="table-card">
-          <div className="table-header">
+          <div className="table-header" style={{ flexWrap: 'wrap', gap: '15px' }}>
             <h3>All Tables</h3>
-            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <div className="filters-bar" style={{ margin: 0 }}>
               <select
                 className="filter-select"
                 value={filterStatus}

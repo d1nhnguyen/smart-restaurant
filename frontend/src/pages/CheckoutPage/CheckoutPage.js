@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useCart } from '../../contexts/CartContext';
+import LanguageSwitcher from '../../components/LanguageSwitcher';
 import axios from 'axios';
 import './CheckoutPage.css';
 
 const CheckoutPage = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
 
     // Lấy dữ liệu từ CartContext - use unpaidOrders for checkout
     const { table, unpaidOrders, refreshUnpaidOrders } = useCart();
 
     // State cho phương thức thanh toán
-    const [paymentMethod, setPaymentMethod] = useState('CARD');
+    const [paymentMethod, setPaymentMethod] = useState('VNPAY');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
@@ -27,9 +30,9 @@ const CheckoutPage = () => {
         return (
             <div className="checkout-container">
                 <div className="checkout-error">
-                    <h2>Session Missing</h2>
-                    <p>Please scan a QR code to start ordering.</p>
-                    <Link to="/menu" className="back-btn">Back to Menu</Link>
+                    <h2>{t('checkout.sessionMissing')}</h2>
+                    <p>{t('checkout.scanQRStart')}</p>
+                    <Link to="/menu" className="back-btn">{t('orderTracking.backToMenu')}</Link>
                 </div>
             </div>
         );
@@ -54,9 +57,9 @@ const CheckoutPage = () => {
         return (
             <div className="checkout-container">
                 <div className="checkout-error">
-                    <h2>No Orders to Pay</h2>
-                    <p>You don't have any unpaid orders. Add some delicious items first!</p>
-                    <Link to="/menu" className="back-btn">Back to Menu</Link>
+                    <h2>{t('checkout.noOrdersToPay')}</h2>
+                    <p>{t('checkout.addItemsFirst')}</p>
+                    <Link to="/menu" className="back-btn">{t('orderTracking.backToMenu')}</Link>
                 </div>
             </div>
         );
@@ -127,11 +130,11 @@ const CheckoutPage = () => {
 
         } catch (err) {
             console.error('Payment failed', err);
-            setError(err.response?.data?.message || 'Payment processing failed. Please try again.');
+            setError(err.response?.data?.message || t('checkout.paymentFailed'));
 
             navigate('/payment/failed', {
                 state: {
-                    error: err.response?.data?.message || 'Payment processing failed. Please try again.'
+                    error: err.response?.data?.message || t('checkout.paymentFailed')
                 }
             });
         } finally {
@@ -141,22 +144,27 @@ const CheckoutPage = () => {
 
     return (
         <div className="checkout-container">
+            {/* Language Switcher */}
+            <div style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 1100 }}>
+                <LanguageSwitcher />
+            </div>
+
             <header className="checkout-header">
-                <button onClick={() => navigate(-1)} className="back-link">← Back</button>
-                <h1>Checkout</h1>
-                <div className="table-info">Table {table.tableNumber}</div>
+                <button onClick={() => navigate(-1)} className="back-link">← {t('common.back')}</button>
+                <h1>{t('checkout.title')}</h1>
+                <div className="table-info">{t('menu.table')} {table.tableNumber}</div>
             </header>
 
             <main className="checkout-main">
                 {/* Summary banner */}
                 <div className="orders-summary-banner">
-                    <h3>💳 Paying for {unpaidOrders.length} order{unpaidOrders.length > 1 ? 's' : ''}</h3>
-                    <p>Orders: {unpaidOrders.map(o => `#${o.orderNumber}`).join(', ')}</p>
+                    <h3>💳 {t('checkout.payingFor')} {unpaidOrders.length} {unpaidOrders.length > 1 ? t('checkout.orders') : t('checkout.order')}</h3>
+                    <p>{t('checkout.ordersList')}: {unpaidOrders.map(o => `#${o.orderNumber}`).join(', ')}</p>
                 </div>
 
                 {/* Tóm tắt tất cả items từ active orders */}
                 <section className="order-summary">
-                    <h2>All Items to Pay</h2>
+                    <h2>{t('checkout.allItemsToPay')}</h2>
                     <div className="items-list">
                         {allItems.map((item, idx) => (
                             <div key={`${item.orderId}-${item.id}-${idx}`} className="summary-item">
@@ -171,7 +179,7 @@ const CheckoutPage = () => {
                                             {item.selectedModifiers.map(m => m.modifierOptionName).join(', ')}
                                         </p>
                                     )}
-                                    <p className="order-ref">From Order #{item.orderNumber}</p>
+                                    <p className="order-ref">{t('checkout.fromOrder')} #{item.orderNumber}</p>
                                 </div>
                             </div>
                         ))}
@@ -180,9 +188,9 @@ const CheckoutPage = () => {
 
                 {/* Chọn phương thức thanh toán */}
                 <section className="payment-method-section">
-                    <h2>Payment Method</h2>
+                    <h2>{t('checkout.paymentMethod')}</h2>
                     <div className="payment-method-grid">
-                        {['CARD', 'MOMO', 'ZALOPAY', 'VNPAY', 'CASH'].map(method => (
+                        {['VNPAY', 'CASH'].map(method => (
                             <label key={method} className={`payment-option ${paymentMethod === method ? 'active' : ''}`}>
                                 <input
                                     type="radio"
@@ -191,7 +199,7 @@ const CheckoutPage = () => {
                                     checked={paymentMethod === method}
                                     onChange={(e) => setPaymentMethod(e.target.value)}
                                 />
-                                {method === 'VNPAY' ? 'VNPay' : method}
+                                {method === 'VNPAY' ? 'VNPay' : t('checkout.cash')}
                             </label>
                         ))}
                     </div>
@@ -201,15 +209,15 @@ const CheckoutPage = () => {
 
                 <section className="payment-summary">
                     <div className="summary-row">
-                        <span>Subtotal</span>
+                        <span>{t('cart.subtotal')}</span>
                         <span>${subtotal.toFixed(2)}</span>
                     </div>
                     <div className="summary-row">
-                        <span>Tax (8%)</span>
+                        <span>{t('cart.tax')}</span>
                         <span>${taxAmount.toFixed(2)}</span>
                     </div>
                     <div className="summary-row total">
-                        <span>Total Amount</span>
+                        <span>{t('checkout.totalAmount')}</span>
                         <span>${total.toFixed(2)}</span>
                     </div>
                 </section>
@@ -221,7 +229,7 @@ const CheckoutPage = () => {
                     onClick={handleConfirmPayment}
                     disabled={loading}
                 >
-                    {loading ? 'Processing...' : `Pay ${unpaidOrders.length} Order${unpaidOrders.length > 1 ? 's' : ''} - $${total.toFixed(2)}`}
+                    {loading ? t('checkout.processing') : `${t('checkout.pay')} ${unpaidOrders.length} ${unpaidOrders.length > 1 ? t('checkout.orders') : t('checkout.order')} - $${total.toFixed(2)}`}
                 </button>
             </footer>
         </div>

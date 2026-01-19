@@ -7,6 +7,9 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const user = authService.getUser();
   const location = useLocation();
+  const [isOpen, setIsOpen] = React.useState(false);
+
+  const toggleSidebar = () => setIsOpen(!isOpen);
 
   const handleLogout = (e) => {
     e.preventDefault();
@@ -94,33 +97,43 @@ const Sidebar = () => {
   );
 
   return (
-    <div className="admin-sidebar">
-      <div className="sidebar-logo">
-        <span style={{ fontSize: '30px' }}>&#127860;</span>
-        <span>Smart Restaurant</span>
-      </div>
-
-      <nav className="sidebar-nav">
-        {menuItems.map((item) => (
-          <Link key={item.path} to={item.path} className={getNavLinkClass(item.path)}>
-            <span className="nav-icon" dangerouslySetInnerHTML={{ __html: item.icon }}></span>
-            {item.label}
-            {item.badge && <span className="nav-badge">{item.badge}</span>}
-          </Link>
-        ))}
-      </nav>
-
-      <div className="sidebar-footer">
-        <div className="admin-profile">
-          <div className="admin-avatar">{user?.name?.[0]?.toUpperCase() || 'U'}</div>
-          <div className="admin-info">
-            <div className="admin-name">{user?.name || 'User'}</div>
-            <div className="admin-role">{user?.email || ''}</div>
+    <>
+      <button className="sidebar-toggle" onClick={toggleSidebar}>
+        &#9776;
+      </button>
+      <div className={`admin-sidebar ${isOpen ? 'open' : ''}`}>
+        <div className="sidebar-logo">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <span style={{ fontSize: '32px' }}>🍽️</span>
+            <span>Smart Restaurant</span>
           </div>
+          <button className="sidebar-close" onClick={toggleSidebar}>&times;</button>
         </div>
-        <a href="/login" className="logout-link" onClick={handleLogout}>&#128682; Logout</a>
+
+        <nav className="sidebar-nav">
+          {menuItems.map((item) => (
+            <Link key={item.path} to={item.path} className={getNavLinkClass(item.path)} onClick={() => setIsOpen(false)}>
+              <span className="nav-icon" dangerouslySetInnerHTML={{ __html: item.icon }}></span>
+              {item.label}
+              {item.badge && <span className="nav-badge">{item.badge}</span>}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="sidebar-footer">
+          <div className="admin-profile">
+            <div className="admin-avatar">{user?.name?.[0]?.toUpperCase() || 'U'}</div>
+            <div className="admin-info">
+              <div className="admin-name">{user?.name || 'User'}</div>
+              <div className="admin-role">{user?.email || ''}</div>
+            </div>
+          </div>
+          <a href="/login" className="logout-link" onClick={handleLogout}>&#128682; Logout</a>
+        </div>
+
       </div>
-    </div>
+      {isOpen && <div className="sidebar-overlay" onClick={toggleSidebar}></div>}
+    </>
   );
 };
 

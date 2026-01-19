@@ -55,26 +55,26 @@ const AdminDashboardPage = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'AVAILABLE': return '#27ae60';
-      case 'OCCUPIED': return '#e74c3c';
+      case 'AVAILABLE': return 'var(--success)';
+      case 'OCCUPIED': return 'var(--primary-600)';
       case 'CLEANING':
-      case 'RESERVED': return '#f39c12';
-      case 'INACTIVE': return '#95a5a6';
-      default: return '#bdc3c7';
+      case 'RESERVED': return 'var(--warning)';
+      case 'INACTIVE': return 'var(--neutral-400)';
+      default: return 'var(--neutral-300)';
     }
   };
 
   if (loading) return (
     <div className="admin-layout">
       <Sidebar />
-      <div className="admin-main">Loading system data...</div>
+      <div className="admin-content">Loading system data...</div>
     </div>
   );
 
   return (
     <div className="admin-layout">
       <Sidebar />
-      <div className="admin-main">
+      <div className="admin-content">
         <header className="admin-header">
           <div>
             <h1 className="page-title">Admin Dashboard</h1>
@@ -85,7 +85,7 @@ const AdminDashboardPage = () => {
           </div>
         </header>
 
-        <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '30px' }}>
+        <div className="stats-grid">
           <div className="stat-card">
             <div className="stat-label">Total Revenue</div>
             <div className="stat-value">${(dashboardData.stats?.revenue || 0).toFixed(2)}</div>
@@ -105,37 +105,43 @@ const AdminDashboardPage = () => {
             <h3>Recent Orders</h3>
             <button className="view-all" onClick={() => navigate('/orders')}>View All →</button>
           </div>
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Order Number</th>
-                <th>Table</th>
-                <th>Total</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {/* Kiểm tra độ dài mảng an toàn */}
-              {dashboardData.recentOrders?.length > 0 ? (
-                dashboardData.recentOrders.map(order => (
-                  <tr key={order.id}>
-                    <td style={{ fontWeight: 'bold' }}>{order.orderNumber}</td>
-                    <td>Table {order.table?.tableNumber || 'N/A'}</td>
-                    <td>${Number(order.totalAmount || 0).toFixed(2)}</td>
-                    <td><span className={`status-badge ${(order.status || '').toLowerCase()}`}>{order.status}</span></td>
-                  </tr>
-                ))
-              ) : (
+          <div className="data-table-wrapper">
+            <table className="data-table">
+              <thead>
                 <tr>
-                  <td colSpan="4" style={{ textAlign: 'center', padding: '20px', color: 'var(--gray)' }}>No recent activities found.</td>
+                  <th>Order Number</th>
+                  <th>Table</th>
+                  <th>Total</th>
+                  <th>Status</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {dashboardData.recentOrders?.length > 0 ? (
+                  dashboardData.recentOrders.map(order => (
+                    <tr key={order.id}>
+                      <td style={{ fontWeight: 'bold' }}>{order.orderNumber}</td>
+                      <td>Table {order.table?.tableNumber || 'N/A'}</td>
+                      <td>${Number(order.totalAmount || 0).toFixed(2)}</td>
+                      <td><span className={`status-badge ${(order.status || '').toLowerCase()}`}>{order.status}</span></td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4" style={{ textAlign: 'center', padding: '20px', color: 'var(--gray)' }}>No recent activities found.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <h3 style={{ marginBottom: '15px' }}>Live Table Status Map</h3>
-        <div className="tables-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '15px', marginBottom: '35px' }}>
+        <div className="tables-grid" style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))',
+          gap: '12px',
+          marginBottom: '35px'
+        }}>
           {/* Sử dụng optional chaining ?. để an toàn */}
           {dashboardData.tables?.map((table) => (
             <div key={table.id} className="table-tile" style={{ borderTop: `5px solid ${getStatusColor(table.status)}`, padding: '20px 10px', textAlign: 'center', backgroundColor: 'var(--white)', borderRadius: '12px', boxShadow: 'var(--shadow)' }}>

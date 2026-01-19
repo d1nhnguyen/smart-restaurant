@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import './OrderItemModal.css';
 
 const OrderItemModal = ({ item, onClose, onAddToOrder }) => {
+  const { t } = useTranslation();
   const [quantity, setQuantity] = useState(1);
   const [selectedModifiers, setSelectedModifiers] = useState({});
   const [specialInstructions, setSpecialInstructions] = useState('');
@@ -55,7 +57,7 @@ const OrderItemModal = ({ item, onClose, onAddToOrder }) => {
           // Check maxSelections before adding
           const group = modifierGroups.find(mg => mg.group.id === groupId)?.group;
           if (group?.maxSelections > 0 && current.length >= group.maxSelections) {
-            alert(`You can only select up to ${group.maxSelections} option(s) for ${group.name}`);
+            alert(`${t('orderItemModal.canOnlySelectUpTo')} ${group.maxSelections} ${t('orderItemModal.options')} ${t('orderItemModal.for')} ${group.name}`);
             return prev;
           }
           // Add
@@ -80,19 +82,19 @@ const OrderItemModal = ({ item, onClose, onAddToOrder }) => {
 
       // Check if required
       if (group.isRequired && selectedCount === 0) {
-        alert(`Please select ${group.name}`);
+        alert(`${t('orderItemModal.pleaseSelect')} ${group.name}`);
         return;
       }
 
       // Check minimum selections
       if (group.minSelections > 0 && selectedCount < group.minSelections) {
-        alert(`Please select at least ${group.minSelections} option(s) for ${group.name}`);
+        alert(`${t('orderItemModal.pleaseSelectAtLeast')} ${group.minSelections} ${t('orderItemModal.options')} ${t('orderItemModal.for')} ${group.name}`);
         return;
       }
 
       // Check maximum selections
       if (group.maxSelections > 0 && selectedCount > group.maxSelections) {
-        alert(`You can only select up to ${group.maxSelections} option(s) for ${group.name}`);
+        alert(`${t('orderItemModal.canOnlySelectUpTo')} ${group.maxSelections} ${t('orderItemModal.options')} ${t('orderItemModal.for')} ${group.name}`);
         return;
       }
     }
@@ -125,7 +127,7 @@ const OrderItemModal = ({ item, onClose, onAddToOrder }) => {
             <h2>{item.name}</h2>
             <p className="order-item-desc">{item.description}</p>
             <div className="order-item-base-price">
-              Base Price: ${Number(item.price).toFixed(2)}
+              {t('orderItemModal.basePrice')}: ${Number(item.price).toFixed(2)}
             </div>
           </div>
         </div>
@@ -133,16 +135,16 @@ const OrderItemModal = ({ item, onClose, onAddToOrder }) => {
         {/* Modifier Groups */}
         {modifierGroups.length > 0 && (
           <div className="modifier-groups">
-            <h3>Customize Your Order</h3>
+            <h3>{t('orderItemModal.customizeOrder')}</h3>
             {modifierGroups.map(mg => (
               <div key={mg.group.id} className="modifier-group">
                 <div className="modifier-group-header">
                   <span className="modifier-group-name">
                     {mg.group.name}
-                    {mg.group.isRequired && <span className="required-badge">Required</span>}
+                    {mg.group.isRequired && <span className="required-badge">{t('orderItemModal.required')}</span>}
                   </span>
                   <span className="modifier-group-type">
-                    {mg.group.selectionType === 'SINGLE' ? 'Choose one' : 'Choose multiple'}
+                    {mg.group.selectionType === 'SINGLE' ? t('orderItemModal.chooseOne') : t('orderItemModal.chooseMultiple')}
                   </span>
                 </div>
 
@@ -159,7 +161,7 @@ const OrderItemModal = ({ item, onClose, onAddToOrder }) => {
                       <span className="modifier-option-price">
                         {Number(option.priceAdjustment) > 0
                           ? `+$${Number(option.priceAdjustment).toFixed(2)}`
-                          : 'Free'}
+                          : t('orderItemModal.free')}
                       </span>
                     </label>
                   ))}
@@ -171,9 +173,9 @@ const OrderItemModal = ({ item, onClose, onAddToOrder }) => {
 
         {/* Special Instructions */}
         <div className="special-instructions">
-          <label>Special Instructions (Optional)</label>
+          <label>{t('orderItemModal.specialInstructions')}</label>
           <textarea
-            placeholder="Any special requests? (e.g., no onions, extra spicy)"
+            placeholder={t('orderItemModal.specialInstructionsPlaceholder')}
             value={specialInstructions}
             onChange={(e) => setSpecialInstructions(e.target.value)}
             rows={3}
@@ -194,7 +196,7 @@ const OrderItemModal = ({ item, onClose, onAddToOrder }) => {
           </div>
 
           <button className="add-to-order-btn" onClick={handleAddToOrder}>
-            Add to Order - ${calculateTotal()}
+            {t('orderItemModal.addToOrder')} - ${calculateTotal()}
           </button>
         </div>
       </div>

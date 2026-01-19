@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import Fuse from 'fuse.js';
+import { useTranslation } from 'react-i18next';
 import OrderItemModal from '../../components/OrderItemModal';
 import { useCart } from '../../contexts/CartContext';
 import { useSocket } from '../../hooks/useSocket';
 import CartButton from '../../components/cart/CartButton';
 import CartDrawer from '../../components/cart/CartDrawer';
 import CheckoutButton from '../../components/cart/CheckoutButton';
+import LanguageSwitcher from '../../components/LanguageSwitcher';
 import './MenuPage.css';
 
 const MenuPage = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -106,11 +110,11 @@ const MenuPage = () => {
       <div className="guest-landing">
         <div className="landing-content">
           <div className="landing-icon">🍽️</div>
-          <h1>Welcome!</h1>
-          <p className="landing-message">To view our menu and place an order, please scan the QR code.</p>
+          <h1>{t('menu.welcomeMessage')}</h1>
+          <p className="landing-message">{t('menu.scanQR')}</p>
           <div className="staff-access">
-            <span>Staff member? </span>
-            <button onClick={() => navigate('/login')}>Login here</button>
+            <span>{t('auth.staffMember')} </span>
+            <button onClick={() => navigate('/login')}>{t('auth.loginHere')}</button>
           </div>
         </div>
       </div>
@@ -122,12 +126,32 @@ const MenuPage = () => {
   const { categories, menuItems, table: tableFromApi } = menuData;
   const activeCategoryIds = new Set(categories.filter(cat => cat.status === 'ACTIVE').map(c => c.id));
 
-  const filteredItems = menuItems.filter(item => {
+  // Filter by category and active status first
+  const categoryFilteredItems = menuItems.filter(item => {
     const belongsToActiveCategory = activeCategoryIds.has(item.categoryId);
     const matchesCategory = selectedCategory === 'All' || item.categoryId === selectedCategory;
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
-    return belongsToActiveCategory && matchesCategory && matchesSearch;
+    return belongsToActiveCategory && matchesCategory;
   });
+
+  // Apply fuzzy search if there's a search term
+  let filteredItems;
+  if (searchTerm.trim()) {
+    // Configure Fuse.js for fuzzy search
+    const fuse = new Fuse(categoryFilteredItems, {
+      keys: ['name', 'description'],
+      threshold: 0.4, // 0.0 = exact match, 1.0 = match anything
+      ignoreLocation: true,
+      includeScore: false,
+    });
+
+    // Perform fuzzy search and extract items
+    const fuzzyResults = fuse.search(searchTerm);
+    filteredItems = fuzzyResults.map(result => result.item);
+  } else {
+    // No search term - show all category-filtered items
+    filteredItems = categoryFilteredItems;
+  }
+
 
   const sortedItems = [...filteredItems].sort((a, b) => {
     switch (sortBy) {
@@ -162,8 +186,8 @@ const MenuPage = () => {
         <div className="active-orders-banner">
           <div className="banner-toggle" onClick={() => setOrdersExpanded(!ordersExpanded)}>
             <div className="banner-toggle-content">
-              <span><strong>{activeOrders.length}</strong> Active Order{activeOrders.length > 1 ? 's' : ''}</span>
-              <button className="toggle-btn">{ordersExpanded ? '▲ Hide' : '▼ Show'}</button>
+              <span><strong>{activeOrders.length}</strong> {activeOrders.length > 1 ? t('menu.activeOrders') : t('menu.activeOrder')}</span>
+              <button className="toggle-btn">{ordersExpanded ? `▲ ${t('menu.hide')}` : `▼ ${t('menu.show')}`}</button>
             </div>
           </div>
           {ordersExpanded && (
@@ -171,12 +195,12 @@ const MenuPage = () => {
               {activeOrders.map(order => (
                 <div key={order.id} className="banner-content">
                   <div className="order-info">
-                    <span className="order-number">Order: <strong>#{order.orderNumber}</strong></span>
+                    <span className="order-number">{t('orderTracking.orderNumber')}: <strong>#{order.orderNumber}</strong></span>
                     <span className={`order-status ${order.status.toLowerCase()}`}>{order.status}</span>
                   </div>
                   <div className="order-actions">
                     <button className="banner-btn" onClick={() => navigate(`/order-status/${order.id}`)}>
-                      View →
+                      {t('menu.view')} →
                     </button>
                   </div>
                 </div>
@@ -186,26 +210,32 @@ const MenuPage = () => {
         </div>
       )}
 
+
+
       <header className="menu-header-banner">
         <h1>{tableFromApi?.restaurantName || 'Smart Restaurant'}</h1>
         <div className="table-info-pill">
-          <span>Table {table?.tableNumber || tableFromApi?.tableNumber}</span>
+          <span>{t('menu.table')} {table?.tableNumber || tableFromApi?.tableNumber}</span>
         </div>
       </header>
 
       <div className="search-sticky">
         <div className="search-input-wrapper">
-          <input type="text" placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+          <input type="text" placeholder={t('menu.searchPlaceholder')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+        </div>
+        {/* Language Switcher - Always visible */}
+        <div>
+          <LanguageSwitcher />
         </div>
         <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="sort-select">
-          <option value="">Sort by</option>
-          <option value="name-asc">Name (A-Z)</option>
-          <option value="price-asc">Price (Low-High)</option>
+          <option value="">{t('menu.sortBy')}</option>
+          <option value="name-asc">{t('menu.sortNameAsc')}</option>
+          <option value="price-asc">{t('menu.sortPriceAsc')}</option>
         </select>
       </div>
 
       <nav className="category-nav">
-        <button className={`category-tab ${selectedCategory === 'All' ? 'active' : ''}`} onClick={() => setSelectedCategory('All')}>All</button>
+        <button className={`category-tab ${selectedCategory === 'All' ? 'active' : ''}`} onClick={() => setSelectedCategory('All')}>{t('common.all')}</button>
         {categories.map(cat => (
           <button key={cat.id} className={`category-tab ${selectedCategory === cat.id ? 'active' : ''}`} onClick={() => setSelectedCategory(cat.id)}>{cat.name}</button>
         ))}

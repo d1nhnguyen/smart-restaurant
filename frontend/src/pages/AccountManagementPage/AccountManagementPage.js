@@ -87,7 +87,7 @@ const AccountManagementPage = () => {
   const handleToggleStatus = async (user) => {
     const newStatus = !user.isActive;
     const action = newStatus ? 'activate' : 'deactivate';
-    
+
     if (!window.confirm(`Are you sure you want to ${action} this user?`)) return;
 
     try {
@@ -135,7 +135,7 @@ const AccountManagementPage = () => {
   return (
     <div className="admin-layout">
       <Sidebar />
-      <div className="admin-main">
+      <div className="admin-content">
         {/* Header */}
         <div className="admin-header">
           <div>
@@ -206,67 +206,69 @@ const AccountManagementPage = () => {
             <div style={{ padding: '40px', textAlign: 'center' }}>Loading users...</div>
           ) : (
             <>
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                    <th>Created At</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.length === 0 ? (
+              <div className="data-table-wrapper">
+                <table className="data-table">
+                  <thead>
                     <tr>
-                      <td colSpan="6" style={{ textAlign: 'center', padding: '30px' }}>
-                        No users found.
-                      </td>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Role</th>
+                      <th>Status</th>
+                      <th>Created At</th>
+                      <th>Actions</th>
                     </tr>
-                  ) : (
-                    users.map(user => (
-                      <tr key={user.id}>
-                        <td>
-                          <div style={{ fontWeight: '600' }}>{user.name || 'N/A'}</div>
-                        </td>
-                        <td>{user.email}</td>
-                        <td>{renderRole(user.role)}</td>
-                        <td>{renderStatus(user.isActive)}</td>
-                        <td>{new Date(user.createdAt).toLocaleDateString()}</td>
-                        <td>
-                          <button
-                            className="action-btn"
-                            title="Edit"
-                            onClick={() => handleEditUser(user)}
-                            disabled={user.role === 'ADMIN'}
-                          >
-                            ✎
-                          </button>
-                          <button
-                            className="action-btn"
-                            title={user.isActive ? 'Deactivate' : 'Activate'}
-                            onClick={() => handleToggleStatus(user)}
-                            style={{ color: user.isActive ? '#f39c12' : '#27ae60' }}
-                            disabled={user.role === 'ADMIN'}
-                          >
-                            {user.isActive ? '🔒' : '🔓'}
-                          </button>
-                          <button
-                            className="action-btn"
-                            title="Delete"
-                            style={{ color: '#e74c3c' }}
-                            onClick={() => handleDeleteUser(user.id)}
-                            disabled={user.role === 'ADMIN'}
-                          >
-                            🗑
-                          </button>
+                  </thead>
+                  <tbody>
+                    {users.length === 0 ? (
+                      <tr>
+                        <td colSpan="6" style={{ textAlign: 'center', padding: '30px' }}>
+                          No users found.
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                    ) : (
+                      users.map(user => (
+                        <tr key={user.id}>
+                          <td>
+                            <div style={{ fontWeight: '600' }}>{user.name || 'N/A'}</div>
+                          </td>
+                          <td>{user.email}</td>
+                          <td>{renderRole(user.role)}</td>
+                          <td>{renderStatus(user.isActive)}</td>
+                          <td>{new Date(user.createdAt).toLocaleDateString()}</td>
+                          <td>
+                            <button
+                              className="action-btn"
+                              title="Edit"
+                              onClick={() => handleEditUser(user)}
+                              disabled={user.role === 'ADMIN'}
+                            >
+                              ✎
+                            </button>
+                            <button
+                              className="action-btn"
+                              title={user.isActive ? 'Deactivate' : 'Activate'}
+                              onClick={() => handleToggleStatus(user)}
+                              style={{ color: user.isActive ? '#f39c12' : '#27ae60' }}
+                              disabled={user.role === 'ADMIN'}
+                            >
+                              {user.isActive ? '🔒' : '🔓'}
+                            </button>
+                            <button
+                              className="action-btn"
+                              title="Delete"
+                              style={{ color: '#e74c3c' }}
+                              onClick={() => handleDeleteUser(user.id)}
+                              disabled={user.role === 'ADMIN'}
+                            >
+                              🗑
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
 
               {/* Pagination */}
               <div className="pagination">
