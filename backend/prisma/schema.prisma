@@ -74,19 +74,6 @@ enum UserRole {
   WAITER
 }
 
-enum StaffRole {
-  CHEF
-  COOK
-  WAITER
-  MANAGER
-}
-
-enum StaffStatus {
-  ACTIVE
-  INACTIVE
-  ON_LEAVE
-}
-
 // ========================================
 // TABLE MODEL (SIMPLIFIED)
 // ========================================
@@ -357,38 +344,3 @@ model User {
   @@map("users")
 }
 
-// ========================================
-// STAFF (SIMPLIFIED)
-// ========================================
-model Staff {
-  id        String      @id @default(uuid()) @db.Uuid
-  name      String      @db.VarChar(100)
-  role      StaffRole
-  phone     String      @db.VarChar(20)
-  email     String?     @db.VarChar(100)
-  status    StaffStatus @default(ACTIVE)
-  createdAt DateTime    @default(now()) @map("created_at")
-  updatedAt DateTime    @updatedAt @map("updated_at")
-
-  shifts Shift[]
-
-  @@index([status])
-  @@index([role])
-  @@map("staff")
-}
-
-model Shift {
-  id        String   @id @default(uuid()) @db.Uuid
-  staffId   String   @map("staff_id") @db.Uuid
-  date      DateTime @db.Date
-  startTime String   @map("start_time") @db.VarChar(5)
-  endTime   String   @map("end_time") @db.VarChar(5)
-  notes     String?  @db.Text
-  createdAt DateTime @default(now()) @map("created_at")
-
-  staff Staff @relation(fields: [staffId], references: [id], onDelete: Cascade)
-
-  @@index([staffId, date])
-  @@index([date])
-  @@map("shifts")
-}

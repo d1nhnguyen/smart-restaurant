@@ -18,7 +18,6 @@ async function cleanDatabase() {
   await prisma.menuItem.deleteMany({});
   await prisma.menuCategory.deleteMany({});
   await prisma.table.deleteMany({});
-  await prisma.staff.deleteMany({});
   await prisma.user.deleteMany({});
 
   console.log('✅ Database cleaned successfully');
@@ -54,26 +53,6 @@ async function main() {
 
   console.log(`✅ Created admin user: ${adminUser.email}`);
   console.log(`   Password: Admin@123`);
-
-  // Create sample kitchen staff (Simplified: No restaurantId)
-  await prisma.staff.createMany({
-    data: [
-      {
-        name: 'Chef Gordon',
-        role: 'CHEF',
-        phone: '0901234567',
-        status: 'ACTIVE'
-      },
-      {
-        name: 'Waiter John',
-        role: 'WAITER',
-        phone: '0909876543',
-        status: 'ACTIVE'
-      }
-    ],
-    skipDuplicates: true
-  });
-  console.log('✅ Created sample staff members');
 
   // Create sample tables (Simplified: No restaurantId)
   const locations = ['Indoor', 'Outdoor', 'Patio', 'VIP Room'];
