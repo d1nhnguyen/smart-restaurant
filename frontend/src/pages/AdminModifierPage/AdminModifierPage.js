@@ -9,7 +9,7 @@ const AdminModifierPage = () => {
     const [showModal, setShowModal] = useState(false);
     const [editingGroup, setEditingGroup] = useState(null);
 
-    const fetchModifierGroups = async () => {
+    const fetchModifierGroups = React.useCallback(async () => {
         setLoading(true);
         try {
             const res = await axios.get('/api/admin/menu/modifier-groups');
@@ -20,11 +20,11 @@ const AdminModifierPage = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         fetchModifierGroups();
-    }, []);
+    }, [fetchModifierGroups]);
 
     const handleAddGroup = () => {
         setEditingGroup(null);

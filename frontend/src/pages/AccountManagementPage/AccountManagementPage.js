@@ -20,7 +20,7 @@ const AccountManagementPage = () => {
   const [editingUser, setEditingUser] = useState(null);
 
   // Fetch Users
-  const fetchUsers = async () => {
+  const fetchUsers = React.useCallback(async () => {
     setLoading(true);
     try {
       const params = {
@@ -41,12 +41,11 @@ const AccountManagementPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, filterSearch, filterRole, filterStatus, sortBy]);
 
   useEffect(() => {
     fetchUsers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, filterRole, filterStatus, sortBy]);
+  }, [fetchUsers]);
 
   const handleSearch = (e) => {
     e.preventDefault();

@@ -21,7 +21,7 @@ const TablesPage = () => {
   const [sortBy, setSortBy] = useState('tableNumber:asc');
   const [loading, setLoading] = useState(true);
   // Fetch tables
-  const fetchTables = async () => {
+  const fetchTables = React.useCallback(async () => {
     try {
       setLoading(true);
       let url = '/api/tables';
@@ -50,23 +50,22 @@ const TablesPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterStatus, filterLocation, sortBy]);
 
   // Fetch locations
-  const fetchLocations = async () => {
+  const fetchLocations = React.useCallback(async () => {
     try {
       const response = await axios.get('/api/tables/locations');
       setLocations(response.data);
     } catch (error) {
       console.error('Error fetching locations:', error);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchTables();
     fetchLocations();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterStatus, filterLocation, sortBy]);
+  }, [fetchTables, fetchLocations]);
 
   const handleAddTable = () => {
     setEditingTable(null);

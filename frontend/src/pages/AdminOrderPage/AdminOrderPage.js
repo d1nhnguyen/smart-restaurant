@@ -14,28 +14,8 @@ const AdminOrderPage = () => {
     const [activeTab, setActiveTab] = useState('all');
     const { joinRoom, on, off, isConnected } = useSocket();
 
-    // Fetch orders from API
-    const fetchOrders = React.useCallback(async () => {
-        try {
-            setLoading(true);
-            const response = await fetch(`${API_BASE_URL}/orders`);
-            if (!response.ok) {
-                throw new Error('Failed to fetch orders');
-            }
-            const data = await response.json();
-            setOrders(data);
-            filterOrders(data, activeTab);
-            setError(null);
-        } catch (err) {
-            console.error('Error fetching orders:', err);
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    }, [activeTab]);
-
     // Filter orders based on active tab
-    const filterOrders = (ordersList, tab) => {
+    const filterOrders = React.useCallback((ordersList, tab) => {
         let filtered = [];
         switch (tab) {
             case 'new':
@@ -63,7 +43,7 @@ const AdminOrderPage = () => {
                 filtered = ordersList;
         }
         setFilteredOrders(filtered);
-    };
+    }, []);
 
     // Handle tab change
     const handleTabChange = (tab) => {
@@ -92,6 +72,26 @@ const AdminOrderPage = () => {
             alert(`Failed to ${action} order: ${err.message}`);
         }
     };
+
+    // Fetch orders from API
+    const fetchOrders = React.useCallback(async () => {
+        try {
+            setLoading(true);
+            const response = await fetch(`${API_BASE_URL}/orders`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch orders');
+            }
+            const data = await response.json();
+            setOrders(data);
+            filterOrders(data, activeTab);
+            setError(null);
+        } catch (err) {
+            console.error('Error fetching orders:', err);
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    }, [activeTab, filterOrders]);
 
     // Initial fetch
     useEffect(() => {
