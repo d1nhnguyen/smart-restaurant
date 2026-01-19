@@ -24,6 +24,13 @@ const Sidebar = () => {
   // Define all menu items with role restrictions
   const allMenuItems = [
     {
+      path: '/admin/dashboard',
+      icon: '&#128202;',
+      label: 'Dashboard',
+      badge: null,
+      roles: ['ADMIN']
+    },
+    {
       path: '/orders',
       icon: '&#128203;',
       label: 'Orders',
@@ -45,7 +52,7 @@ const Sidebar = () => {
       roles: ['ADMIN']
     },
     {
-      path: '/admin/items',
+      path: '/items',
       icon: '&#127860;',
       label: 'Menu Items',
       badge: null,
@@ -62,6 +69,13 @@ const Sidebar = () => {
       path: '/modifiers',
       icon: '&#128203;',
       label: 'Modifiers',
+      badge: null,
+      roles: ['ADMIN']
+    },
+    {
+      path: '/reports',
+      icon: '&#128200;',
+      label: 'Reports',
       badge: null,
       roles: ['ADMIN']
     },
