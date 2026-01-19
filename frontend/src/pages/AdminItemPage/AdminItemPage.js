@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
+import Fuse from 'fuse.js';
 import Sidebar from '../../components/Sidebar';
 import ItemModal from '../../components/ItemModal';
 
@@ -11,7 +12,6 @@ const AdminItemPage = () => {
 
   // State for filters & pagination
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [filterName, setFilterName] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
@@ -31,14 +31,13 @@ const AdminItemPage = () => {
     }
   };
 
-  // 2. Fetch Items (với filter & pagination)
+  // 2. Fetch Items (without search - we'll do fuzzy search client-side)
   const fetchItems = async () => {
     setLoading(true);
     try {
       const params = {
-        page,
-        limit: 10,
-        search: filterName,
+        page: 1,
+        limit: 1000, // Fetch all items for client-side search
         categoryId: filterCategory || undefined,
         status: filterStatus || undefined,
         sort: sortBy
@@ -46,7 +45,6 @@ const AdminItemPage = () => {
 
       const res = await axios.get('/api/admin/menu/items', { params });
       setItems(res.data.data);
-      setTotalPages(res.data.meta.totalPages);
     } catch (error) {
       console.error('Error fetching items:', error);
       alert('Failed to load menu items');
@@ -55,6 +53,31 @@ const AdminItemPage = () => {
     }
   };
 
+  // Client-side fuzzy search
+  const filteredItems = useMemo(() => {
+    if (!filterName.trim()) {
+      return items;
+    }
+
+    const fuse = new Fuse(items, {
+      keys: ['name', 'description'],
+      threshold: 0.4,
+      ignoreLocation: true,
+    });
+
+    const results = fuse.search(filterName);
+    return results.map(result => result.item);
+  }, [items, filterName]);
+
+  // Client-side pagination
+  const paginatedItems = useMemo(() => {
+    const startIndex = (page - 1) * 10;
+    const endIndex = startIndex + 10;
+    return filteredItems.slice(startIndex, endIndex);
+  }, [filteredItems, page]);
+
+  const totalPages = Math.ceil(filteredItems.length / 10);
+
   // Load data on mount & when filters change
   useEffect(() => {
     fetchCategories();
@@ -62,14 +85,13 @@ const AdminItemPage = () => {
 
   useEffect(() => {
     fetchItems();
+    setPage(1); // Reset to page 1 when filters change
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, filterCategory, filterStatus, sortBy]);
-  // Note: filterName thường nên debounce, ở đây ta sẽ search khi bấm Enter hoặc để đơn giản thì search khi gõ (cần debounce nếu data lớn)
+  }, [filterCategory, filterStatus, sortBy]);
 
   const handleSearch = (e) => {
     e.preventDefault();
-    setPage(1); // Reset về trang 1 khi search
-    fetchItems();
+    setPage(1); // Reset to page 1 when searching
   };
 
   // Handlers
@@ -250,99 +272,97 @@ const AdminItemPage = () => {
             <div style={{ padding: '40px', textAlign: 'center' }}>Loading items...</div>
           ) : (
             <>
-              <div className="data-table-wrapper">
-                <table className="data-table">
-                  <thead>
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: '80px' }}>Image</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Status</th>
+                    <th>Prep Time</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedItems.length === 0 ? (
                     <tr>
-                      <th style={{ width: '80px' }}>Image</th>
-                      <th>Name</th>
-                      <th>Category</th>
-                      <th>Price</th>
-                      <th>Status</th>
-                      <th>Prep Time</th>
-                      <th>Actions</th>
+                      <td colSpan="7" style={{ textAlign: 'center', padding: '30px' }}>
+                        No items found.
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {items.length === 0 ? (
-                      <tr>
-                        <td colSpan="7" style={{ textAlign: 'center', padding: '30px' }}>
-                          No items found.
-                        </td>
-                      </tr>
-                    ) : (
-                      items.map(item => {
-                        const primaryPhoto = item.photos?.find(p => p.isPrimary) || item.photos?.[0];
+                  ) : (
+                    paginatedItems.map(item => {
+                      const primaryPhoto = item.photos?.find(p => p.isPrimary) || item.photos?.[0];
 
-                        return (
-                          <tr key={item.id}>
-                            <td>
-                              {primaryPhoto ? (
-                                <img
-                                  src={primaryPhoto.url}
-                                  alt={item.name}
-                                  style={{
-                                    width: '60px',
-                                    height: '60px',
-                                    objectFit: 'cover',
-                                    borderRadius: '8px',
-                                    border: '1px solid #e0e0e0'
-                                  }}
-                                />
-                              ) : (
-                                <div style={{
+                      return (
+                        <tr key={item.id}>
+                          <td>
+                            {primaryPhoto ? (
+                              <img
+                                src={primaryPhoto.url}
+                                alt={item.name}
+                                style={{
                                   width: '60px',
                                   height: '60px',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  backgroundColor: '#f5f5f5',
+                                  objectFit: 'cover',
                                   borderRadius: '8px',
-                                  fontSize: '28px',
                                   border: '1px solid #e0e0e0'
-                                }}>
-                                  🍽️
-                                </div>
-                              )}
-                            </td>
-                            <td>
-                              <div style={{ fontWeight: '600' }}>{item.name}</div>
-                              {item.isChefRecommended && (
-                                <span style={{ fontSize: '12px', color: '#e67e22' }}>
-                                  ⭐ Chef Recommended
-                                </span>
-                              )}
-                            </td>
-                            <td>{item.category?.name || 'Uncategorized'}</td>
-                            <td style={{ fontWeight: 'bold', color: '#2c3e50' }}>
-                              ${Number(item.price).toFixed(2)}
-                            </td>
-                            <td>{renderStatus(item.status)}</td>
-                            <td>{item.prepTimeMinutes} min</td>
-                            <td>
-                              <button
-                                className="action-btn"
-                                title="Edit"
-                                onClick={() => handleEditItem(item)}
-                              >
-                                ✎
-                              </button>
-                              <button
-                                className="action-btn"
-                                title="Delete"
-                                style={{ color: '#e74c3c' }}
-                                onClick={() => handleDeleteItem(item.id)}
-                              >
-                                🗑
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                                }}
+                              />
+                            ) : (
+                              <div style={{
+                                width: '60px',
+                                height: '60px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                backgroundColor: '#f5f5f5',
+                                borderRadius: '8px',
+                                fontSize: '28px',
+                                border: '1px solid #e0e0e0'
+                              }}>
+                                🍽️
+                              </div>
+                            )}
+                          </td>
+                          <td>
+                            <div style={{ fontWeight: '600' }}>{item.name}</div>
+                            {item.isChefRecommended && (
+                              <span style={{ fontSize: '12px', color: '#e67e22' }}>
+                                ⭐ Chef Recommended
+                              </span>
+                            )}
+                          </td>
+                          <td>{item.category?.name || 'Uncategorized'}</td>
+                          <td style={{ fontWeight: 'bold', color: '#2c3e50' }}>
+                            ${Number(item.price).toFixed(2)}
+                          </td>
+                          <td>{renderStatus(item.status)}</td>
+                          <td>{item.prepTimeMinutes} min</td>
+                          <td>
+                            <button
+                              className="action-btn"
+                              title="Edit"
+                              onClick={() => handleEditItem(item)}
+                            >
+                              ✎
+                            </button>
+                            <button
+                              className="action-btn"
+                              title="Delete"
+                              style={{ color: '#e74c3c' }}
+                              onClick={() => handleDeleteItem(item.id)}
+                            >
+                              🗑
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
 
               {/* Pagination */}
               <div className="pagination">
