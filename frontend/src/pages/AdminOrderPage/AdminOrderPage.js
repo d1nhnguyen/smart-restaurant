@@ -4,6 +4,8 @@ import OrderCard from '../../components/OrderCard';
 import { useSocket } from '../../hooks/useSocket';
 import './AdminOrderPage.css';
 
+const API_BASE_URL = (process.env.REACT_APP_API_URL || 'http://localhost:3000') + '/api';
+
 const AdminOrderPage = () => {
     const [orders, setOrders] = useState([]);
     const [filteredOrders, setFilteredOrders] = useState([]);
@@ -11,8 +13,6 @@ const AdminOrderPage = () => {
     const [error, setError] = useState(null);
     const [activeTab, setActiveTab] = useState('all');
     const { joinRoom, on, off, isConnected } = useSocket();
-
-    const API_BASE_URL = (process.env.REACT_APP_API_URL || 'http://localhost:3000') + '/api';
 
     // Fetch orders from API
     const fetchOrders = React.useCallback(async () => {
