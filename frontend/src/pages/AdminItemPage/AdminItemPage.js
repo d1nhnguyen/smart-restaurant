@@ -22,17 +22,17 @@ const AdminItemPage = () => {
   const [editingItem, setEditingItem] = useState(null);
 
   // 1. Fetch Categories (cho dropdown)
-  const fetchCategories = async () => {
+  const fetchCategories = React.useCallback(async () => {
     try {
       const res = await axios.get('/api/admin/menu/categories');
       setCategories(res.data);
     } catch (error) {
       console.error('Error fetching categories:', error);
     }
-  };
+  }, []);
 
   // 2. Fetch Items (without search - we'll do fuzzy search client-side)
-  const fetchItems = async () => {
+  const fetchItems = React.useCallback(async () => {
     setLoading(true);
     try {
       const params = {
@@ -51,7 +51,7 @@ const AdminItemPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterCategory, filterStatus, sortBy]);
 
   // Client-side fuzzy search
   const filteredItems = useMemo(() => {
@@ -81,13 +81,12 @@ const AdminItemPage = () => {
   // Load data on mount & when filters change
   useEffect(() => {
     fetchCategories();
-  }, []);
+  }, [fetchCategories]);
 
   useEffect(() => {
     fetchItems();
     setPage(1); // Reset to page 1 when filters change
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterCategory, filterStatus, sortBy]);
+  }, [fetchItems]);
 
   const handleSearch = (e) => {
     e.preventDefault();

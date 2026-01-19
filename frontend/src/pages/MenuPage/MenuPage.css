@@ -28,6 +28,25 @@
 
     .search-sticky {
         padding: 10px 15px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .search-sticky .search-input-wrapper {
+        flex: 1 1 100%;
+        order: 1;
+    }
+
+    .search-sticky > div:has(.language-switcher),
+    .search-sticky > div:nth-child(2) {
+        order: 2;
+        flex: 0 0 auto;
+    }
+
+    .search-sticky .sort-select {
+        order: 3;
+        flex: 1 1 auto;
+        min-width: 0;
     }
 
     .category-nav {
@@ -99,6 +118,23 @@
     padding: 4px 8px;
     font-size: 16px;
     outline: none;
+}
+
+.sort-select {
+    padding: 10px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    background: #f8f9fa;
+    font-size: 14px;
+    color: #495057;
+    cursor: pointer;
+    outline: none;
+    min-width: 100px;
+    flex-shrink: 0;
+}
+
+.sort-select:focus {
+    border-color: #e74c3c;
 }
 
 .category-nav {
@@ -580,6 +616,22 @@
     .chef-icon {
         font-size: 12px;
     }
+.popular-tag {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 10;
+}
+
+.popular-badge {
+    background: #f39c12;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .item-img {

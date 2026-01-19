@@ -12,7 +12,7 @@ const AdminCategoryPage = () => {
   const [editingCategory, setEditingCategory] = useState(null);
 
   // 1. Fetch Categories
-  const fetchCategories = async () => {
+  const fetchCategories = React.useCallback(async () => {
     setLoading(true);
     try {
       // Backend service của bạn đã include _count items
@@ -24,11 +24,11 @@ const AdminCategoryPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchCategories();
-  }, []);
+  }, [fetchCategories]);
 
   // 2. Handlers
   const handleAddCategory = () => {
@@ -140,7 +140,12 @@ const AdminCategoryPage = () => {
                         </span>
                       </td>
                       <td>
-                        <span className={`status-badge ${cat.status === 'ACTIVE' ? 'active' : 'inactive'}`}>
+                        <span
+                          className={`status-badge ${cat.status === 'ACTIVE' ? 'active' : 'inactive'}`}
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => handleToggleStatus(cat)}
+                          title="Click to toggle status"
+                        >
                           {cat.status}
                         </span>
                       </td>

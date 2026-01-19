@@ -73,7 +73,7 @@ const CheckoutPage = () => {
             // VNPay flow - redirect to payment gateway
             if (paymentMethod === 'VNPAY') {
                 // For VNPay, we'll process all orders together
-                const totalOrderIds = unpaidOrders.map(o => o.id).join(',');
+                //const totalOrderIds = unpaidOrders.map(o => o.id).join(',');
                 const orderInfo = `Payment for ${unpaidOrders.length} order(s): ${unpaidOrders.map(o => `#${o.orderNumber}`).join(', ')}`;
 
                 const response = await axios.post('/api/payments/vnpay/create', {

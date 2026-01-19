@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar';
 import OrderCard from '../../components/OrderCard';
 import { useSocket } from '../../hooks/useSocket';
 import './AdminOrderPage.css';
 
+const API_BASE_URL = (process.env.REACT_APP_API_URL || 'http://localhost:3000') + '/api';
+
 const AdminOrderPage = () => {
-    const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
     const [filteredOrders, setFilteredOrders] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -14,30 +14,8 @@ const AdminOrderPage = () => {
     const [activeTab, setActiveTab] = useState('all');
     const { joinRoom, on, off, isConnected } = useSocket();
 
-    const API_BASE_URL = 'http://localhost:3000/api';
-
-    // Fetch orders from API
-    const fetchOrders = async () => {
-        try {
-            setLoading(true);
-            const response = await fetch(`${API_BASE_URL}/orders`);
-            if (!response.ok) {
-                throw new Error('Failed to fetch orders');
-            }
-            const data = await response.json();
-            setOrders(data);
-            filterOrders(data, activeTab);
-            setError(null);
-        } catch (err) {
-            console.error('Error fetching orders:', err);
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
-
     // Filter orders based on active tab
-    const filterOrders = (ordersList, tab) => {
+    const filterOrders = React.useCallback((ordersList, tab) => {
         let filtered = [];
         switch (tab) {
             case 'new':
@@ -65,7 +43,7 @@ const AdminOrderPage = () => {
                 filtered = ordersList;
         }
         setFilteredOrders(filtered);
-    };
+    }, []);
 
     // Handle tab change
     const handleTabChange = (tab) => {
@@ -95,10 +73,30 @@ const AdminOrderPage = () => {
         }
     };
 
+    // Fetch orders from API
+    const fetchOrders = React.useCallback(async () => {
+        try {
+            setLoading(true);
+            const response = await fetch(`${API_BASE_URL}/orders`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch orders');
+            }
+            const data = await response.json();
+            setOrders(data);
+            filterOrders(data, activeTab);
+            setError(null);
+        } catch (err) {
+            console.error('Error fetching orders:', err);
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    }, [activeTab, filterOrders]);
+
     // Initial fetch
     useEffect(() => {
         fetchOrders();
-    }, []);
+    }, [fetchOrders]);
 
     // Auto-refresh (reduced to fallback)
     useEffect(() => {
@@ -107,7 +105,7 @@ const AdminOrderPage = () => {
         }, 30000); // 30 seconds as fallback
 
         return () => clearInterval(interval);
-    }, [activeTab]);
+    }, [fetchOrders]);
 
     // WebSocket: Join admin room and listen for updates
     useEffect(() => {
@@ -167,7 +165,7 @@ const AdminOrderPage = () => {
                 off('orderItem:statusUpdated', handleItemStatusUpdated);
             };
         }
-    }, [isConnected, activeTab, joinRoom, on, off]);
+    }, [isConnected, activeTab, joinRoom, on, off, filterOrders]);
 
     // Calculate stats
     const stats = {

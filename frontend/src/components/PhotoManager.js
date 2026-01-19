@@ -6,11 +6,22 @@ const PhotoManager = ({ itemId, photos = [], onUpdate, onLocalChange }) => {
     const [uploading, setUploading] = useState(false);
     const [localPhotos, setLocalPhotos] = useState([]); // [{id: tempId, url: blob, file: File, isPrimary: bool}]
 
+    const localPhotosRef = React.useRef(localPhotos);
+    useEffect(() => {
+        localPhotosRef.current = localPhotos;
+    }, [localPhotos]);
+
     // Clean up blob URLs when component unmounts
     useEffect(() => {
         return () => {
-            localPhotos.forEach(p => URL.revokeObjectURL(p.url));
+            localPhotosRef.current.forEach(p => {
+                if (p.url && p.url.startsWith('blob:')) {
+                    URL.revokeObjectURL(p.url);
+                }
+            });
         };
+        // We only want this to run on unmount, but localPhotos is used for the ref update
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleFileChange = async (e) => {

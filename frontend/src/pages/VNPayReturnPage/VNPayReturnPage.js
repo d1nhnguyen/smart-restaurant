@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './VNPayReturnPage.css';
 
 const VNPayReturnPage = () => {
     const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -15,14 +14,10 @@ const VNPayReturnPage = () => {
                 // Get RAW query string from URL (preserves original VNPay encoding)
                 const rawQueryString = window.location.search.substring(1); // Remove '?'
 
-                // Capture raw query string
-
                 // Send raw query string to backend
                 const response = await axios.post('/api/payments/vnpay-return', {
                     rawQueryString: rawQueryString
                 });
-
-                // Payment verification complete
 
                 if (response.data.success) {
                     // Navigate to success page with payment details
@@ -44,12 +39,25 @@ const VNPayReturnPage = () => {
             } catch (err) {
                 console.error('Error processing VNPay return:', err);
                 setError(err.message);
+            } finally {
                 setLoading(false);
             }
         };
 
         processVNPayReturn();
     }, [navigate]);
+
+    if (loading) {
+        return (
+            <div className="vnpay-return-container">
+                <div className="vnpay-return-loading">
+                    <h2>⏳ Processing Payment...</h2>
+                    <p>Please wait while we verify your payment with VNPay.</p>
+                    <div className="spinner"></div>
+                </div>
+            </div>
+        );
+    }
 
     if (error) {
         return (
@@ -63,15 +71,8 @@ const VNPayReturnPage = () => {
         );
     }
 
-    return (
-        <div className="vnpay-return-container">
-            <div className="vnpay-return-loading">
-                <h2>⏳ Processing Payment...</h2>
-                <p>Please wait while we verify your payment with VNPay.</p>
-                <div className="spinner"></div>
-            </div>
-        </div>
-    );
+    // Default return to avoid returning null (though loading/error/navigate handle most cases)
+    return null;
 };
 
 export default VNPayReturnPage;

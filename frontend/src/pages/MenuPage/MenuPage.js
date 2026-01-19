@@ -43,9 +43,10 @@ const MenuPage = () => {
   const observerTarget = React.useRef(null);
 
   // KẾT HỢP: Lấy cart và total từ Context (thay vì orderItems cục bộ)
+  // Context data
   const {
     addToCart, table, setTable, error: cartError, clearError,
-    activeOrders, token: contextToken, cart, placeOrder, refreshActiveOrder
+    activeOrders, token: contextToken, refreshActiveOrder
   } = useCart();
 
   const { joinRoom, on, off, isConnected } = useSocket();
@@ -148,19 +149,14 @@ const MenuPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, table?.id, selectedCategory, searchTerm, sortBy]);
 
-  // WebSocket: Listen for order updates to refresh active orders banner
+  // WebSocket: Listen for order updates
   useEffect(() => {
     if (table?.id && isConnected && activeOrders && activeOrders.length > 0) {
-      // Join rooms for all active orders
       activeOrders.forEach(order => {
         joinRoom('order', order.id);
-        // Joined order room for updates
       });
 
-      // Listen for order status updates
-      const handleOrderStatusUpdated = (data) => {
-        // Order status updated
-        // Refresh active orders to update the banner
+      const handleOrderStatusUpdated = () => {
         if (refreshActiveOrder) {
           refreshActiveOrder(table.id);
         }
@@ -244,6 +240,42 @@ const MenuPage = () => {
 
   // Display items (already filtered by server)
   const displayItems = menuItems;
+  if (!menuData) return null;
+
+  const { categories, menuItems, table: tableFromApi } = menuData;
+  const activeCategoryIds = new Set(categories.filter(cat => cat.status === 'ACTIVE').map(c => c.id));
+
+  const categoryFilteredItems = menuItems.filter(item => {
+    const belongsToActiveCategory = activeCategoryIds.has(item.categoryId);
+    const matchesCategory = selectedCategory === 'All' || item.categoryId === selectedCategory;
+    return belongsToActiveCategory && matchesCategory;
+  });
+
+  let filteredItems;
+  if (searchTerm.trim()) {
+    const fuse = new Fuse(categoryFilteredItems, {
+      keys: ['name', 'description'],
+      threshold: 0.4,
+      ignoreLocation: true,
+      includeScore: false,
+    });
+
+    const fuzzyResults = fuse.search(searchTerm);
+    filteredItems = fuzzyResults.map(result => result.item);
+  } else {
+    filteredItems = categoryFilteredItems;
+  }
+
+  const sortedItems = [...filteredItems].sort((a, b) => {
+    switch (sortBy) {
+      case 'name-asc': return a.name.localeCompare(b.name);
+      case 'name-desc': return b.name.localeCompare(a.name);
+      case 'price-asc': return Number(a.price) - Number(b.price);
+      case 'price-desc': return Number(b.price) - Number(a.price);
+      case 'popularity': return (b.popularityScore || 0) - (a.popularityScore || 0);
+      default: return 0;
+    }
+  });
 
   const handleAddToOrder = (orderData) => {
     addToCart(orderData);
@@ -251,9 +283,6 @@ const MenuPage = () => {
   };
 
   const handleItemClick = (item) => setSelectedItem(item);
-
-  // Place order from cart
-
 
   return (
     <div className="menu-page">
@@ -292,8 +321,6 @@ const MenuPage = () => {
         </div>
       )}
 
-
-
       <header className="menu-header-banner">
         <h1>{tableInfo?.restaurantName || 'Smart Restaurant'}</h1>
         <div className="table-info-pill">
@@ -310,7 +337,6 @@ const MenuPage = () => {
             onChange={(e) => handleSearchChange(e.target.value)}
           />
         </div>
-        {/* Language Switcher - Always visible */}
         <div>
           <LanguageSwitcher />
         </div>
@@ -322,6 +348,7 @@ const MenuPage = () => {
           <option value="">{t('menu.sortBy')}</option>
           <option value="name-asc">{t('menu.sortNameAsc')}</option>
           <option value="price-asc">{t('menu.sortPriceAsc')}</option>
+          <option value="popularity">{t('menu.sortPopularity')}</option>
         </select>
       </div>
 
@@ -362,6 +389,11 @@ const MenuPage = () => {
                 <img src={primaryPhoto.url} alt={item.name} className="item-img" />
               ) : (
                 <div className="item-placeholder">🍽️</div>
+              )}
+              {item.isPopular && (
+                <div className="popular-tag">
+                  <span className="popular-badge">{t('menu.popularity')}</span>
+                </div>
               )}
               <div className="item-details">
                 <div className="item-name">{item.name}</div>
