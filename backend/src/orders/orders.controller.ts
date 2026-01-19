@@ -1,8 +1,12 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { AddItemsDto } from './dto/add-items.dto';
-import { OrderStatus } from '@prisma/client';
+import { ApplyDiscountDto } from './dto/apply-discount.dto';
+import { OrderStatus, UserRole } from '@prisma/client';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
 @Controller('orders')
 export class OrdersController {
@@ -83,6 +87,17 @@ export class OrdersController {
     findOne(@Param('id', ParseUUIDPipe) id: string) {
         return this.ordersService.findOne(id);
     }
+
+    @Patch('admin/:id/discount')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.ADMIN, UserRole.WAITER)
+    applyDiscount(
+        @Param('id', ParseUUIDPipe) id: string,
+        @Body() applyDiscountDto: ApplyDiscountDto,
+    ) {
+        return this.ordersService.applyDiscount(id, applyDiscountDto);
+    }
+
     @Get('dashboard/stats')
     async getDashboardStats() {
         return this.ordersService.getDashboardStats();

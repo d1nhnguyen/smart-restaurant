@@ -47,6 +47,16 @@ export const orderService = {
     getOrderById: async (orderId) => {
         const response = await axios.get(`${API_BASE}/${orderId}`);
         return response.data;
+    },
+
+    /**
+     * Apply discount to an order (admin/waiter only)
+     * @param {string} orderId - The ID of the order to apply discount to
+     * @param {object} discountData - { type: 'PERCENTAGE' | 'FIXED' | 'NONE', value: number }
+     */
+    applyDiscount: async (orderId, discountData) => {
+        const response = await axios.patch(`${API_BASE}/admin/${orderId}/discount`, discountData);
+        return response.data;
     }
 };
 

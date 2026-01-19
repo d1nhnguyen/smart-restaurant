@@ -208,6 +208,15 @@
     color: #4a5568;
 }
 
+.total-row.discount-row {
+    color: #16a34a;
+    font-weight: 500;
+}
+
+.total-row.discount-row span {
+    color: #16a34a;
+}
+
 .total-final {
     margin-top: 10px;
     padding-top: 10px;
@@ -367,6 +376,39 @@
     align-items: center;
 }
 
+.btn-discount {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-discount:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(243, 156, 18, 0.3);
+}
+
+.btn-mark-paid {
+    background: #6c5ce7;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn-mark-paid:hover {
+    background: #5b4cc4;
+}
+
 .btn-print-bill {
     background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
     color: white;
@@ -382,4 +424,14 @@
 .btn-print-bill:hover {
     transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+}
+
+/* Discount display in total */
+.discount-row {
+    color: #16a34a;
+    font-weight: 500;
+}
+
+.discount-row span:last-child {
+    color: #16a34a;
 }

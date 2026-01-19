@@ -74,6 +74,12 @@ enum UserRole {
   WAITER
 }
 
+enum DiscountType {
+  NONE
+  PERCENTAGE
+  FIXED
+}
+
 // ========================================
 // TABLE MODEL (SIMPLIFIED)
 // ========================================
@@ -226,6 +232,10 @@ model Order {
   taxAmount      Decimal     @default(0) @map("tax_amount") @db.Decimal(12, 2)
   discountAmount Decimal     @default(0) @map("discount_amount") @db.Decimal(12, 2)
   totalAmount    Decimal     @default(0) @map("total_amount") @db.Decimal(12, 2)
+  
+  // Discount fields
+  discountType  DiscountType @default(NONE) @map("discount_type")
+  discountValue Decimal      @default(0) @map("discount_value") @db.Decimal(10, 2)
 
   customerName  String? @map("customer_name") @db.VarChar(100)
   phoneNumber   String? @map("phone_number") @db.VarChar(20)

@@ -126,6 +126,15 @@
     color: #666;
 }
 
+.summary-row.discount-row {
+    color: #16a34a;
+    font-weight: 600;
+}
+
+.summary-row.discount-row span {
+    color: #16a34a;
+}
+
 .summary-row.total {
     margin-top: 1rem;
     padding-top: 1rem;

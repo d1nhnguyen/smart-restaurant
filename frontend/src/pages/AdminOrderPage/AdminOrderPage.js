@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar';
 import OrderCard from '../../components/OrderCard';
 import { useSocket } from '../../hooks/useSocket';
+import { authService } from '../../utils/auth';
 import './AdminOrderPage.css';
 
 const API_BASE_URL = (process.env.REACT_APP_API_URL || 'http://localhost:3000') + '/api';
@@ -13,6 +14,8 @@ const AdminOrderPage = () => {
     const [error, setError] = useState(null);
     const [activeTab, setActiveTab] = useState('all');
     const { joinRoom, on, off, isConnected } = useSocket();
+    const user = authService.getUser();
+    const userRole = user?.role || 'STAFF';
 
     // Filter orders based on active tab
     const filterOrders = React.useCallback((ordersList, tab) => {
@@ -54,6 +57,12 @@ const AdminOrderPage = () => {
     // Handle order action
     const handleOrderAction = async (orderId, action) => {
         try {
+            // Handle refresh action (triggered after discount applied)
+            if (action === 'refresh') {
+                fetchOrders();
+                return;
+            }
+
             const response = await fetch(`${API_BASE_URL}/orders/${orderId}/${action}`, {
                 method: 'POST',
                 headers: {
@@ -281,6 +290,7 @@ const AdminOrderPage = () => {
                                     key={order.id}
                                     order={order}
                                     onAction={handleOrderAction}
+                                    userRole={userRole}
                                 />
                             ))}
                         </div>

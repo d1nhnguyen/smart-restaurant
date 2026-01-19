@@ -48,9 +48,9 @@ const CheckoutPage = () => {
     );
 
     const subtotal = unpaidOrders.reduce((sum, order) => sum + Number(order.subtotalAmount || 0), 0);
-    const TAX_RATE = 0.08;
-    const taxAmount = subtotal * TAX_RATE;
-    const total = subtotal + taxAmount;
+    const totalDiscount = unpaidOrders.reduce((sum, order) => sum + Number(order.discountAmount || 0), 0);
+    const totalTax = unpaidOrders.reduce((sum, order) => sum + Number(order.taxAmount || 0), 0);
+    const total = unpaidOrders.reduce((sum, order) => sum + Number(order.totalAmount || 0), 0);
 
     // Kiểm tra có orders để thanh toán không
     if (unpaidOrders.length === 0 || allItems.length === 0) {
@@ -212,9 +212,15 @@ const CheckoutPage = () => {
                         <span>{t('cart.subtotal')}</span>
                         <span>${subtotal.toFixed(2)}</span>
                     </div>
+                    {totalDiscount > 0 && (
+                        <div className="summary-row discount-row">
+                            <span>{t('cart.discount')}</span>
+                            <span>-${totalDiscount.toFixed(2)}</span>
+                        </div>
+                    )}
                     <div className="summary-row">
                         <span>{t('cart.tax')}</span>
-                        <span>${taxAmount.toFixed(2)}</span>
+                        <span>${totalTax.toFixed(2)}</span>
                     </div>
                     <div className="summary-row total">
                         <span>{t('checkout.totalAmount')}</span>

@@ -49,6 +49,7 @@
         "title": "Your Cart",
         "empty": "Your cart is empty",
         "subtotal": "Subtotal",
+        "discount": "Discount",
         "total": "Total",
         "note": "Note",
         "proceedToCheckout": "Proceed to Checkout",

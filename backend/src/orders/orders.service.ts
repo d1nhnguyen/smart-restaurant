@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { AddItemsDto } from './dto/add-items.dto';
+import { ApplyDiscountDto, DiscountType } from './dto/apply-discount.dto';
 import { OrderStatus, OrderItemStatus, PaymentStatus, Prisma } from '@prisma/client';
 import { OrdersGateway } from '../gateway/orders.gateway';
 
@@ -792,35 +793,110 @@ export class OrdersService {
     async getDashboardStats() {
         const [revenueStats, totalOrders, allTables, recentOrders] = await Promise.all([
             this.prisma.order.aggregate({
-            _sum: { totalAmount: true },
-            where: { paymentStatus: 'PAID' }
+                _sum: { totalAmount: true },
+                where: { paymentStatus: 'PAID' }
             }),
             this.prisma.order.count(),
             // Lấy toàn bộ danh sách bàn và trạng thái hiện tại
             this.prisma.table.findMany({
-            orderBy: { tableNumber: 'asc' },
-            select: {
-                id: true,
-                tableNumber: true,
-                status: true
-            }
+                orderBy: { tableNumber: 'asc' },
+                select: {
+                    id: true,
+                    tableNumber: true,
+                    status: true
+                }
             }),
             this.prisma.order.findMany({
-            take: 5,
-            orderBy: { createdAt: 'desc' },
-            include: { table: true }
+                take: 5,
+                orderBy: { createdAt: 'desc' },
+                include: { table: true }
             })
         ]);
 
         return {
             stats: {
-            revenue: Number(revenueStats._sum.totalAmount || 0),
-            orders: totalOrders,
-            // Đếm số bàn đang phục vụ cho thẻ thống kê chính
-            activeTables: allTables.filter(t => t.status === 'OCCUPIED').length 
+                revenue: Number(revenueStats._sum.totalAmount || 0),
+                orders: totalOrders,
+                // Đếm số bàn đang phục vụ cho thẻ thống kê chính
+                activeTables: allTables.filter(t => t.status === 'OCCUPIED').length
             },
             tables: allTables, // Trả về danh sách toàn bộ các bàn
             recentOrders
         };
+    }
+
+    /**
+     * Apply discount to an order
+     * Business Rules:
+     * - Only allowed for UNPAID orders (paymentStatus = PENDING)
+     * - Discount amount cannot exceed subtotal
+     * - Recalculates total after discount
+     */
+    async applyDiscount(orderId: string, dto: ApplyDiscountDto) {
+        const order = await this.prisma.order.findUnique({
+            where: { id: orderId },
+            include: { items: true, table: true },
+        });
+
+        if (!order) {
+            throw new NotFoundException(`Order #${orderId} not found`);
+        }
+
+        if (order.paymentStatus === PaymentStatus.PAID) {
+            throw new BadRequestException('Cannot apply discount to paid orders');
+        }
+
+        // Calculate discount amount
+        let discountAmount = 0;
+        const subtotal = Number(order.subtotalAmount);
+
+        if (dto.type === DiscountType.PERCENTAGE) {
+            if (dto.value < 0 || dto.value > 100) {
+                throw new BadRequestException('Percentage must be between 0 and 100');
+            }
+            discountAmount = (subtotal * dto.value) / 100;
+        } else if (dto.type === DiscountType.FIXED) {
+            if (dto.value < 0) {
+                throw new BadRequestException('Fixed discount amount must be positive');
+            }
+            discountAmount = dto.value;
+        } else if (dto.type === DiscountType.NONE) {
+            // Remove discount
+            discountAmount = 0;
+        }
+
+        // Ensure discount doesn't exceed subtotal
+        discountAmount = Math.min(discountAmount, subtotal);
+
+        // Recalculate total
+        const newTotal = subtotal + Number(order.taxAmount) - discountAmount;
+
+        // Update order
+        const updatedOrder = await this.prisma.order.update({
+            where: { id: orderId },
+            data: {
+                discountType: dto.type,
+                discountValue: dto.value || 0,
+                discountAmount,
+                totalAmount: newTotal,
+            },
+            include: {
+                items: {
+                    include: {
+                        selectedModifiers: true,
+                    },
+                },
+                table: true
+            },
+        });
+
+        // Emit WebSocket event
+        this.ordersGateway.emitOrderStatusUpdated(
+            updatedOrder.id,
+            updatedOrder.status,
+            updatedOrder,
+        );
+
+        return updatedOrder;
     }
 }

@@ -140,6 +140,15 @@
     font-size: 14px;
 }
 
+.total-line.discount-line {
+    color: #16a34a;
+    font-weight: 500;
+}
+
+.total-line.discount-line span {
+    color: #16a34a;
+}
+
 .grand-total-line {
     font-size: 18px;
     font-weight: bold;

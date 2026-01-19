@@ -1,8 +1,13 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import WaiterBill from './WaiterBill';
+import DiscountModal from './DiscountModal';
+import { orderService } from '../services/orderService';
 import './OrderCard.css';
 
-const OrderCard = ({ order, onAction }) => {
+const OrderCard = ({ order, onAction, userRole }) => {
+    // State for discount modal
+    const [showDiscountModal, setShowDiscountModal] = useState(false);
+
     // Format date/time
     const formatDateTime = (dateString) => {
         const date = new Date(dateString);
@@ -147,6 +152,23 @@ const OrderCard = ({ order, onAction }) => {
         }, 250);
     };
 
+    // Handle discount apply
+    const handleApplyDiscount = async (discountData) => {
+        try {
+            await orderService.applyDiscount(order.id, discountData);
+            // Trigger refresh by calling onAction with a custom action
+            if (onAction) {
+                onAction(order.id, 'refresh');
+            }
+        } catch (error) {
+            console.error('Error applying discount:', error);
+            throw error;
+        }
+    };
+
+    // Check if user can apply discount (admin or waiter only)
+    const canApplyDiscount = userRole === 'ADMIN' || userRole === 'WAITER';
+
     // Render action buttons based on status
     const renderActionButtons = () => {
         switch (order.status) {
@@ -273,6 +295,17 @@ const OrderCard = ({ order, onAction }) => {
                     <span>Subtotal: </span>
                     <span>{formatCurrency(order.subtotalAmount)}</span>
                 </div>
+                {order.discountAmount > 0 && (
+                    <div className="total-row discount-row">
+                        <span>
+                            Discount 
+                            {order.discountType === 'PERCENTAGE' && ` (${order.discountValue}%)`}
+                            {order.discountType === 'FIXED' && ' (Fixed)'}
+                            :
+                        </span>
+                        <span>-{formatCurrency(order.discountAmount)}</span>
+                    </div>
+                )}
                 <div className="total-row">
                     <span>Tax (8%):</span>
                     <span>{formatCurrency(order.taxAmount)}</span>
@@ -287,6 +320,16 @@ const OrderCard = ({ order, onAction }) => {
                         {order.paymentStatus === 'PAID' ? '✅ PAID' : '💳 UNPAID'}
                     </span>
                     <div className="payment-actions">
+                        {/* Discount button (admin/waiter only, unpaid orders only) */}
+                        {canApplyDiscount && order.paymentStatus !== 'PAID' && order.status !== 'CANCELLED' && (
+                            <button
+                                className="btn-discount"
+                                onClick={() => setShowDiscountModal(true)}
+                                title="Apply Discount"
+                            >
+                                Discount
+                            </button>
+                        )}
                         {order.paymentStatus !== 'PAID' && order.status !== 'CANCELLED' && (
                             <button
                                 className="btn-mark-paid"
@@ -315,6 +358,15 @@ const OrderCard = ({ order, onAction }) => {
             </div>
 
             {renderActionButtons()}
+
+            {/* Discount Modal */}
+            {showDiscountModal && (
+                <DiscountModal
+                    order={order}
+                    onClose={() => setShowDiscountModal(false)}
+                    onApply={handleApplyDiscount}
+                />
+            )}
         </div>
     );
 };

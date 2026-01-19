@@ -102,6 +102,16 @@ const WaiterBill = React.forwardRef(({ order }, ref) => {
                     <span>Subtotal:</span>
                     <span>{formatCurrency(order.subtotalAmount)}</span>
                 </div>
+                {order.discountAmount > 0 && (
+                    <div className="total-line discount-line">
+                        <span>
+                            Discount
+                            {order.discountType === 'PERCENTAGE' && ` (${order.discountValue}%)`}
+                            {order.discountType === 'FIXED' && ' (Fixed)'}:
+                        </span>
+                        <span>-{formatCurrency(order.discountAmount)}</span>
+                    </div>
+                )}
                 <div className="total-line">
                     <span>Tax (8%):</span>
                     <span>{formatCurrency(order.taxAmount || 0)}</span>
