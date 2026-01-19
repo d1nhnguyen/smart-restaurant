@@ -238,9 +238,9 @@ const ReportsPage = () => {
                         </div>
 
                         {/* Charts Row */}
-                        <div className="charts-row">
+                        <div className="charts-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '20px' }}>
                             {/* Revenue Chart */}
-                            <div className="chart-card" style={{ flex: 2 }}>
+                            <div className="chart-card" style={{ flex: '1 1 600px' }}>
                                 <div className="chart-header">
                                     <h3>Revenue Over Time</h3>
                                 </div>
@@ -250,18 +250,16 @@ const ReportsPage = () => {
                             </div>
 
                             {/* Peak Hours */}
-                            <div className="chart-card">
+                            <div className="chart-card" style={{ flex: '1 1 300px' }}>
                                 <div className="chart-header">
                                     <h3>Peak Hours (Orders)</h3>
                                 </div>
                                 <div className="peak-hours">
-                                    {/* Filter to show only relevant hours (e.g. 8AM to 10PM) or top active ones */}
-                                    {/* For simplicity showing top active hours or a range */}
                                     {peakHoursData.filter(h => h.count > 0).length === 0 ? (
                                         <div style={{ color: '#999', textAlign: 'center', marginTop: '20px' }}>No orders yet</div>
                                     ) : (
                                         peakHoursData
-                                            .filter(h => h.hour >= 8 && h.hour <= 22) // Show 8AM to 10PM roughly
+                                            .filter(h => h.hour >= 8 && h.hour <= 22)
                                             .map(h => {
                                                 const maxCount = Math.max(...peakHoursData.map(d => d.count), 1);
                                                 const percent = (h.count / maxCount) * 100;

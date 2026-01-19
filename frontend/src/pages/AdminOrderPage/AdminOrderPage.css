@@ -29,52 +29,15 @@
     flex-wrap: wrap;
 }
 
-.stat-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 15px 25px;
-    border-radius: 10px;
-    text-align: center;
-    min-width: 100px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.stat-card:nth-child(1) {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-}
-
-.stat-card:nth-child(2) {
-    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-}
-
-.stat-card:nth-child(3) {
-    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-}
-
-.stat-card:nth-child(4) {
-    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-}
-
-.stat-value {
-    font-size: 28px;
-    font-weight: 700;
-    margin-bottom: 5px;
-}
-
-.stat-label {
-    font-size: 12px;
-    opacity: 0.9;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: black;
-}
+/* Stat cards now use global styles from styles.css */
+/* .stat-card styles removed to unify design */
 
 /* Tabs */
 .order-tabs {
     display: flex;
     gap: 10px;
     margin-bottom: 25px;
-    border-bottom: 2px solid #e2e8f0;
+    border-bottom: 2px solid var(--neutral-200);
     padding-bottom: 5px;
     overflow-x: auto;
     flex-wrap: wrap;
@@ -84,24 +47,24 @@
     padding: 10px 20px;
     background: transparent;
     border: none;
-    color: #718096;
+    color: var(--neutral-500);
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     border-radius: 8px 8px 0 0;
     white-space: nowrap;
 }
 
 .tab-button:hover {
-    background: #edf2f7;
-    color: #2d3748;
+    background: var(--neutral-100);
+    color: var(--neutral-900);
 }
 
 .tab-button.active {
-    color: #667eea;
-    background: #edf2f7;
-    border-bottom: 3px solid #667eea;
+    color: var(--primary);
+    background: var(--primary-50);
+    border-bottom: 3px solid var(--primary);
 }
 
 /* Orders Container */

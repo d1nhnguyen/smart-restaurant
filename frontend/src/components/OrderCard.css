@@ -37,7 +37,7 @@
 /* Status Badges */
 .status-badge {
     padding: 6px 14px;
-    border-radius: 20px;
+    border-radius: 9999px;
     font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
@@ -45,38 +45,38 @@
 }
 
 .status-pending {
-    background: #fef5e7;
-    color: #d97706;
+    background: var(--accent-100);
+    color: var(--accent-700);
 }
 
 .status-accepted {
-    background: #edf2f7;
-    color: #4299e1;
+    background: var(--neutral-100);
+    color: var(--info);
 }
 
 .status-preparing {
-    background: #e6f7ff;
-    color: #2563eb;
+    background: var(--primary-100);
+    color: var(--primary-700);
 }
 
 .status-ready {
-    background: #fff5e6;
-    color: #ea580c;
+    background: var(--secondary-100);
+    color: var(--secondary-700);
 }
 
 .status-served {
-    background: #f3e8ff;
-    color: #9333ea;
+    background: var(--neutral-100);
+    color: var(--neutral-600);
 }
 
 .status-completed {
-    background: #d1fae5;
-    color: #059669;
+    background: var(--secondary-100);
+    color: var(--secondary-700);
 }
 
 .status-cancelled {
     background: #fee2e2;
-    color: #dc2626;
+    color: var(--danger);
 }
 
 /* Order Time */
@@ -136,7 +136,7 @@
 }
 
 .item-price {
-    color: #667eea;
+    color: var(--primary);
     font-weight: 600;
     font-size: 14px;
 }
@@ -247,57 +247,57 @@
 }
 
 .btn-accept {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    background: var(--success);
     color: white;
 }
 
 .btn-accept:hover {
-    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    background: var(--secondary-600);
 }
 
 .btn-reject {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    background: var(--danger);
     color: white;
 }
 
 .btn-reject:hover {
-    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    background: #dc2626;
 }
 
 .btn-kitchen {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    background: var(--info);
     color: white;
 }
 
 .btn-kitchen:hover {
-    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    background: #2563eb;
 }
 
 .btn-ready {
-    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    background: var(--primary);
     color: white;
 }
 
 .btn-ready:hover {
-    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+    background: var(--primary-dark);
 }
 
 .btn-served {
-    background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+    background: var(--neutral-600);
     color: white;
 }
 
 .btn-served:hover {
-    background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%);
+    background: var(--neutral-700);
 }
 
 .btn-complete {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    background: var(--success);
     color: white;
 }
 
 .btn-complete:hover {
-    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    background: var(--secondary-600);
 }
 
 @media (max-width: 480px) {

@@ -250,97 +250,99 @@ const AdminItemPage = () => {
             <div style={{ padding: '40px', textAlign: 'center' }}>Loading items...</div>
           ) : (
             <>
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th style={{ width: '80px' }}>Image</th>
-                    <th>Name</th>
-                    <th>Category</th>
-                    <th>Price</th>
-                    <th>Status</th>
-                    <th>Prep Time</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.length === 0 ? (
+              <div className="data-table-wrapper">
+                <table className="data-table">
+                  <thead>
                     <tr>
-                      <td colSpan="7" style={{ textAlign: 'center', padding: '30px' }}>
-                        No items found.
-                      </td>
+                      <th style={{ width: '80px' }}>Image</th>
+                      <th>Name</th>
+                      <th>Category</th>
+                      <th>Price</th>
+                      <th>Status</th>
+                      <th>Prep Time</th>
+                      <th>Actions</th>
                     </tr>
-                  ) : (
-                    items.map(item => {
-                      const primaryPhoto = item.photos?.find(p => p.isPrimary) || item.photos?.[0];
+                  </thead>
+                  <tbody>
+                    {items.length === 0 ? (
+                      <tr>
+                        <td colSpan="7" style={{ textAlign: 'center', padding: '30px' }}>
+                          No items found.
+                        </td>
+                      </tr>
+                    ) : (
+                      items.map(item => {
+                        const primaryPhoto = item.photos?.find(p => p.isPrimary) || item.photos?.[0];
 
-                      return (
-                        <tr key={item.id}>
-                          <td>
-                            {primaryPhoto ? (
-                              <img
-                                src={primaryPhoto.url}
-                                alt={item.name}
-                                style={{
+                        return (
+                          <tr key={item.id}>
+                            <td>
+                              {primaryPhoto ? (
+                                <img
+                                  src={primaryPhoto.url}
+                                  alt={item.name}
+                                  style={{
+                                    width: '60px',
+                                    height: '60px',
+                                    objectFit: 'cover',
+                                    borderRadius: '8px',
+                                    border: '1px solid #e0e0e0'
+                                  }}
+                                />
+                              ) : (
+                                <div style={{
                                   width: '60px',
                                   height: '60px',
-                                  objectFit: 'cover',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  backgroundColor: '#f5f5f5',
                                   borderRadius: '8px',
+                                  fontSize: '28px',
                                   border: '1px solid #e0e0e0'
-                                }}
-                              />
-                            ) : (
-                              <div style={{
-                                width: '60px',
-                                height: '60px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                backgroundColor: '#f5f5f5',
-                                borderRadius: '8px',
-                                fontSize: '28px',
-                                border: '1px solid #e0e0e0'
-                              }}>
-                                🍽️
-                              </div>
-                            )}
-                          </td>
-                          <td>
-                            <div style={{ fontWeight: '600' }}>{item.name}</div>
-                            {item.isChefRecommended && (
-                              <span style={{ fontSize: '12px', color: '#e67e22' }}>
-                                ⭐ Chef Recommended
-                              </span>
-                            )}
-                          </td>
-                          <td>{item.category?.name || 'Uncategorized'}</td>
-                          <td style={{ fontWeight: 'bold', color: '#2c3e50' }}>
-                            ${Number(item.price).toFixed(2)}
-                          </td>
-                          <td>{renderStatus(item.status)}</td>
-                          <td>{item.prepTimeMinutes} min</td>
-                          <td>
-                            <button
-                              className="action-btn"
-                              title="Edit"
-                              onClick={() => handleEditItem(item)}
-                            >
-                              ✎
-                            </button>
-                            <button
-                              className="action-btn"
-                              title="Delete"
-                              style={{ color: '#e74c3c' }}
-                              onClick={() => handleDeleteItem(item.id)}
-                            >
-                              🗑
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
+                                }}>
+                                  🍽️
+                                </div>
+                              )}
+                            </td>
+                            <td>
+                              <div style={{ fontWeight: '600' }}>{item.name}</div>
+                              {item.isChefRecommended && (
+                                <span style={{ fontSize: '12px', color: '#e67e22' }}>
+                                  ⭐ Chef Recommended
+                                </span>
+                              )}
+                            </td>
+                            <td>{item.category?.name || 'Uncategorized'}</td>
+                            <td style={{ fontWeight: 'bold', color: '#2c3e50' }}>
+                              ${Number(item.price).toFixed(2)}
+                            </td>
+                            <td>{renderStatus(item.status)}</td>
+                            <td>{item.prepTimeMinutes} min</td>
+                            <td>
+                              <button
+                                className="action-btn"
+                                title="Edit"
+                                onClick={() => handleEditItem(item)}
+                              >
+                                ✎
+                              </button>
+                              <button
+                                className="action-btn"
+                                title="Delete"
+                                style={{ color: '#e74c3c' }}
+                                onClick={() => handleDeleteItem(item.id)}
+                              >
+                                🗑
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
 
               {/* Pagination */}
               <div className="pagination">
