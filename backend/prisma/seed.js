@@ -18,7 +18,6 @@ async function cleanDatabase() {
   await prisma.menuItem.deleteMany({});
   await prisma.menuCategory.deleteMany({});
   await prisma.table.deleteMany({});
-  await prisma.staff.deleteMany({});
   await prisma.user.deleteMany({});
 
   console.log('✅ Database cleaned successfully');
@@ -31,12 +30,16 @@ async function main() {
   await cleanDatabase();
 
   // Create default admin user (Simplified: No restaurantId, no Role)
-  const hashedPassword = await bcrypt.hash('admin123', 10);
+  // Password must meet complexity requirements: 8+ chars, uppercase, lowercase, number
+  const hashedPassword = await bcrypt.hash('Admin@123', 10);
 
   const adminUser = await prisma.user.upsert({
     where: { email: 'admin@smartrestaurant.com' },
     update: {
       role: 'ADMIN',
+      password: hashedPassword,
+      failedLoginAttempts: 0,
+      lockedUntil: null,
     },
     create: {
       email: 'admin@smartrestaurant.com',
@@ -44,31 +47,12 @@ async function main() {
       name: 'Admin User',
       role: 'ADMIN',
       isActive: true,
+      failedLoginAttempts: 0,
     },
   });
 
   console.log(`✅ Created admin user: ${adminUser.email}`);
-  console.log(`   Password: admin123`);
-
-  // Create sample kitchen staff (Simplified: No restaurantId)
-  await prisma.staff.createMany({
-    data: [
-      {
-        name: 'Chef Gordon',
-        role: 'CHEF',
-        phone: '0901234567',
-        status: 'ACTIVE'
-      },
-      {
-        name: 'Waiter John',
-        role: 'WAITER',
-        phone: '0909876543',
-        status: 'ACTIVE'
-      }
-    ],
-    skipDuplicates: true
-  });
-  console.log('✅ Created sample staff members');
+  console.log(`   Password: Admin@123`);
 
   // Create sample tables (Simplified: No restaurantId)
   const locations = ['Indoor', 'Outdoor', 'Patio', 'VIP Room'];

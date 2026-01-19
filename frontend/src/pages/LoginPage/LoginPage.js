@@ -3,10 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import './LoginPage.css';
 
 const LoginPage = () => {
-  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -17,10 +15,8 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
-      const endpoint = isLogin ? '/auth/login' : '/auth/register';
-      const body = isLogin
-        ? { email, password }
-        : { email, password, name };
+      const endpoint = '/auth/login';
+      const body = { email, password };
 
       let baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000';
       baseUrl = baseUrl.replace(/\/api$/, '').replace(/\/$/, '');
@@ -61,25 +57,11 @@ const LoginPage = () => {
     <div className="login-container">
       <div className="login-card">
         <h1 className="login-title">Smart Restaurant</h1>
-        <h2 className="login-subtitle">{isLogin ? 'Login' : 'Register'}</h2>
+        <h2 className="login-subtitle">Login</h2>
 
         {error && <div className="error-message">{error}</div>}
 
         <form onSubmit={handleSubmit} className="login-form">
-          {!isLogin && (
-            <div className="form-group">
-              <label htmlFor="name">Name</label>
-              <input
-                id="name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Enter your name"
-                required={!isLogin}
-              />
-            </div>
-          )}
-
           <div className="form-group">
             <label htmlFor="email">Email</label>
             <input
@@ -106,23 +88,9 @@ const LoginPage = () => {
           </div>
 
           <button type="submit" className="login-button" disabled={loading}>
-            {loading ? 'Processing...' : (isLogin ? 'Login' : 'Register')}
+            {loading ? 'Processing...' : 'Login'}
           </button>
         </form>
-
-        <div className="toggle-form">
-          {isLogin ? "Don't have an account? " : "Already have an account? "}
-          <button
-            type="button"
-            onClick={() => {
-              setIsLogin(!isLogin);
-              setError('');
-            }}
-            className="toggle-button"
-          >
-            {isLogin ? 'Register' : 'Login'}
-          </button>
-        </div>
       </div>
     </div>
   );

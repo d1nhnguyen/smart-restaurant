@@ -20,9 +20,13 @@ import { CreateTableDto } from './dto/create-table.dto';
 import { UpdateTableDto } from './dto/update-table.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { TableStatus } from '@prisma/client';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { UserRole, TableStatus } from '@prisma/client';
 
 @Controller('tables')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(UserRole.ADMIN)
 export class TablesController {
   constructor(
     private readonly tablesService: TablesService,
@@ -30,17 +34,13 @@ export class TablesController {
     private readonly tablesExportService: TablesExportService,
   ) { }
 
-  @Post()
-  @UseGuards(JwtAuthGuard)
-  create(@Body() createTableDto: CreateTableDto) {
+  @Post() create(@Body() createTableDto: CreateTableDto) {
     return this.tablesService.create(createTableDto);
   }
 
   // API 1: Tải tất cả QR code (ZIP)
   // Đặt endpoint này TRƯỚC @Get(':id') để tránh bị nhầm 'qr/download-all' là một cái id
-  @Get('qr/download-all')
-  @UseGuards(JwtAuthGuard)
-  @Header('Content-Type', 'application/zip')
+  @Get('qr/download-all') @Header('Content-Type', 'application/zip')
   async downloadAllZip(@Res({ passthrough: true }) res): Promise<StreamableFile> {
     try {
       // Lấy tất cả bàn từ DB
@@ -60,9 +60,7 @@ export class TablesController {
   }
 
   // API 2: Tải PDF của 1 bàn
-  @Get(':id/qr/download')
-  @UseGuards(JwtAuthGuard)
-  @Header('Content-Type', 'application/pdf')
+  @Get(':id/qr/download') @Header('Content-Type', 'application/pdf')
   async downloadTablePdf(
     @Param('id') id: string,
     @Res({ passthrough: true }) res,
@@ -84,9 +82,7 @@ export class TablesController {
     }
   }
 
-  @Get()
-  @UseGuards(JwtAuthGuard)
-  findAll(
+  @Get() findAll(
     @Query('status') status?: string,
     @Query('location') location?: string,
     @Query('sortBy') sortBy?: string,
@@ -94,9 +90,7 @@ export class TablesController {
     return this.tablesService.findAll({ status, location, sortBy });
   }
 
-  @Get('locations')
-  @UseGuards(JwtAuthGuard)
-  getLocations() {
+  @Get('locations') getLocations() {
     return this.tablesService.getLocations();
   }
 
@@ -105,15 +99,11 @@ export class TablesController {
     return this.tablesService.findOne(id);
   }
 
-  @Put(':id')
-  @UseGuards(JwtAuthGuard)
-  update(@Param('id') id: string, @Body() updateTableDto: UpdateTableDto) {
+  @Put(':id') update(@Param('id') id: string, @Body() updateTableDto: UpdateTableDto) {
     return this.tablesService.update(id, updateTableDto);
   }
 
-  @Patch(':id/status')
-  @UseGuards(JwtAuthGuard)
-  updateStatus(@Param('id') id: string, @Body() updateStatusDto: UpdateStatusDto) {
+  @Patch(':id/status') updateStatus(@Param('id') id: string, @Body() updateStatusDto: UpdateStatusDto) {
     // Map DTO status to Enum
     const status = updateStatusDto.status === 'ACTIVE'
       ? TableStatus.AVAILABLE
@@ -121,9 +111,7 @@ export class TablesController {
     return this.tablesService.updateStatus(id, status);
   }
 
-  @Delete(':id')
-  @UseGuards(JwtAuthGuard)
-  remove(@Param('id') id: string) {
+  @Delete(':id') remove(@Param('id') id: string) {
     return this.tablesService.remove(id);
   }
 
@@ -134,9 +122,7 @@ export class TablesController {
    * POST /tables/qr/regenerate-all
    * MUST BE BEFORE :id routes to avoid conflict
    */
-  @Post('qr/regenerate-all')
-  @UseGuards(JwtAuthGuard)
-  async regenerateAllQr() {
+  @Post('qr/regenerate-all') async regenerateAllQr() {
     // Regenerate for AVAILABLE tables
     const tables = await this.tablesService.findAll({ status: TableStatus.AVAILABLE });
     let regeneratedCount = 0;
@@ -162,9 +148,7 @@ export class TablesController {
    * Generate QR token for a table
    * POST /tables/:id/qr/generate
    */
-  @Post(':id/qr/generate')
-  @UseGuards(JwtAuthGuard)
-  generateQr(@Param('id') id: string) {
+  @Post(':id/qr/generate') generateQr(@Param('id') id: string) {
     return this.qrService.generateQrToken(id);
   }
 
@@ -172,9 +156,7 @@ export class TablesController {
    * Regenerate QR token for a table (invalidates old token)
    * POST /tables/:id/qr/regenerate
    */
-  @Post(':id/qr/regenerate')
-  @UseGuards(JwtAuthGuard)
-  regenerateQr(@Param('id') id: string) {
+  @Post(':id/qr/regenerate') regenerateQr(@Param('id') id: string) {
     return this.qrService.regenerateQrToken(id);
   }
 
@@ -182,9 +164,7 @@ export class TablesController {
    * Get table with QR URL
    * GET /tables/:id/qr
    */
-  @Get(':id/qr')
-  @UseGuards(JwtAuthGuard)
-  getTableQr(@Param('id') id: string) {
+  @Get(':id/qr') getTableQr(@Param('id') id: string) {
     return this.qrService.getTableWithQrUrl(id);
   }
 }

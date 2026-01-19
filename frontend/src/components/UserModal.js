@@ -21,6 +21,16 @@ const UserModal = ({ user, onSave, onClose }) => {
         }
     }, [user]);
 
+    // Password validation helper
+    const validatePassword = (password) => {
+        if (!password) return false;
+        const hasMinLength = password.length >= 8;
+        const hasUppercase = /[A-Z]/.test(password);
+        const hasLowercase = /[a-z]/.test(password);
+        const hasNumber = /[0-9]/.test(password);
+        return hasMinLength && hasUppercase && hasLowercase && hasNumber;
+    };
+
     const validateForm = () => {
         const newErrors = {};
 
@@ -30,8 +40,11 @@ const UserModal = ({ user, onSave, onClose }) => {
             newErrors.email = 'Email is invalid';
         }
 
-        if (!user && (!formData.password || formData.password.length < 6)) {
-            newErrors.password = 'Password must be at least 6 characters';
+        // Password validation: required for new users, optional for edit
+        if (!user && !formData.password) {
+            newErrors.password = 'Password is required';
+        } else if (formData.password && !validatePassword(formData.password)) {
+            newErrors.password = 'Password must be at least 8 characters with uppercase, lowercase, and number';
         }
 
         if (!formData.role) {
@@ -120,7 +133,7 @@ const UserModal = ({ user, onSave, onClose }) => {
                                     name="password"
                                     value={formData.password}
                                     onChange={handleChange}
-                                    placeholder="Minimum 6 characters"
+                                    placeholder="Min 8 chars, uppercase, lowercase, number"
                                     className={errors.password ? 'error' : ''}
                                 />
                                 {errors.password && <span className="error-text">{errors.password}</span>}
