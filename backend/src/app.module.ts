@@ -9,6 +9,7 @@ import { AppController } from './app.controller';
 import { KitchenModule } from './kitchen/kitchen.module';
 import { PaymentsModule } from './payments/payments.module';
 import { GatewayModule } from './gateway/gateway.module';
+import { AnalyticsModule } from './analytics/analytics.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -24,6 +25,7 @@ import { UsersModule } from './users/users.module';
     KitchenModule,
     PaymentsModule,
     GatewayModule,
+    AnalyticsModule,
     UsersModule,
   ],
   controllers: [AppController],

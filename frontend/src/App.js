@@ -20,6 +20,7 @@ import CheckoutPage from './pages/CheckoutPage/CheckoutPage';
 import OrderConfirmPage from './pages/OrderConfirmPage/OrderConfirmPage';
 
 import KitchenStaffPage from './pages/KitchenStaffPage/KitchenStaffPage';
+import ReportsPage from './pages/ReportsPage/ReportsPage';
 
 import PaymentSuccessPage from './pages/PaymentSuccessPage/PaymentSuccessPage';
 import PaymentFailedPage from './pages/PaymentFailedPage/PaymentFailedPage';
