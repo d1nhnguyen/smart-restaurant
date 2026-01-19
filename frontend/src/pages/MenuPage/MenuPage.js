@@ -25,10 +25,10 @@ const MenuPage = () => {
   const [sortBy, setSortBy] = useState('');
   const [ordersExpanded, setOrdersExpanded] = useState(false);
 
-  // KẾT HỢP: Lấy cart và total từ Context (thay vì orderItems cục bộ)
+  // Context data
   const {
     addToCart, table, setTable, error: cartError, clearError,
-    activeOrders, token: contextToken, cart, placeOrder, refreshActiveOrder
+    activeOrders, token: contextToken, refreshActiveOrder
   } = useCart();
 
   const { joinRoom, on, off, isConnected } = useSocket();
@@ -70,19 +70,14 @@ const MenuPage = () => {
     fetchMenu();
   }, [token, table, setTable]);
 
-  // WebSocket: Listen for order updates to refresh active orders banner
+  // WebSocket: Listen for order updates
   useEffect(() => {
     if (table?.id && isConnected && activeOrders && activeOrders.length > 0) {
-      // Join rooms for all active orders
       activeOrders.forEach(order => {
         joinRoom('order', order.id);
-        // Joined order room for updates
       });
 
-      // Listen for order status updates
-      const handleOrderStatusUpdated = (data) => {
-        // Order status updated
-        // Refresh active orders to update the banner
+      const handleOrderStatusUpdated = () => {
         if (refreshActiveOrder) {
           refreshActiveOrder(table.id);
         }
@@ -126,32 +121,26 @@ const MenuPage = () => {
   const { categories, menuItems, table: tableFromApi } = menuData;
   const activeCategoryIds = new Set(categories.filter(cat => cat.status === 'ACTIVE').map(c => c.id));
 
-  // Filter by category and active status first
   const categoryFilteredItems = menuItems.filter(item => {
     const belongsToActiveCategory = activeCategoryIds.has(item.categoryId);
     const matchesCategory = selectedCategory === 'All' || item.categoryId === selectedCategory;
     return belongsToActiveCategory && matchesCategory;
   });
 
-  // Apply fuzzy search if there's a search term
   let filteredItems;
   if (searchTerm.trim()) {
-    // Configure Fuse.js for fuzzy search
     const fuse = new Fuse(categoryFilteredItems, {
       keys: ['name', 'description'],
-      threshold: 0.4, // 0.0 = exact match, 1.0 = match anything
+      threshold: 0.4,
       ignoreLocation: true,
       includeScore: false,
     });
 
-    // Perform fuzzy search and extract items
     const fuzzyResults = fuse.search(searchTerm);
     filteredItems = fuzzyResults.map(result => result.item);
   } else {
-    // No search term - show all category-filtered items
     filteredItems = categoryFilteredItems;
   }
-
 
   const sortedItems = [...filteredItems].sort((a, b) => {
     switch (sortBy) {
@@ -169,9 +158,6 @@ const MenuPage = () => {
   };
 
   const handleItemClick = (item) => setSelectedItem(item);
-
-  // Place order from cart
-
 
   return (
     <div className="menu-page">
@@ -210,8 +196,6 @@ const MenuPage = () => {
         </div>
       )}
 
-
-
       <header className="menu-header-banner">
         <h1>{tableFromApi?.restaurantName || 'Smart Restaurant'}</h1>
         <div className="table-info-pill">
@@ -223,7 +207,6 @@ const MenuPage = () => {
         <div className="search-input-wrapper">
           <input type="text" placeholder={t('menu.searchPlaceholder')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
         </div>
-        {/* Language Switcher - Always visible */}
         <div>
           <LanguageSwitcher />
         </div>

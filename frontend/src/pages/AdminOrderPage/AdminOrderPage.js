@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar';
 import OrderCard from '../../components/OrderCard';
 import { useSocket } from '../../hooks/useSocket';
 import './AdminOrderPage.css';
 
 const AdminOrderPage = () => {
-    const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
     const [filteredOrders, setFilteredOrders] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -17,7 +15,7 @@ const AdminOrderPage = () => {
     const API_BASE_URL = 'http://localhost:3000/api';
 
     // Fetch orders from API
-    const fetchOrders = async () => {
+    const fetchOrders = React.useCallback(async () => {
         try {
             setLoading(true);
             const response = await fetch(`${API_BASE_URL}/orders`);
@@ -34,7 +32,7 @@ const AdminOrderPage = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [activeTab]);
 
     // Filter orders based on active tab
     const filterOrders = (ordersList, tab) => {
@@ -98,7 +96,7 @@ const AdminOrderPage = () => {
     // Initial fetch
     useEffect(() => {
         fetchOrders();
-    }, []);
+    }, [fetchOrders]);
 
     // Auto-refresh (reduced to fallback)
     useEffect(() => {
@@ -107,7 +105,7 @@ const AdminOrderPage = () => {
         }, 30000); // 30 seconds as fallback
 
         return () => clearInterval(interval);
-    }, [activeTab]);
+    }, [fetchOrders]);
 
     // WebSocket: Join admin room and listen for updates
     useEffect(() => {

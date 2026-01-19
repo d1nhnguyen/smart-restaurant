@@ -140,7 +140,12 @@ const AdminCategoryPage = () => {
                         </span>
                       </td>
                       <td>
-                        <span className={`status-badge ${cat.status === 'ACTIVE' ? 'active' : 'inactive'}`}>
+                        <span
+                          className={`status-badge ${cat.status === 'ACTIVE' ? 'active' : 'inactive'}`}
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => handleToggleStatus(cat)}
+                          title="Click to toggle status"
+                        >
                           {cat.status}
                         </span>
                       </td>

@@ -97,6 +97,7 @@ const KitchenStaffPage = () => {
     const handleItemStatusUpdate = async (orderId, itemId, currentStatus) => {
         try {
             // Toggle between PENDING -> PREPARING -> READY
+            // eslint-disable-next-line no-unused-vars
             let newStatus;
             if (currentStatus === 'PENDING') newStatus = 'PREPARING';
             else if (currentStatus === 'PREPARING') newStatus = 'READY';
