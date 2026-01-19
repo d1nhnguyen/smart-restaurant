@@ -1,9 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 import Sidebar from '../../components/Sidebar';
 import UserModal from '../../components/UserModal';
+import { authService } from '../../utils/auth';
 
 const AccountManagementPage = () => {
+  const location = useLocation();
+  const currentUser = authService.getUser();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -18,6 +22,9 @@ const AccountManagementPage = () => {
   // State for modal
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  
+  // Track previous pathname to detect changes
+  const prevPathnameRef = useRef(location.pathname);
 
   // Fetch Users
   const fetchUsers = React.useCallback(async () => {
@@ -46,6 +53,17 @@ const AccountManagementPage = () => {
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
+
+  // Close modal when navigating away from this page
+  useEffect(() => {
+    if (prevPathnameRef.current !== location.pathname) {
+      if (showModal) {
+        setShowModal(false);
+      }
+      prevPathnameRef.current = location.pathname;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -84,6 +102,12 @@ const AccountManagementPage = () => {
   };
 
   const handleToggleStatus = async (user) => {
+    // Prevent admin from deactivating themselves
+    if (user.id === currentUser?.id && user.isActive) {
+      alert('You cannot deactivate your own account!');
+      return;
+    }
+
     const newStatus = !user.isActive;
     const action = newStatus ? 'activate' : 'deactivate';
 
@@ -100,6 +124,12 @@ const AccountManagementPage = () => {
   };
 
   const handleDeleteUser = async (id) => {
+    // Prevent admin from deleting themselves
+    if (id === currentUser?.id) {
+      alert('You cannot delete your own account!');
+      return;
+    }
+
     if (!window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
 
     try {
@@ -139,7 +169,7 @@ const AccountManagementPage = () => {
         <div className="admin-header">
           <div>
             <h1 className="page-title">Account Management</h1>
-            <p className="page-subtitle">Manage staff and waiter accounts</p>
+            <p className="page-subtitle">Manage admin, staff and waiter accounts</p>
           </div>
           <button className="btn-primary" onClick={handleAddUser}>
             + Add New User
@@ -239,25 +269,32 @@ const AccountManagementPage = () => {
                               className="action-btn"
                               title="Edit"
                               onClick={() => handleEditUser(user)}
-                              disabled={user.role === 'ADMIN'}
                             >
                               ✎
                             </button>
                             <button
                               className="action-btn"
-                              title={user.isActive ? 'Deactivate' : 'Activate'}
+                              title={user.id === currentUser?.id && user.isActive ? 'Cannot deactivate yourself' : (user.isActive ? 'Deactivate' : 'Activate')}
                               onClick={() => handleToggleStatus(user)}
-                              style={{ color: user.isActive ? '#f39c12' : '#27ae60' }}
-                              disabled={user.role === 'ADMIN'}
+                              style={{ 
+                                color: user.isActive ? '#f39c12' : '#27ae60',
+                                opacity: user.id === currentUser?.id && user.isActive ? 0.5 : 1,
+                                cursor: user.id === currentUser?.id && user.isActive ? 'not-allowed' : 'pointer'
+                              }}
+                              disabled={user.id === currentUser?.id && user.isActive}
                             >
                               {user.isActive ? '🔒' : '🔓'}
                             </button>
                             <button
                               className="action-btn"
-                              title="Delete"
-                              style={{ color: '#e74c3c' }}
+                              title={user.id === currentUser?.id ? 'Cannot delete yourself' : 'Delete'}
+                              style={{ 
+                                color: '#e74c3c',
+                                opacity: user.id === currentUser?.id ? 0.5 : 1,
+                                cursor: user.id === currentUser?.id ? 'not-allowed' : 'pointer'
+                              }}
                               onClick={() => handleDeleteUser(user.id)}
-                              disabled={user.role === 'ADMIN'}
+                              disabled={user.id === currentUser?.id}
                             >
                               🗑
                             </button>

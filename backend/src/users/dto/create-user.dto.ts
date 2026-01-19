@@ -1,10 +1,6 @@
 import { IsEmail, IsString, IsEnum, IsOptional } from 'class-validator';
 import { IsStrongPassword } from '../../auth/validators/password.validator';
-
-export enum UserRole {
-  STAFF = 'STAFF',
-  WAITER = 'WAITER',
-}
+import { UserRole } from '@prisma/client';
 
 export class CreateUserDto {
   @IsEmail()
@@ -19,8 +15,7 @@ export class CreateUserDto {
   name?: string;
 
   @IsEnum(UserRole, {
-    message:
-      'Role must be either STAFF or WAITER. Admin accounts cannot be created through this API.',
+    message: 'Role must be either ADMIN, STAFF or WAITER.',
   })
   role: UserRole;
 }

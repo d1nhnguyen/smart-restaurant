@@ -19,7 +19,7 @@ export class AuthController {
   // Stricter rate limit for login: 5 attempts per 15 minutes
   @HttpCode(HttpStatus.OK)
   @Post('login')
-  @Throttle({ default: { limit: 5, ttl: 900000 } })
+  @Throttle({ default: { limit: 10, ttl: 900000 } })
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
   }

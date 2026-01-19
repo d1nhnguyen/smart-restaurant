@@ -84,8 +84,8 @@ const Sidebar = () => {
     },
     {
       path: '/accounts',
-      icon: '&#128100;',
-      label: 'Account',
+      icon: '&#128101;',
+      label: 'Accounts',
       badge: null,
       roles: ['ADMIN']
     }

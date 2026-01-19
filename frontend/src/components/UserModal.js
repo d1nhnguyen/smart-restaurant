@@ -5,6 +5,7 @@ const UserModal = ({ user, onSave, onClose }) => {
         name: '',
         email: '',
         password: '',
+        confirmPassword: '',
         role: 'STAFF',
     });
 
@@ -16,6 +17,7 @@ const UserModal = ({ user, onSave, onClose }) => {
                 name: user.name || '',
                 email: user.email || '',
                 password: '', // Don't show password in edit mode
+                confirmPassword: '',
                 role: user.role || 'STAFF',
             });
         }
@@ -47,6 +49,11 @@ const UserModal = ({ user, onSave, onClose }) => {
             newErrors.password = 'Password must be at least 8 characters with uppercase, lowercase, and number';
         }
 
+        // Confirm password validation
+        if (formData.password && formData.password !== formData.confirmPassword) {
+            newErrors.confirmPassword = 'Passwords do not match';
+        }
+
         if (!formData.role) {
             newErrors.role = 'Role is required';
         }
@@ -64,6 +71,9 @@ const UserModal = ({ user, onSave, onClose }) => {
 
         // Prepare data to send
         const dataToSave = { ...formData };
+
+        // Remove confirmPassword - it's only for frontend validation
+        delete dataToSave.confirmPassword;
 
         // Remove password if it's empty in edit mode
         if (user && !dataToSave.password) {
@@ -124,20 +134,36 @@ const UserModal = ({ user, onSave, onClose }) => {
 
                         {/* Password (only for new users or if admin wants to change) */}
                         {!user && (
-                            <div className="form-group">
-                                <label>
-                                    Password <span className="required">*</span>
-                                </label>
-                                <input
-                                    type="password"
-                                    name="password"
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                    placeholder="Min 8 chars, uppercase, lowercase, number"
-                                    className={errors.password ? 'error' : ''}
-                                />
-                                {errors.password && <span className="error-text">{errors.password}</span>}
-                            </div>
+                            <>
+                                <div className="form-group">
+                                    <label>
+                                        Password <span className="required">*</span>
+                                    </label>
+                                    <input
+                                        type="password"
+                                        name="password"
+                                        value={formData.password}
+                                        onChange={handleChange}
+                                        placeholder="Min 8 chars, uppercase, lowercase, number"
+                                        className={errors.password ? 'error' : ''}
+                                    />
+                                    {errors.password && <span className="error-text">{errors.password}</span>}
+                                </div>
+                                <div className="form-group">
+                                    <label>
+                                        Confirm Password <span className="required">*</span>
+                                    </label>
+                                    <input
+                                        type="password"
+                                        name="confirmPassword"
+                                        value={formData.confirmPassword}
+                                        onChange={handleChange}
+                                        placeholder="Re-enter password"
+                                        className={errors.confirmPassword ? 'error' : ''}
+                                    />
+                                    {errors.confirmPassword && <span className="error-text">{errors.confirmPassword}</span>}
+                                </div>
+                            </>
                         )}
 
                         {/* Role */}
@@ -151,14 +177,48 @@ const UserModal = ({ user, onSave, onClose }) => {
                                 onChange={handleChange}
                                 className={errors.role ? 'error' : ''}
                             >
+                                <option value="ADMIN">Admin</option>
                                 <option value="STAFF">Staff</option>
                                 <option value="WAITER">Waiter</option>
                             </select>
                             {errors.role && <span className="error-text">{errors.role}</span>}
-                            <small style={{ color: '#666', fontSize: '12px', display: 'block', marginTop: '4px' }}>
-                                Note: Admin accounts cannot be created through this interface
-                            </small>
                         </div>
+
+                        {user && (
+                            <>
+                                <div className="form-group">
+                                    <label>
+                                        New Password (optional)
+                                    </label>
+                                    <input
+                                        type="password"
+                                        name="password"
+                                        value={formData.password}
+                                        onChange={handleChange}
+                                        placeholder="Leave empty to keep current password"
+                                        className={errors.password ? 'error' : ''}
+                                    />
+                                    {errors.password && <span className="error-text">{errors.password}</span>}
+                                    <small style={{ color: '#666', fontSize: '12px', display: 'block', marginTop: '4px' }}>
+                                        Min 8 chars with uppercase, lowercase, and number
+                                    </small>
+                                </div>
+                                <div className="form-group">
+                                    <label>
+                                        Confirm New Password
+                                    </label>
+                                    <input
+                                        type="password"
+                                        name="confirmPassword"
+                                        value={formData.confirmPassword}
+                                        onChange={handleChange}
+                                        placeholder="Re-enter new password"
+                                        className={errors.confirmPassword ? 'error' : ''}
+                                    />
+                                    {errors.confirmPassword && <span className="error-text">{errors.confirmPassword}</span>}
+                                </div>
+                            </>
+                        )}
                     </div>
 
                     <div className="modal-footer">
