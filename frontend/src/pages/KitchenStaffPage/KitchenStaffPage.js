@@ -98,10 +98,10 @@ const KitchenStaffPage = () => {
         try {
             // Toggle between PENDING -> PREPARING -> READY
             // eslint-disable-next-line no-unused-vars
-            let newStatus;
-            if (currentStatus === 'PENDING') newStatus = 'PREPARING';
-            else if (currentStatus === 'PREPARING') newStatus = 'READY';
-            else return; // Already READY
+            // let newStatus;
+            // if (currentStatus === 'PENDING') newStatus = 'PREPARING';
+            // else if (currentStatus === 'PREPARING') newStatus = 'READY';
+            // else return; // Already READY
 
             await axios.post(`/api/kitchen/orders/${orderId}/item/${itemId}/ready`);
 

@@ -20,6 +20,8 @@ const PhotoManager = ({ itemId, photos = [], onUpdate, onLocalChange }) => {
                 }
             });
         };
+        // We only want this to run on unmount, but localPhotos is used for the ref update
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleFileChange = async (e) => {
