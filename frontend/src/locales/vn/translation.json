@@ -28,6 +28,8 @@
         "sortNameDesc": "Tên (Z-A)",
         "sortPriceAsc": "Giá (Thấp-Cao)",
         "sortPriceDesc": "Giá (Cao-Thấp)",
+        "sortPopularity": "Phổ biến nhất",
+        "popularity": "Phổ biến",
         "allCategories": "Tất cả",
         "addToCart": "Thêm vào giỏ",
         "viewCart": "Xem giỏ hàng",

@@ -148,6 +148,7 @@ const MenuPage = () => {
       case 'name-desc': return b.name.localeCompare(a.name);
       case 'price-asc': return Number(a.price) - Number(b.price);
       case 'price-desc': return Number(b.price) - Number(a.price);
+      case 'popularity': return (b.popularityScore || 0) - (a.popularityScore || 0);
       default: return 0;
     }
   });
@@ -214,6 +215,7 @@ const MenuPage = () => {
           <option value="">{t('menu.sortBy')}</option>
           <option value="name-asc">{t('menu.sortNameAsc')}</option>
           <option value="price-asc">{t('menu.sortPriceAsc')}</option>
+          <option value="popularity">{t('menu.sortPopularity')}</option>
         </select>
       </div>
 
@@ -233,6 +235,11 @@ const MenuPage = () => {
                 <img src={primaryPhoto.url} alt={item.name} className="item-img" />
               ) : (
                 <div className="item-placeholder">🍽️</div>
+              )}
+              {item.isPopular && (
+                <div className="popular-tag">
+                  <span className="popular-badge">{t('menu.popularity')}</span>
+                </div>
               )}
               <div className="item-details">
                 <div className="item-name">{item.name}</div>

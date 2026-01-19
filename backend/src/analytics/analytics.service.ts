@@ -135,7 +135,7 @@ export class AnalyticsService {
     async getTopSellingItems(startDate: Date, endDate: Date) {
         // Assuming we group by menuItemName from OrderItem
         const result = await this.prisma.orderItem.groupBy({
-            by: ['menuItemName'],
+            by: ['menuItemId', 'menuItemName'],
             _sum: {
                 quantity: true,
                 subtotal: true,
@@ -159,6 +159,7 @@ export class AnalyticsService {
         });
 
         return result.map(item => ({
+            id: item.menuItemId,
             name: item.menuItemName,
             quantity: item._sum.quantity || 0,
             revenue: Number(item._sum.subtotal || 0),

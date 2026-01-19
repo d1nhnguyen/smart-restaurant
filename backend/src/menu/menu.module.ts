@@ -5,9 +5,10 @@ import { MenuCategoryService } from './menu-category.service';
 import { MenuItemService } from './menu-item.service';
 import { ModifierGroupService } from './modifier-group.service';
 import { PrismaModule } from '../prisma/prisma.module';
+import { AnalyticsModule } from '../analytics/analytics.module';
 
 @Module({
-  imports: [QrModule, PrismaModule],
+  imports: [QrModule, PrismaModule, AnalyticsModule],
   controllers: [MenuController],
   providers: [
     MenuCategoryService,
@@ -16,4 +17,4 @@ import { PrismaModule } from '../prisma/prisma.module';
   ],
   exports: [MenuCategoryService, MenuItemService, ModifierGroupService],
 })
-export class MenuModule {}
+export class MenuModule { }
