@@ -275,7 +275,7 @@ const TablesPage = () => {
   return (
     <div className="admin-layout">
       <Sidebar />
-      <div className="admin-main">
+      <div className="admin-content">
         {/* Header */}
         <div className="admin-header">
           <div>

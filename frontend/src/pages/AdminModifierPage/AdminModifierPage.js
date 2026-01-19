@@ -56,7 +56,7 @@ const AdminModifierPage = () => {
     return (
         <div className="admin-layout">
             <Sidebar />
-            <div className="admin-main">
+            <div className="admin-content">
                 <div className="admin-header">
                     <div>
                         <h1 className="page-title">Modifier Groups</h1>

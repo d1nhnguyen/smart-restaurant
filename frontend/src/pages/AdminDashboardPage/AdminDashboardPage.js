@@ -67,14 +67,14 @@ const AdminDashboardPage = () => {
   if (loading) return (
     <div className="admin-layout">
       <Sidebar />
-      <div className="admin-main">Loading system data...</div>
+      <div className="admin-content">Loading system data...</div>
     </div>
   );
 
   return (
     <div className="admin-layout">
       <Sidebar />
-      <div className="admin-main">
+      <div className="admin-content">
         <header className="admin-header">
           <div>
             <h1 className="page-title">Admin Dashboard</h1>
