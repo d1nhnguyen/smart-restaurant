@@ -436,3 +436,157 @@
   background: #bdc3c7;
   cursor: not-allowed;
 }
+
+/* Profile Edit Styles */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.edit-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #e74c3c;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.edit-btn:active {
+  background: #c0392b;
+}
+
+.profile-edit-form {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.profile-edit-form .form-group {
+  margin-bottom: 16px;
+}
+
+.profile-edit-form .form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 8px;
+}
+
+.profile-edit-form .form-group input,
+.profile-edit-form .form-group select {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  font-size: 16px;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.profile-edit-form .form-group input:focus,
+.profile-edit-form .form-group select:focus {
+  outline: none;
+  border-color: #e74c3c;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.save-btn {
+  flex: 1;
+  padding: 14px 16px;
+  background: #e74c3c;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.save-btn:disabled {
+  background: #bdc3c7;
+  cursor: not-allowed;
+}
+
+.save-btn:active:not(:disabled) {
+  background: #c0392b;
+}
+
+.cancel-btn {
+  flex: 1;
+  padding: 14px 16px;
+  background: #fff;
+  color: #7f8c8d;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cancel-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cancel-btn:active:not(:disabled) {
+  background: #f8f9fa;
+}
+
+.success-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #d5f5e3;
+  border: 1px solid #27ae60;
+  border-radius: 12px;
+  color: #27ae60;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 16px 16px 0;
+  animation: slideDown 0.3s ease-out;
+}
+
+.success-banner .success-icon {
+  width: 24px;
+  height: 24px;
+  background: #27ae60;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 14px;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Settings item with flex column for name/value */
+.settings-item-info div {
+  display: flex;
+  flex-direction: column;
+}

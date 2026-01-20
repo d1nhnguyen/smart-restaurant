@@ -34,6 +34,7 @@
         "addToCart": "Add to Cart",
         "viewCart": "View Cart",
         "checkout": "Checkout",
+        "endOfMenu": "You've reached the end of the menu",
         "table": "Table",
         "scanQR": "Please scan a QR code to view the menu.",
         "welcomeMessage": "Welcome!",
@@ -60,6 +61,8 @@
         "continueBrowsing": "Continue Browsing",
         "confirmOrder": "Confirm Order",
         "tax": "Tax",
+        "browseMenu": "Browse Menu",
+        "emptyMessage": "Your cart is empty. Add some delicious items first!",
         "specialInstructions": "Special Instructions",
         "specialInstructionsPlaceholder": "Special Instructions for restaurant"
     },
@@ -151,14 +154,19 @@
         "viewOrder": "View Order"
     },
     "auth": {
-        "login": "Login",
+        "signIn": "Sign In",
         "username": "Username",
         "password": "Password",
+        "tagline": "Scan, Order, Reward",
         "forgotPassword": "Forgot Password?",
-        "loginButton": "Sign In",
-        "staffMember": "Staff member?",
+        "createAccount": "Create Account",
+        "or": "Or",
+        "continueAsGuest": "Continue as Guest",
+        "staffMember": "Are you a staff member?",
         "loginHere": "Login here",
-        "invalidCredentials": "Invalid username or password"
+        "invalidCredentials": "Invalid username or password",
+        "guestUser": "Guest User",
+        "guestMessage": "Login to view order history and save your information"
     },
     "admin": {
         "dashboard": "Dashboard",
@@ -214,5 +222,48 @@
         "accounts": "Accounts",
         "reports": "Reports",
         "logout": "Logout"
+    },
+    "tabs": {
+        "menu": "Menu",
+        "cart": "Cart",
+        "orders": "Orders",
+        "profile": "Profile"
+    },
+    "profile": {
+        "settings": "Settings",
+        "language": "Language",
+        "user": "User",
+        "account": "Account",
+        "changePassword": "Change Password",
+        "name": "Name",
+        "email": "Email",
+        "phone": "Phone",
+        "address": "Address",
+        "saveChanges": "Save Changes",
+        "editProfile": "Edit Profile",
+        "cancelEdit": "Cancel",
+        "profileUpdated": "Profile updated successfully!",
+        "updateFailed": "Failed to update profile",
+        "nameTooShort": "Name must be at least 2 characters",
+        "nameTooLong": "Name must not exceed 100 characters",
+        "invalidName": "Name can only contain letters, spaces, hyphens, and apostrophes",
+        "invalidPhone": "Please enter a valid phone number (10-15 digits)",
+        "invalidLanguage": "Please select a valid language",
+        "phoneNumber": "Phone Number",
+        "preferredLanguage": "Preferred Language",
+        "currentPassword": "Current Password",
+        "newPassword": "New Password",
+        "passwordChanged": "Password changed successfully!"
+    },
+    "orders": {
+        "startOrdering": "Browse our menu to start ordering!",
+        "noCurrentOrders": "No current orders",
+        "requestBill": "Request bill",
+        "sessionTotal": "Session Total",
+        "orders": "Orders",
+        "order": "Order",
+        "items": "Items",
+        "orderHistory": "Order History",
+        "noHistory": "No order history yet"
     }
 }

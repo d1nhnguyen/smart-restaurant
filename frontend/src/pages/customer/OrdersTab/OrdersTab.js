@@ -277,7 +277,7 @@ const OrdersTab = () => {
       {!isAuthenticated && (
         <div className="login-prompt">
           <span className="prompt-icon" role="img" aria-label="lock">&#128274;</span>
-          <p>{t('orders.loginToViewHistory', 'Login to view your order history')}</p>
+          <p>{t('auth.guestMessage', 'Login to view your order history')}</p>
           <button className="login-btn" onClick={() => navigate('/c/profile')}>
             {t('auth.signIn', 'Sign In')}
           </button>
