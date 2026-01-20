@@ -273,6 +273,13 @@ export class MenuController {
     return this.categoryService.updateStatus(id, dto.status);
   }
 
+  @Delete('admin/menu/categories/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  removeCategory(@Param('id') id: string) {
+    return this.categoryService.remove(id);
+  }
+
   // --- Item Endpoints ---
 
   @Get('admin/menu/items')
