@@ -22,6 +22,7 @@ import { UpdateStatusDto } from './dto/update-status.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
+import { Public } from '../auth/public.decorator';
 import { UserRole, TableStatus } from '@prisma/client';
 
 @Controller('tables')
@@ -94,6 +95,7 @@ export class TablesController {
     return this.tablesService.getLocations();
   }
 
+  @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.tablesService.findOne(id);

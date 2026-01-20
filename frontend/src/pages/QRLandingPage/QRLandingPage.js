@@ -64,7 +64,7 @@ const QRLandingPage = () => {
         };
 
         validateTable();
-    }, [tableId, navigate, setTable, refreshActiveOrder]);
+    }, [tableId, navigate, setTable, refreshActiveOrder, hasSession]);
 
     if (loading) {
         return (
