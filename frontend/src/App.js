@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
 import './i18n'; // Initialize i18n
 import './styles.css';
 import './custom-styles.css';
@@ -41,6 +41,19 @@ const OrdersTab = lazy(() => import('./pages/customer/OrdersTab/OrdersTab'));
 const ProfileTab = lazy(() => import('./pages/customer/ProfileTab/ProfileTab'));
 
 // Loading fallback for lazy-loaded components
+// Helper to handle legacy /menu?table=ID links
+// Helper to handle legacy /menu?table=ID links
+const LegacyMenuRedirect = () => {
+  const [params] = useSearchParams();
+  const tableId = params.get('table') || params.get('tableId');
+
+  if (tableId) {
+    return <Navigate to={`/table/${tableId}`} replace />;
+  }
+
+  return <Navigate to="/c/menu" replace />;
+};
+
 const TabLoading = () => (
   <div style={{
     display: 'flex',
@@ -123,7 +136,7 @@ function App() {
             <Route path="/reports" element={<ProtectedRoute allowedRoles={['ADMIN']}><ReportsPage /></ProtectedRoute>} />
 
             {/* Legacy Routes - Redirect to new customer app */}
-            <Route path="/menu" element={<Navigate to="/c/menu" replace />} />
+            <Route path="/menu" element={<LegacyMenuRedirect />} />
             <Route path="/" element={<MenuPage />} />
           </Routes>
         </CustomerAuthProvider>

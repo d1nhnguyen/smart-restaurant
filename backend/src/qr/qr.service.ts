@@ -139,7 +139,7 @@ export class QrService {
 
     let qrUrl = null;
     if (table.qrToken) {
-      qrUrl = `${this.frontendUrl}/menu?table=${tableId}&token=${table.qrToken}`;
+      qrUrl = `${this.frontendUrl}/table/${tableId}`;
     }
 
     return {

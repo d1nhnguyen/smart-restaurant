@@ -9,7 +9,7 @@ import './CustomerAuthPage.css';
 const CustomerAuthPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { login, register, continueAsGuest, isLoading, error, clearError, hasSession } = useCustomerAuth();
+  const { login, register, continueAsGuest, isLoading, error, clearError, hasSession, authMode } = useCustomerAuth();
   const { table } = useCart();
 
   const [mode, setMode] = useState('select'); // 'select' | 'login' | 'register'
@@ -31,12 +31,12 @@ const CustomerAuthPage = () => {
     }
   }, [table, navigate]);
 
-  // Redirect if already has session
+  // Redirect if already authenticated (allow guests to upgrade)
   useEffect(() => {
-    if (hasSession) {
+    if (authMode === 'authenticated') {
       navigate('/c/menu', { replace: true });
     }
-  }, [hasSession, navigate]);
+  }, [authMode, navigate]);
 
   // Clear errors when switching modes
   useEffect(() => {

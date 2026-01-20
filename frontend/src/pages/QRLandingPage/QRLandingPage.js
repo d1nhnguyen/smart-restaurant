@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useCart } from '../../contexts/CartContext';
+import { useCustomerAuth } from '../../contexts/CustomerAuthContext';
 
 const isValidUUID = (str) => {
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -12,6 +13,7 @@ const QRLandingPage = () => {
     const { tableId } = useParams();
     const navigate = useNavigate();
     const { setTable, refreshActiveOrder } = useCart();
+    const { hasSession } = useCustomerAuth(); // Get auth state
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -40,8 +42,14 @@ const QRLandingPage = () => {
                 // 3. Check for existing order
                 await refreshActiveOrder(tableData.id);
 
-                // 4. Navigate to customer auth page
-                navigate('/c/auth', { replace: true });
+                // 4. Navigate based on session
+                // If user already has a session (Guest or Auth), go straight to menu
+                if (hasSession) {
+                    navigate('/c/menu', { replace: true });
+                } else {
+                    // Otherwise go to auth page
+                    navigate('/c/auth', { replace: true });
+                }
 
             } catch (err) {
                 console.error('Table validation failed', err);
