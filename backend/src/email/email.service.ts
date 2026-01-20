@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Resend } from 'resend';
+import * as Brevo from '@getbrevo/brevo';
 
 interface EmailOptions {
   to: string;
@@ -10,7 +10,7 @@ interface EmailOptions {
 
 @Injectable()
 export class EmailService {
-  private resend: Resend | null = null;
+  private apiInstance: Brevo.TransactionalEmailsApi;
   private readonly logger = new Logger(EmailService.name);
   private readonly fromEmail: string;
   private readonly fromName: string;
@@ -18,34 +18,32 @@ export class EmailService {
   private readonly isEmailEnabled: boolean;
 
   constructor(private configService: ConfigService) {
-    const resendApiKey = this.configService.get<string>('RESEND_API_KEY');
+    const brevoApiKey = this.configService.get<string>('BREVO_API_KEY');
 
+    this.fromEmail = this.configService.get<string>('EMAIL_FROM') || 'noreply@restaurant.com';
     this.fromName = this.configService.get<string>('EMAIL_FROM_NAME') || 'Restaurant App';
     this.frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:4000';
 
-    // Resend free tier uses onboarding@resend.dev for testing
-    // Once you verify your domain, you can use your own email
-    this.fromEmail = this.configService.get<string>('EMAIL_FROM') || 'onboarding@resend.dev';
-
     // Log configuration status
-    this.logger.log(`Email Configuration: Resend API Key=${resendApiKey ? 'Configured' : 'Missing'}, Frontend=${this.frontendUrl}`);
+    this.logger.log(`Email Configuration (Brevo): API Key=${brevoApiKey ? 'Configured' : 'Missing'}, From=${this.fromEmail}, Frontend=${this.frontendUrl}`);
 
     // Enable email only if API key is provided
-    this.isEmailEnabled = !!resendApiKey;
+    this.isEmailEnabled = !!brevoApiKey;
 
     if (this.isEmailEnabled) {
-      this.resend = new Resend(resendApiKey);
-      this.logger.log('Resend email service initialized successfully');
+      this.apiInstance = new Brevo.TransactionalEmailsApi();
+      this.apiInstance.setApiKey(Brevo.TransactionalEmailsApiApiKeys.apiKey, brevoApiKey);
+      this.logger.log('Brevo email service initialized successfully');
     } else {
-      this.logger.warn('RESEND_API_KEY not configured. Emails will be logged to console.');
+      this.logger.warn('BREVO_API_KEY not configured. Emails will be logged to console.');
     }
   }
 
   private async sendMail(options: EmailOptions): Promise<boolean> {
-    if (!this.isEmailEnabled || !this.resend) {
+    if (!this.isEmailEnabled || !this.apiInstance) {
       // Log email to console for development
       this.logger.log('='.repeat(60));
-      this.logger.log('📧 EMAIL (Development Mode - No Resend API Key)');
+      this.logger.log('📧 EMAIL (Development Mode - No Brevo API Key)');
       this.logger.log(`To: ${options.to}`);
       this.logger.log(`Subject: ${options.subject}`);
       this.logger.log('-'.repeat(60));
@@ -64,22 +62,17 @@ export class EmailService {
     }
 
     try {
-      const { data, error } = await this.resend.emails.send({
-        from: `${this.fromName} <${this.fromEmail}>`,
-        to: [options.to],
-        subject: options.subject,
-        html: options.html,
-      });
+      const sendSmtpEmail = new Brevo.SendSmtpEmail();
+      sendSmtpEmail.subject = options.subject;
+      sendSmtpEmail.htmlContent = options.html;
+      sendSmtpEmail.sender = { name: this.fromName, email: this.fromEmail };
+      sendSmtpEmail.to = [{ email: options.to }];
 
-      if (error) {
-        this.logger.error(`Resend error for ${options.to}: ${error.message}`);
-        return false;
-      }
-
-      this.logger.log(`Email sent successfully to ${options.to} (ID: ${data?.id})`);
+      const { response, body } = await this.apiInstance.sendTransacEmail(sendSmtpEmail);
+      this.logger.log(`Email sent successfully to ${options.to} via Brevo`);
       return true;
     } catch (error) {
-      this.logger.error(`Failed to send email to ${options.to}:`, error.message);
+      this.logger.error(`Failed to send email to ${options.to} via Brevo:`, error.response?.body || error.message);
       return false;
     }
   }
