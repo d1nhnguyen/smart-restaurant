@@ -33,6 +33,7 @@
         "allCategories": "Tất cả",
         "addToCart": "Thêm vào giỏ",
         "viewCart": "Xem giỏ hàng",
+        "endOfMenu": "Bạn đã đến cuối thực đơn",
         "checkout": "Thanh toán",
         "table": "Bàn",
         "scanQR": "Vui lòng quét mã QR để xem thực đơn.",
@@ -52,6 +53,8 @@
         "discount": "Giảm giá",
         "total": "Tổng cộng",
         "note": "Ghi chú",
+        "browseMenu": "Duyệt menu",
+        "emptyMessage": "Giỏ hàng của bạn trống. Hãy thêm món ngon trước!",
         "proceedToCheckout": "Tiến hành thanh toán",
         "item": "món",
         "items": "món",
@@ -151,14 +154,19 @@
         "viewOrder": "Xem đơn hàng"
     },
     "auth": {
-        "login": "Đăng nhập",
+        "signIn": "Đăng nhập",
         "username": "Tên đăng nhập",
         "password": "Mật khẩu",
+        "tagline": "Quét. Đặt. Thưởng",
         "forgotPassword": "Quên mật khẩu?",
-        "loginButton": "Đăng nhập",
+        "createAccount": "Tạo tài khoản",
+        "or": "Hoặc",
+        "continueAsGuest": "Tiếp tục như khách vãng lai",
         "staffMember": "Bạn là nhân viên?",
         "loginHere": "Đăng nhập tại đây",
-        "invalidCredentials": "Tên đăng nhập hoặc mật khẩu không đúng"
+        "invalidCredentials": "Tên đăng nhập hoặc mật khẩu không đúng",
+        "guestUser": "Khách vãng lai",
+        "guestMessage": "Đăng nhập để xem lịch sử đơn hàng và lưu lại các thông tin"
     },
     "admin": {
         "dashboard": "Bảng điều khiển",
@@ -214,5 +222,48 @@
         "accounts": "Tài khoản",
         "reports": "Báo cáo",
         "logout": "Đăng xuất"
+    },
+    "tabs": {
+        "menu": "Thực đơn",
+        "cart": "Giỏ hàng",
+        "orders": "Đơn hàng",
+        "profile": "Hồ sơ"
+    },
+    "profile": {
+        "settings": "Cài đặt",
+        "language": "Ngôn ngữ",
+        "user": "Người dùng",
+        "account": "Tài khoản",
+        "changePassword": "Thay đổi mật khẩu",
+        "name": "Tên",
+        "email": "Email",
+        "phone": "Số điện thoại",
+        "address": "Địa chỉ",
+        "saveChanges": "Lưu thay đổi",
+        "editProfile": "Chỉnh sửa hồ sơ",
+        "cancelEdit": "Hủy",
+        "profileUpdated": "Cập nhật hồ sơ thành công!",
+        "updateFailed": "Cập nhật hồ sơ thất bại",
+        "nameTooShort": "Tên phải có ít nhất 2 ký tự",
+        "nameTooLong": "Tên không được vượt quá 100 ký tự",
+        "invalidName": "Tên chỉ có thể chứa chữ cái, khoảng trắng, dấu gạch ngang và dấu nháy",
+        "invalidPhone": "Vui lòng nhập số điện thoại hợp lệ (10-15 chữ số)",
+        "invalidLanguage": "Vui lòng chọn ngôn ngữ hợp lệ",
+        "phoneNumber": "Số điện thoại",
+        "preferredLanguage": "Ngôn ngữ ưa thích",
+        "currentPassword": "Mật khẩu hiện tại",
+        "newPassword": "Mật khẩu mới",
+        "passwordChanged": "Đổi mật khẩu thành công!"
+    },
+    "orders": {
+        "startOrdering": "Duyệt menu để bắt đầu đặt món!",
+        "noCurrentOrders": "Không có đơn hàng",
+        "requestBill": "Tính tiền",
+        "sessionTotal": "Tổng tiền",
+        "orders": "Đơn",
+        "order": "Đơn",
+        "items": "Món",
+        "orderHistory": "Lịch sử đơn hàng",
+        "noHistory": "Không có lịch sử đơn hàng"
     }
 }

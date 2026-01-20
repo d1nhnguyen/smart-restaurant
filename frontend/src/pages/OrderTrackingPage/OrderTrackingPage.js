@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { orderService } from '../../services/orderService';
 import { useCart } from '../../contexts/CartContext';
 import { useSocket } from '../../hooks/useSocket';
-import LanguageSwitcher from '../../components/LanguageSwitcher';
+// import LanguageSwitcher from '../../components/LanguageSwitcher'; // Removed
 import './OrderTrackingPage.css';
 
 const OrderTrackingPage = () => {
@@ -122,10 +122,8 @@ const OrderTrackingPage = () => {
                 </div>
             )}
 
-            {/* Language Switcher */}
-            <div style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 1100 }}>
-                <LanguageSwitcher />
-            </div>
+            {/* Language Switcher Removed */}
+
 
             <header className="tracking-header">
                 <button onClick={() => navigate('/menu')} className="back-button">← {t('menu.title')}</button>

@@ -223,6 +223,7 @@ model MenuItemModifierGroup {
 model Order {
   id             String      @id @default(uuid()) @db.Uuid
   tableId        String      @map("table_id") @db.Uuid
+  customerId     String?     @map("customer_id") @db.Uuid
   sessionId      String?     @map("session_id") @db.VarChar(100)
   orderNumber    String      @unique @db.VarChar(20) // ← Unique globally
   orderDate      DateTime    @db.Date
@@ -232,7 +233,7 @@ model Order {
   taxAmount      Decimal     @default(0) @map("tax_amount") @db.Decimal(12, 2)
   discountAmount Decimal     @default(0) @map("discount_amount") @db.Decimal(12, 2)
   totalAmount    Decimal     @default(0) @map("total_amount") @db.Decimal(12, 2)
-  
+
   // Discount fields
   discountType  DiscountType @default(NONE) @map("discount_type")
   discountValue Decimal      @default(0) @map("discount_value") @db.Decimal(10, 2)
@@ -249,6 +250,7 @@ model Order {
   cancelledAt DateTime? @map("cancelled_at")
 
   table        Table       @relation("TableOrders", fields: [tableId], references: [id], onDelete: Restrict)
+  customer     Customer?   @relation("CustomerOrders", fields: [customerId], references: [id], onDelete: SetNull)
   currentTable Table?      @relation("CurrentTableOrder")
   items        OrderItem[]
   payments     Payment[]
@@ -257,6 +259,7 @@ model Order {
   @@index([paymentStatus])
   @@index([orderDate])
   @@index([tableId, status])
+  @@index([customerId])
   @@index([sessionId])
   @@index([orderNumber])
   @@map("orders")
@@ -334,7 +337,7 @@ model Payment {
 }
 
 // ========================================
-// USER (SIMPLIFIED)
+// USER (SIMPLIFIED) - Staff/Admin accounts
 // ========================================
 model User {
   id                  String    @id @default(uuid()) @db.Uuid
@@ -352,5 +355,27 @@ model User {
   @@index([email])
   @@index([role])
   @@map("users")
+}
+
+// ========================================
+// CUSTOMER - Customer accounts (separate from staff)
+// ========================================
+model Customer {
+  id                  String    @id @default(uuid()) @db.Uuid
+  email               String    @unique @db.VarChar(255)
+  password            String    @db.VarChar(255)
+  name                String?   @db.VarChar(100)
+  phone               String?   @db.VarChar(20)
+  preferredLanguage   String?   @default("en") @map("preferred_language") @db.VarChar(10)
+  isActive            Boolean   @default(true) @map("is_active")
+  failedLoginAttempts Int       @default(0) @map("failed_login_attempts")
+  lockedUntil         DateTime? @map("locked_until")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  orders Order[] @relation("CustomerOrders")
+
+  @@index([email])
+  @@map("customers")
 }
 

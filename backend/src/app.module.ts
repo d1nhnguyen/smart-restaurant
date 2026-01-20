@@ -13,6 +13,7 @@ import { PaymentsModule } from './payments/payments.module';
 import { GatewayModule } from './gateway/gateway.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { UsersModule } from './users/users.module';
+import { CustomerAuthModule } from './customer-auth/customer-auth.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { UsersModule } from './users/users.module';
     TablesModule,
     MenuModule,
     AuthModule,
+    CustomerAuthModule,
     OrdersModule,
     KitchenModule,
     PaymentsModule,

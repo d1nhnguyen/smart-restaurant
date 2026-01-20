@@ -237,7 +237,7 @@ export const CartProvider = ({ children }) => {
         }
     };
 
-    const placeOrder = async () => {
+    const placeOrder = async (customerId) => {
         if (!table?.id || cart.length === 0) return;
         setIsSubmitting(true);
         setError(null);
@@ -256,6 +256,7 @@ export const CartProvider = ({ children }) => {
             // Always create a new order (standard flow as per documentation)
             const result = await orderService.createOrder({
                 tableId: table.id,
+                customerId: customerId, // Add customerId if available
                 notes: orderNotes,
                 items: itemsPayload
             });

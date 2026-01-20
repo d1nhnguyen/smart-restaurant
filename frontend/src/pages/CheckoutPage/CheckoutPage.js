@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useCart } from '../../contexts/CartContext';
-import LanguageSwitcher from '../../components/LanguageSwitcher';
+// import LanguageSwitcher from '../../components/LanguageSwitcher'; // Removed
 import axios from 'axios';
 import './CheckoutPage.css';
 
@@ -144,10 +144,8 @@ const CheckoutPage = () => {
 
     return (
         <div className="checkout-container">
-            {/* Language Switcher */}
-            <div style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 1100 }}>
-                <LanguageSwitcher />
-            </div>
+            {/* Language Switcher Removed */}
+
 
             <header className="checkout-header">
                 <button onClick={() => navigate(-1)} className="back-link">← {t('common.back')}</button>

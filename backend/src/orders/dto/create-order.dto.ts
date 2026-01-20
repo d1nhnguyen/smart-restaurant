@@ -34,6 +34,10 @@ export class CreateOrderDto {
     @IsNotEmpty()
     tableId: string;
 
+    @IsUUID()
+    @IsOptional()
+    customerId?: string;
+
     @IsString()
     @IsOptional()
     @MaxLength(1000)
