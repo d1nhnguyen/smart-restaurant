@@ -49,6 +49,45 @@ const customerAuthService = {
       headers: { Authorization: `Bearer ${token}` }
     });
     return response.data;
+  },
+
+  // Email verification
+  async verifyEmail(token) {
+    const response = await axios.get(`${API_BASE}/verify-email/${token}`);
+    return response.data;
+  },
+
+  async resendVerification(authToken) {
+    const response = await axios.post(
+      `${API_BASE}/resend-verification`,
+      {},
+      { headers: { Authorization: `Bearer ${authToken}` } }
+    );
+    return response.data;
+  },
+
+  async resendVerificationByEmail(email) {
+    const response = await axios.post(`${API_BASE}/resend-verification-email`, { email });
+    return response.data;
+  },
+
+  // Password reset
+  async forgotPassword(email) {
+    const response = await axios.post(`${API_BASE}/forgot-password`, { email });
+    return response.data;
+  },
+
+  async validateResetToken(token) {
+    const response = await axios.get(`${API_BASE}/validate-reset-token/${token}`);
+    return response.data;
+  },
+
+  async resetPassword(token, newPassword) {
+    const response = await axios.post(`${API_BASE}/reset-password`, {
+      token,
+      newPassword
+    });
+    return response.data;
   }
 };
 

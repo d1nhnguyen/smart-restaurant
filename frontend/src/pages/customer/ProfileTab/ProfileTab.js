@@ -4,11 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { useCustomerAuth } from '../../../contexts/CustomerAuthContext';
 import { useCart } from '../../../contexts/CartContext';
 import LanguageSwitcher from '../../../components/LanguageSwitcher';
+import customerAuthService from '../../../services/customerAuthService';
 import './ProfileTab.css';
 
 const ProfileTab = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const { customer, isAuthenticated, logout, changePassword, getToken } = useCustomerAuth();
   const { customer, isAuthenticated, logout, changePassword, updateProfile } = useCustomerAuth();
   const { table } = useCart();
 
@@ -21,6 +23,8 @@ const ProfileTab = () => {
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [resendingVerification, setResendingVerification] = useState(false);
+  const [verificationSent, setVerificationSent] = useState(false);
 
   // Profile edit state
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -50,6 +54,17 @@ const ProfileTab = () => {
     }
   };
 
+  const handleResendVerification = async () => {
+    setResendingVerification(true);
+    try {
+      const token = getToken();
+      await customerAuthService.resendVerification(token);
+      setVerificationSent(true);
+    } catch (err) {
+      console.error('Failed to resend verification:', err);
+    } finally {
+      setResendingVerification(false);
+    }
   const validateProfileForm = () => {
     const { name, phone } = profileForm;
 
@@ -230,6 +245,34 @@ const ProfileTab = () => {
         {table && <span className="table-badge">{t('menu.table', 'Table')} {table.tableNumber}</span>}
       </header>
 
+      {/* Email Verification Banner */}
+      {customer && !customer.isEmailVerified && (
+        <div className="verification-banner">
+          <div className="verification-icon">
+            <span role="img" aria-label="warning">&#9888;</span>
+          </div>
+          <div className="verification-content">
+            <h4>{t('profile.verifyEmail', 'Verify Your Email')}</h4>
+            <p>{t('profile.verifyEmailDesc', 'Please verify your email address to secure your account.')}</p>
+            {verificationSent ? (
+              <p className="verification-sent">
+                <span role="img" aria-label="check">&#10003;</span> {t('profile.verificationSent', 'Verification email sent! Check your inbox.')}
+              </p>
+            ) : (
+              <button
+                className="resend-btn"
+                onClick={handleResendVerification}
+                disabled={resendingVerification}
+              >
+                {resendingVerification
+                  ? t('profile.sending', 'Sending...')
+                  : t('profile.resendVerification', 'Resend Verification Email')}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Profile Info */}
       <div className="profile-info">
         <div className="profile-avatar">
@@ -237,7 +280,14 @@ const ProfileTab = () => {
         </div>
         <div className="profile-details">
           <h2 className="profile-name">{customer?.name || t('profile.user', 'User')}</h2>
-          <p className="profile-email">{customer?.email}</p>
+          <p className="profile-email">
+            {customer?.email}
+            {customer?.isEmailVerified && (
+              <span className="verified-badge" title={t('profile.emailVerified', 'Email verified')}>
+                <span role="img" aria-label="verified">&#10003;</span>
+              </span>
+            )}
+          </p>
         </div>
       </div>
 

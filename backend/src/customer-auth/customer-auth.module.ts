@@ -5,11 +5,13 @@ import { CustomerAuthService } from './customer-auth.service';
 import { CustomerJwtStrategy } from './customer-jwt.strategy';
 import { CustomerJwtAuthGuard } from './customer-jwt-auth.guard';
 import { PrismaModule } from '../prisma/prisma.module';
+import { EmailModule } from '../email/email.module';
 
 @Module({
   imports: [
     PrismaModule,
     PassportModule.register({ defaultStrategy: 'customer-jwt' }),
+    EmailModule,
   ],
   controllers: [CustomerAuthController],
   providers: [CustomerAuthService, CustomerJwtStrategy, CustomerJwtAuthGuard],

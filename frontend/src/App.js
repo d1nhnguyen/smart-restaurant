@@ -33,6 +33,8 @@ import VNPayReturnPage from './pages/VNPayReturnPage/VNPayReturnPage';
 // Customer App Components
 import CustomerAppLayout from './layouts/CustomerAppLayout';
 import CustomerAuthPage from './pages/customer/CustomerAuthPage/CustomerAuthPage';
+import ResetPasswordPage from './pages/customer/ResetPasswordPage/ResetPasswordPage';
+import VerifyEmailPage from './pages/customer/VerifyEmailPage/VerifyEmailPage';
 
 // Lazy load customer tab components for better performance
 const MenuTab = lazy(() => import('./pages/customer/MenuTab/MenuTab'));
@@ -85,8 +87,10 @@ function App() {
             {/* QR Code Entry Point */}
             <Route path="/table/:tableId" element={<QRLandingPage />} />
 
-            {/* Customer Auth Page */}
+            {/* Customer Auth Pages */}
             <Route path="/c/auth" element={<CustomerAuthPage />} />
+            <Route path="/c/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/c/verify-email" element={<VerifyEmailPage />} />
 
             {/* Customer App with Bottom Tabs */}
             <Route path="/c" element={<CustomerAppLayout />}>
