@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
@@ -17,6 +17,7 @@ const PASSWORD_RESET_EXPIRY_HOURS = 1;
 
 @Injectable()
 export class CustomerAuthService {
+  private readonly logger = new Logger(CustomerAuthService.name);
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
@@ -55,15 +56,18 @@ export class CustomerAuthService {
       },
     });
 
-    // Send verification email
-    const emailSent = await this.emailService.sendVerificationEmail(customer.email, emailVerifyToken);
+    // Send verification email (Asynchronous/Background)
+    this.emailService.sendVerificationEmail(customer.email, emailVerifyToken)
+      .then(sent => {
+        if (!sent) this.logger.error(`Background email failed for ${customer.email}`);
+      })
+      .catch(err => {
+        this.logger.error(`Error in background email task: ${err.message}`);
+      });
 
     return {
-      message: emailSent
-        ? 'Registration successful. Please check your email to verify your account.'
-        : 'Registration successful. However, we could not send the verification email. Please request a new one.',
+      message: 'Registration successful. Please check your email to verify your account.',
       requiresVerification: true,
-      emailSent,
       customer: {
         id: customer.id,
         email: customer.email,

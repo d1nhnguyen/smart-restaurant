@@ -20,29 +20,41 @@ export class EmailService {
 
   constructor(private configService: ConfigService) {
     const emailUser = this.configService.get<string>('EMAIL_USER');
-    const emailPass = this.configService.get<string>('EMAIL_PASS');
+    const emailPass = this.configService.get<string>('EMAIL_PASS')?.replace(/\s/g, ''); // Trim all whitespace in password
 
     this.fromEmail = emailUser || 'noreply@restaurant.com';
     this.fromName = this.configService.get<string>('EMAIL_FROM_NAME') || 'Restaurant App';
     this.frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:4000';
+
+    // Log configuration status (without exposing full credentials)
+    this.logger.log(`Email Configuration: User=${emailUser ? 'Configured' : 'Missing'}, Pass=${emailPass ? 'Configured' : 'Missing'}, Frontend=${this.frontendUrl}`);
 
     // Enable email only if credentials are provided
     this.isEmailEnabled = !!(emailUser && emailPass);
 
     if (this.isEmailEnabled) {
       this.transporter = nodemailer.createTransport({
-        service: 'gmail',
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false, // Use TLS
         auth: {
           user: emailUser,
           pass: emailPass, // App Password (16 characters)
         },
+        tls: {
+          rejectUnauthorized: false // Helps with some cloud hosting certificate issues
+        }
       });
 
       // Verify connection
       this.transporter.verify()
-        .then(() => this.logger.log('Email service connected successfully'))
+        .then(() => this.logger.log('Email service connected successfully to Gmail SMTP'))
         .catch((err) => {
-          this.logger.error('Email service connection failed:', err.message);
+          this.logger.error('Email service connection failed. This might be due to incorrect App Password or Gmail blocking the connection from this IP.');
+          this.logger.error(`SMTP Error: ${err.message}`);
+          if (err.code === 'EAUTH') {
+            this.logger.error('Authentication Error (EAUTH): Please check your EMAIL_USER and EMAIL_PASS (App Password).');
+          }
           this.logger.warn('Emails will be logged to console instead');
         });
     } else {
