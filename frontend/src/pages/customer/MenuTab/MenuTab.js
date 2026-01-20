@@ -10,7 +10,7 @@ import './MenuTab.css';
 
 const MenuTab = () => {
   const { t } = useTranslation();
-  const [searchParams] = useSearchParams();
+  useSearchParams();
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [errorStatus, setErrorStatus] = useState(null);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useCart } from '../../../contexts/CartContext';
@@ -19,14 +19,7 @@ const OrdersTab = () => {
   const [historyPage, setHistoryPage] = useState(1);
   const [historyTotal, setHistoryTotal] = useState(0);
 
-  // Fetch order history for authenticated users
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchOrderHistory();
-    }
-  }, [isAuthenticated]);
-
-  const fetchOrderHistory = async (page = 1) => {
+  const fetchOrderHistory = useCallback(async (page = 1) => {
     setHistoryLoading(true);
     try {
       const token = getToken();
@@ -43,7 +36,14 @@ const OrdersTab = () => {
     } finally {
       setHistoryLoading(false);
     }
-  };
+  }, [getToken]);
+
+  // Fetch order history for authenticated users
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchOrderHistory();
+    }
+  }, [isAuthenticated, fetchOrderHistory]);
 
   // WebSocket: Listen for order updates
   useEffect(() => {
