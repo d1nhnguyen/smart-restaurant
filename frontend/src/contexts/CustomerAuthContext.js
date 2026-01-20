@@ -18,7 +18,7 @@ export const CustomerAuthProvider = ({ children }) => {
       try {
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored) {
-          const { token, customer: storedCustomer, expiresAt, mode } = JSON.parse(stored);
+          const { token, expiresAt, mode } = JSON.parse(stored);
 
           if (mode === 'guest') {
             setAuthMode('guest');
@@ -107,6 +107,7 @@ export const CustomerAuthProvider = ({ children }) => {
           success: true,
           requiresVerification: true,
           email: response.customer?.email,
+          emailSent: response.emailSent !== false, // Assume true if not explicitly false
           // For development: return token to show verification link
           emailVerifyToken: response.emailVerifyToken
         };

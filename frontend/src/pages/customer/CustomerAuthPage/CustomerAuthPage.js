@@ -10,7 +10,7 @@ import './CustomerAuthPage.css';
 const CustomerAuthPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { login, register, continueAsGuest, isLoading, error, clearError, hasSession, authMode, checkEmailAvailability } = useCustomerAuth();
+  const { login, register, continueAsGuest, isLoading, error, clearError, authMode, checkEmailAvailability } = useCustomerAuth();
   const { table } = useCart();
 
   const [mode, setMode] = useState('select'); // 'select' | 'login' | 'register' | 'forgot' | 'verify-pending'
@@ -27,6 +27,7 @@ const CustomerAuthPage = () => {
   const [forgotPasswordSent, setForgotPasswordSent] = useState(false);
   const [pendingVerificationEmail, setPendingVerificationEmail] = useState('');
   const [devVerifyToken, setDevVerifyToken] = useState(''); // For development only
+  const [emailSendFailed, setEmailSendFailed] = useState(false); // Track if email failed to send
   const [resendingVerification, setResendingVerification] = useState(false);
   const [verificationResent, setVerificationResent] = useState(false);
   const emailCheckTimeoutRef = useRef(null);
@@ -172,6 +173,7 @@ const CustomerAuthPage = () => {
         // Show verification pending screen
         setPendingVerificationEmail(result.email || formData.email);
         setDevVerifyToken(result.emailVerifyToken || ''); // For development
+        setEmailSendFailed(result.emailSent === false); // Track if email failed
         setMode('verify-pending');
       } else {
         navigate('/c/menu', { replace: true });
@@ -420,6 +422,14 @@ const CustomerAuthPage = () => {
         <p>{t('auth.checkInboxVerify', 'Please check your inbox and click the verification link to activate your account.')}</p>
         <p className="verify-note">{t('auth.linkExpires', 'The link will expire in 24 hours.')}</p>
       </div>
+
+      {/* Warning when email failed to send */}
+      {emailSendFailed && (
+        <div className="email-send-warning">
+          <span role="img" aria-label="warning">⚠️</span>
+          <p>{t('auth.emailSendFailed', 'We could not send the verification email. Please click the resend button below.')}</p>
+        </div>
+      )}
 
       {/* Development only: Show direct link */}
       {devVerifyToken && (

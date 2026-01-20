@@ -21,7 +21,7 @@ export class CustomerAuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private emailService: EmailService,
-  ) {}
+  ) { }
 
   private generateToken(): string {
     return crypto.randomBytes(32).toString('hex');
@@ -56,11 +56,14 @@ export class CustomerAuthService {
     });
 
     // Send verification email
-    await this.emailService.sendVerificationEmail(customer.email, emailVerifyToken);
+    const emailSent = await this.emailService.sendVerificationEmail(customer.email, emailVerifyToken);
 
     return {
-      message: 'Registration successful. Please check your email to verify your account.',
+      message: emailSent
+        ? 'Registration successful. Please check your email to verify your account.'
+        : 'Registration successful. However, we could not send the verification email. Please request a new one.',
       requiresVerification: true,
+      emailSent,
       customer: {
         id: customer.id,
         email: customer.email,
@@ -214,10 +217,11 @@ export class CustomerAuthService {
     });
 
     // Send verification email
-    await this.emailService.sendVerificationEmail(customer.email, emailVerifyToken);
+    const emailSent = await this.emailService.sendVerificationEmail(customer.email, emailVerifyToken);
 
     return {
-      message: 'Verification email sent',
+      message: emailSent ? 'Verification email sent' : 'Failed to send verification email. Please try again.',
+      emailSent,
     };
   }
 
@@ -243,10 +247,11 @@ export class CustomerAuthService {
     });
 
     // Send verification email
-    await this.emailService.sendVerificationEmail(customer.email, emailVerifyToken);
+    const emailSent = await this.emailService.sendVerificationEmail(customer.email, emailVerifyToken);
 
     return {
       message: 'If an unverified account exists, a verification email will be sent.',
+      emailSent,
     };
   }
 
@@ -272,10 +277,11 @@ export class CustomerAuthService {
     });
 
     // Send password reset email
-    await this.emailService.sendPasswordResetEmail(customer.email, passwordResetToken);
+    const emailSent = await this.emailService.sendPasswordResetEmail(customer.email, passwordResetToken);
 
     return {
       message: 'If an account exists, a password reset link will be sent.',
+      emailSent,
     };
   }
 

@@ -409,8 +409,15 @@
 }
 
 @keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 .verify-pending-container .auth-form-title {
@@ -509,4 +516,29 @@
 
 .verify-actions {
   margin-top: 16px;
+}
+
+/* Email Send Failed Warning */
+.email-send-warning {
+  background: #fff3cd;
+  border: 1px solid #f39c12;
+  border-left: 4px solid #f39c12;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.email-send-warning span {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.email-send-warning p {
+  font-size: 14px;
+  color: #856404;
+  margin: 0;
+  line-height: 1.4;
 }
