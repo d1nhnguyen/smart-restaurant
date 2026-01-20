@@ -40,12 +40,8 @@ const QRLandingPage = () => {
                 // 3. Check for existing order
                 await refreshActiveOrder(tableData.id);
 
-                // 4. Secure Navigation: Do not leak qrToken in URL unless needed for MenuPage
-                const searchParams = new URLSearchParams(window.location.search);
-                const token = searchParams.get('token');
-                const targetPath = token ? `/menu?token=${token}` : '/menu';
-
-                navigate(targetPath, { replace: true });
+                // 4. Navigate to customer auth page
+                navigate('/c/auth', { replace: true });
 
             } catch (err) {
                 console.error('Table validation failed', err);

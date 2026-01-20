@@ -49,7 +49,7 @@ export class OrdersService {
     ) { }
 
     async create(createOrderDto: CreateOrderDto) {
-        const { tableId, items, notes } = createOrderDto;
+        const { tableId, customerId, items, notes } = createOrderDto;
 
         // 1. Validate Table and get sessionId
         const table = await this.prisma.table.findUnique({
@@ -133,6 +133,7 @@ export class OrdersService {
             const newOrder = await tx.order.create({
                 data: {
                     tableId,
+                    customerId: customerId || null,
                     sessionId: table.currentSessionId, // Add current session ID
                     orderNumber,
                     orderDate: new Date(),
