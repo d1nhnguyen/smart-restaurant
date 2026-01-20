@@ -169,7 +169,7 @@ const ProfileTab = () => {
       <div className="logout-section">
         <button className="logout-btn" onClick={handleLogout}>
           <span role="img" aria-label="logout">&#128682;</span>
-          {t('auth.logout', 'Logout')}
+          {t('sidebar.logout', 'Logout')}
         </button>
       </div>
 

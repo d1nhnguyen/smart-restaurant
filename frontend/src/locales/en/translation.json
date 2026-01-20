@@ -34,6 +34,7 @@
         "addToCart": "Add to Cart",
         "viewCart": "View Cart",
         "checkout": "Checkout",
+        "endOfMenu": "You've reached the end of the menu",
         "table": "Table",
         "scanQR": "Please scan a QR code to view the menu.",
         "welcomeMessage": "Welcome!",
@@ -60,6 +61,8 @@
         "continueBrowsing": "Continue Browsing",
         "confirmOrder": "Confirm Order",
         "tax": "Tax",
+        "browseMenu": "Browse Menu",
+        "emptyMessage": "Your cart is empty. Add some delicious items first!",
         "specialInstructions": "Special Instructions",
         "specialInstructionsPlaceholder": "Special Instructions for restaurant"
     },
@@ -214,5 +217,34 @@
         "accounts": "Accounts",
         "reports": "Reports",
         "logout": "Logout"
+    },
+    "tabs": {
+        "menu": "Menu",
+        "cart": "Cart",
+        "orders": "Orders",
+        "profile": "Profile"
+    },
+    "profile": {
+        "settings": "Settings",
+        "language": "Language",
+        "user": "User",
+        "account": "Account",
+        "changePassword": "Change Password",
+        "name": "Name",
+        "email": "Email",
+        "phone": "Phone",
+        "address": "Address",
+        "saveChanges": "Save Changes"
+    },
+    "orders": {
+        "startOrdering": "Browse our menu to start ordering!",
+        "noCurrentOrders": "No current orders",
+        "requestBill": "Request bill",
+        "sessionTotal": "Session Total",
+        "orders": "Orders",
+        "order": "Order",
+        "items": "Items",
+        "orderHistory": "Order History",
+        "noHistory": "No order history yet"
     }
 }

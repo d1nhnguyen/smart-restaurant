@@ -33,6 +33,7 @@
         "allCategories": "Tất cả",
         "addToCart": "Thêm vào giỏ",
         "viewCart": "Xem giỏ hàng",
+        "endOfMenu": "Bạn đã đến cuối thực đơn",
         "checkout": "Thanh toán",
         "table": "Bàn",
         "scanQR": "Vui lòng quét mã QR để xem thực đơn.",
@@ -52,6 +53,8 @@
         "discount": "Giảm giá",
         "total": "Tổng cộng",
         "note": "Ghi chú",
+        "browseMenu": "Duyệt menu",
+        "emptyMessage": "Giỏ hàng của bạn trống. Hãy thêm món ngon trước!",
         "proceedToCheckout": "Tiến hành thanh toán",
         "item": "món",
         "items": "món",
@@ -214,5 +217,34 @@
         "accounts": "Tài khoản",
         "reports": "Báo cáo",
         "logout": "Đăng xuất"
+    },
+    "tabs": {
+        "menu": "Thực đơn",
+        "cart": "Giỏ hàng",
+        "orders": "Đơn hàng",
+        "profile": "Hồ sơ"
+    },
+    "profile": {
+        "settings": "Cài đặt",
+        "language": "Ngôn ngữ",
+        "user": "Người dùng",
+        "account": "Tài khoản",
+        "changePassword": "Thay đổi mật khẩu",
+        "name": "Tên",
+        "email": "Email",
+        "phone": "Số điện thoại",
+        "address": "Địa chỉ",
+        "saveChanges": "Lưu thay đổi"
+    },
+    "orders": {
+        "startOrdering": "Duyệt menu để bắt đầu đặt món!",
+        "noCurrentOrders": "Không có đơn hàng",
+        "requestBill": "Tính tiền",
+        "sessionTotal": "Tổng tiền",
+        "orders": "Đơn",
+        "order": "Đơn",
+        "items": "Món",
+        "orderHistory": "Lịch sử đơn hàng",
+        "noHistory": "Không có lịch sử đơn hàng"
     }
 }
