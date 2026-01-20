@@ -14,7 +14,7 @@ import './MenuPage.css';
 
 const MenuPage = () => {
   const { t } = useTranslation();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -135,7 +135,7 @@ const MenuPage = () => {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [token, table, selectedCategory, searchTerm, sortBy, setTable]);
+  }, [token, table, selectedCategory, sortBy, setTable]);
 
   // Initial load
   useEffect(() => {
