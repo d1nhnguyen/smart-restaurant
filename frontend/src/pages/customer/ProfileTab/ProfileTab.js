@@ -9,7 +9,7 @@ import './ProfileTab.css';
 const ProfileTab = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const { customer, isAuthenticated, logout, changePassword } = useCustomerAuth();
+  const { customer, isAuthenticated, logout, changePassword, updateProfile } = useCustomerAuth();
   const { table } = useCart();
 
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -22,11 +22,122 @@ const ProfileTab = () => {
   const [passwordSuccess, setPasswordSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Profile edit state
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profileForm, setProfileForm] = useState({
+    name: '',
+    phone: '',
+    preferredLanguage: 'en'
+  });
+  const [profileError, setProfileError] = useState('');
+  const [profileSuccess, setProfileSuccess] = useState(false);
+
+  // Initialize profile form when customer data is available
+  React.useEffect(() => {
+    if (customer) {
+      setProfileForm({
+        name: customer.name || '',
+        phone: customer.phone || '',
+        preferredLanguage: customer.preferredLanguage || 'en'
+      });
+    }
+  }, [customer]);
+
   const handleLogout = () => {
     if (window.confirm(t('auth.logoutConfirm', 'Are you sure you want to logout?'))) {
       logout();
       // Stay on profile tab as guest
     }
+  };
+
+  const validateProfileForm = () => {
+    const { name, phone } = profileForm;
+
+    // Validate name
+    if (name && name.trim().length > 0) {
+      if (name.trim().length < 2) {
+        setProfileError(t('profile.nameTooShort', 'Name must be at least 2 characters'));
+        return false;
+      }
+      if (name.trim().length > 100) {
+        setProfileError(t('profile.nameTooLong', 'Name must not exceed 100 characters'));
+        return false;
+      }
+      if (!/^[a-zA-ZÀ-ỹ\s'-]+$/.test(name.trim())) {
+        setProfileError(t('profile.invalidName', 'Name can only contain letters, spaces, hyphens, and apostrophes'));
+        return false;
+      }
+    }
+
+    // Validate phone
+    if (phone && phone.trim().length > 0) {
+      if (!/^\+?[0-9]{10,15}$/.test(phone.trim())) {
+        setProfileError(t('profile.invalidPhone', 'Please enter a valid phone number (10-15 digits)'));
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  const handleProfileUpdate = async (e) => {
+    e.preventDefault();
+    setProfileError('');
+    setProfileSuccess(false);
+
+    if (!validateProfileForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const result = await updateProfile(profileForm);
+      if (result.success) {
+        setProfileSuccess(true);
+        setIsEditingProfile(false);
+        setTimeout(() => {
+          setProfileSuccess(false);
+        }, 3000);
+      } else {
+        // Parse backend error and show translated message
+        const errorMsg = result.error || '';
+        let translatedError = '';
+
+        // Map backend validation errors to translated messages
+        if (errorMsg.includes('Phone must be a valid phone number') || errorMsg.includes('phone')) {
+          translatedError = t('profile.invalidPhone', 'Please enter a valid phone number (10-15 digits)');
+        } else if (errorMsg.includes('Name must be at least 2 characters')) {
+          translatedError = t('profile.nameTooShort', 'Name must be at least 2 characters');
+        } else if (errorMsg.includes('Name must not exceed 100 characters')) {
+          translatedError = t('profile.nameTooLong', 'Name must not exceed 100 characters');
+        } else if (errorMsg.includes('Name can only contain')) {
+          translatedError = t('profile.invalidName', 'Name can only contain letters, spaces, hyphens, and apostrophes');
+        } else if (errorMsg.includes('Preferred language must be')) {
+          translatedError = t('profile.invalidLanguage', 'Please select a valid language');
+        } else {
+          translatedError = t('profile.updateFailed', 'Failed to update profile');
+        }
+
+        setProfileError(translatedError);
+      }
+    } catch (err) {
+      setProfileError(t('profile.updateFailed', 'Failed to update profile'));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    // Reset form to original customer values
+    if (customer) {
+      setProfileForm({
+        name: customer.name || '',
+        phone: customer.phone || '',
+        preferredLanguage: customer.preferredLanguage || 'en'
+      });
+    }
+    setProfileError('');
+    setIsEditingProfile(false);
   };
 
   const handlePasswordChange = async (e) => {
@@ -130,9 +241,110 @@ const ProfileTab = () => {
         </div>
       </div>
 
-      {/* Account Section */}
+      {/* Success Message */}
+      {profileSuccess && (
+        <div className="success-banner">
+          <span className="success-icon" role="img" aria-label="success">&#10003;</span>
+          {t('profile.profileUpdated', 'Profile updated successfully!')}
+        </div>
+      )}
+
+      {/* Profile Details Section */}
       <section className="settings-section">
-        <h3 className="section-title">{t('profile.account', 'Account')}</h3>
+        <div className="section-header">
+          <h3 className="section-title">{t('profile.account', 'Account')}</h3>
+          {!isEditingProfile && (
+            <button className="edit-btn" onClick={() => setIsEditingProfile(true)}>
+              <span role="img" aria-label="edit">&#9998;</span>
+              {t('profile.editProfile', 'Edit Profile')}
+            </button>
+          )}
+        </div>
+
+        {isEditingProfile ? (
+          <form onSubmit={handleProfileUpdate} className="profile-edit-form">
+            {profileError && <div className="error-message">{profileError}</div>}
+
+            <div className="form-group">
+              <label>{t('profile.name', 'Name')}</label>
+              <input
+                type="text"
+                value={profileForm.name}
+                onChange={(e) => setProfileForm(prev => ({ ...prev, name: e.target.value }))}
+                placeholder={t('profile.name', 'Name')}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>{t('profile.phoneNumber', 'Phone Number')}</label>
+              <input
+                type="tel"
+                value={profileForm.phone}
+                onChange={(e) => setProfileForm(prev => ({ ...prev, phone: e.target.value }))}
+                placeholder={t('profile.phoneNumber', 'Phone Number')}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>{t('profile.preferredLanguage', 'Preferred Language')}</label>
+              <select
+                value={profileForm.preferredLanguage}
+                onChange={(e) => setProfileForm(prev => ({ ...prev, preferredLanguage: e.target.value }))}
+              >
+                <option value="en">English</option>
+                <option value="vi">Tiếng Việt</option>
+              </select>
+            </div>
+
+            <div className="form-actions">
+              <button type="submit" className="save-btn" disabled={isSubmitting}>
+                {isSubmitting ? t('common.saving', 'Saving...') : t('profile.saveChanges', 'Save Changes')}
+              </button>
+              <button type="button" className="cancel-btn" onClick={handleCancelEdit} disabled={isSubmitting}>
+                {t('profile.cancelEdit', 'Cancel')}
+              </button>
+            </div>
+          </form>
+        ) : (
+          <div className="settings-list">
+            <div className="settings-item">
+              <div className="settings-item-info">
+                <span className="settings-icon" role="img" aria-label="name">&#128100;</span>
+                <div>
+                  <span className="settings-label">{t('profile.name', 'Name')}</span>
+                  <span className="settings-value">{customer?.name || t('common.notSet', 'Not set')}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="settings-item">
+              <div className="settings-item-info">
+                <span className="settings-icon" role="img" aria-label="phone">&#128222;</span>
+                <div>
+                  <span className="settings-label">{t('profile.phoneNumber', 'Phone Number')}</span>
+                  <span className="settings-value">{customer?.phone || t('common.notSet', 'Not set')}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="settings-item">
+              <div className="settings-item-info">
+                <span className="settings-icon" role="img" aria-label="language">&#127760;</span>
+                <div>
+                  <span className="settings-label">{t('profile.preferredLanguage', 'Preferred Language')}</span>
+                  <span className="settings-value">
+                    {customer?.preferredLanguage === 'vi' ? 'Tiếng Việt' : 'English'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* Password Change Section */}
+      <section className="settings-section">
+        <h3 className="section-title">{t('profile.security', 'Security')}</h3>
 
         <div className="settings-list">
           <button className="settings-item clickable" onClick={() => setShowPasswordModal(true)}>

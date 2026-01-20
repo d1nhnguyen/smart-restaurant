@@ -16,7 +16,7 @@ export class CustomerAuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
-  ) {}
+  ) { }
 
   async register(registerDto: CustomerRegisterDto) {
     const { email, password, name, phone, preferredLanguage } = registerDto;
@@ -156,19 +156,38 @@ export class CustomerAuthService {
   }
 
   async updateProfile(customerId: string, updateDto: UpdateProfileDto) {
-    const customer = await this.prisma.customer.update({
-      where: { id: customerId },
-      data: updateDto,
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        phone: true,
-        preferredLanguage: true,
-      },
-    });
+    // Trim whitespace from name if provided
+    const sanitizedData: any = {};
 
-    return customer;
+    if (updateDto.name !== undefined) {
+      sanitizedData.name = updateDto.name.trim();
+    }
+
+    if (updateDto.phone !== undefined) {
+      sanitizedData.phone = updateDto.phone;
+    }
+
+    if (updateDto.preferredLanguage !== undefined) {
+      sanitizedData.preferredLanguage = updateDto.preferredLanguage;
+    }
+
+    try {
+      const customer = await this.prisma.customer.update({
+        where: { id: customerId },
+        data: sanitizedData,
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          phone: true,
+          preferredLanguage: true,
+        },
+      });
+
+      return customer;
+    } catch (error) {
+      throw new BadRequestException('Failed to update profile');
+    }
   }
 
   async changePassword(customerId: string, changePasswordDto: ChangePasswordDto) {

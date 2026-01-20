@@ -239,7 +239,21 @@
         "email": "Email",
         "phone": "Số điện thoại",
         "address": "Địa chỉ",
-        "saveChanges": "Lưu thay đổi"
+        "saveChanges": "Lưu thay đổi",
+        "editProfile": "Chỉnh sửa hồ sơ",
+        "cancelEdit": "Hủy",
+        "profileUpdated": "Cập nhật hồ sơ thành công!",
+        "updateFailed": "Cập nhật hồ sơ thất bại",
+        "nameTooShort": "Tên phải có ít nhất 2 ký tự",
+        "nameTooLong": "Tên không được vượt quá 100 ký tự",
+        "invalidName": "Tên chỉ có thể chứa chữ cái, khoảng trắng, dấu gạch ngang và dấu nháy",
+        "invalidPhone": "Vui lòng nhập số điện thoại hợp lệ (10-15 chữ số)",
+        "invalidLanguage": "Vui lòng chọn ngôn ngữ hợp lệ",
+        "phoneNumber": "Số điện thoại",
+        "preferredLanguage": "Ngôn ngữ ưa thích",
+        "currentPassword": "Mật khẩu hiện tại",
+        "newPassword": "Mật khẩu mới",
+        "passwordChanged": "Đổi mật khẩu thành công!"
     },
     "orders": {
         "startOrdering": "Duyệt menu để bắt đầu đặt món!",

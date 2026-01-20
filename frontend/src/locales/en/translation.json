@@ -239,7 +239,21 @@
         "email": "Email",
         "phone": "Phone",
         "address": "Address",
-        "saveChanges": "Save Changes"
+        "saveChanges": "Save Changes",
+        "editProfile": "Edit Profile",
+        "cancelEdit": "Cancel",
+        "profileUpdated": "Profile updated successfully!",
+        "updateFailed": "Failed to update profile",
+        "nameTooShort": "Name must be at least 2 characters",
+        "nameTooLong": "Name must not exceed 100 characters",
+        "invalidName": "Name can only contain letters, spaces, hyphens, and apostrophes",
+        "invalidPhone": "Please enter a valid phone number (10-15 digits)",
+        "invalidLanguage": "Please select a valid language",
+        "phoneNumber": "Phone Number",
+        "preferredLanguage": "Preferred Language",
+        "currentPassword": "Current Password",
+        "newPassword": "New Password",
+        "passwordChanged": "Password changed successfully!"
     },
     "orders": {
         "startOrdering": "Browse our menu to start ordering!",
