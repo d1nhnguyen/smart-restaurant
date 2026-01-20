@@ -4,6 +4,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
@@ -16,6 +17,7 @@ export class JwtAuthGuard implements CanActivate {
     private jwtService: JwtService,
     private prisma: PrismaService,
     private reflector: Reflector,
+    private configService: ConfigService,
   ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -36,7 +38,7 @@ export class JwtAuthGuard implements CanActivate {
 
     try {
       const payload = await this.jwtService.verifyAsync(token, {
-        secret: process.env.JWT_SECRET,
+        secret: this.configService.get<string>('JWT_SECRET'),
       });
 
       // Check if user is still active in database
