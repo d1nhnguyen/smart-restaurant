@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as nodemailer from 'nodemailer';
-import { Transporter } from 'nodemailer';
+import { Resend } from 'resend';
 
 interface EmailOptions {
   to: string;
@@ -11,7 +10,7 @@ interface EmailOptions {
 
 @Injectable()
 export class EmailService {
-  private transporter: Transporter;
+  private resend: Resend | null = null;
   private readonly logger = new Logger(EmailService.name);
   private readonly fromEmail: string;
   private readonly fromName: string;
@@ -19,58 +18,37 @@ export class EmailService {
   private readonly isEmailEnabled: boolean;
 
   constructor(private configService: ConfigService) {
-    const emailUser = this.configService.get<string>('EMAIL_USER');
-    const emailPass = this.configService.get<string>('EMAIL_PASS')?.replace(/\s/g, ''); // Trim all whitespace in password
+    const resendApiKey = this.configService.get<string>('RESEND_API_KEY');
 
-    this.fromEmail = emailUser || 'noreply@restaurant.com';
     this.fromName = this.configService.get<string>('EMAIL_FROM_NAME') || 'Restaurant App';
     this.frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:4000';
 
-    // Log configuration status (without exposing full credentials)
-    this.logger.log(`Email Configuration: User=${emailUser ? 'Configured' : 'Missing'}, Pass=${emailPass ? 'Configured' : 'Missing'}, Frontend=${this.frontendUrl}`);
+    // Resend free tier uses onboarding@resend.dev for testing
+    // Once you verify your domain, you can use your own email
+    this.fromEmail = this.configService.get<string>('EMAIL_FROM') || 'onboarding@resend.dev';
 
-    // Enable email only if credentials are provided
-    this.isEmailEnabled = !!(emailUser && emailPass);
+    // Log configuration status
+    this.logger.log(`Email Configuration: Resend API Key=${resendApiKey ? 'Configured' : 'Missing'}, Frontend=${this.frontendUrl}`);
+
+    // Enable email only if API key is provided
+    this.isEmailEnabled = !!resendApiKey;
 
     if (this.isEmailEnabled) {
-      this.transporter = nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 587,
-        secure: false, // Use TLS
-        auth: {
-          user: emailUser,
-          pass: emailPass, // App Password (16 characters)
-        },
-        tls: {
-          rejectUnauthorized: false // Helps with some cloud hosting certificate issues
-        }
-      });
-
-      // Verify connection
-      this.transporter.verify()
-        .then(() => this.logger.log('Email service connected successfully to Gmail SMTP'))
-        .catch((err) => {
-          this.logger.error('Email service connection failed. This might be due to incorrect App Password or Gmail blocking the connection from this IP.');
-          this.logger.error(`SMTP Error: ${err.message}`);
-          if (err.code === 'EAUTH') {
-            this.logger.error('Authentication Error (EAUTH): Please check your EMAIL_USER and EMAIL_PASS (App Password).');
-          }
-          this.logger.warn('Emails will be logged to console instead');
-        });
+      this.resend = new Resend(resendApiKey);
+      this.logger.log('Resend email service initialized successfully');
     } else {
-      this.logger.warn('Email credentials not configured. Emails will be logged to console.');
+      this.logger.warn('RESEND_API_KEY not configured. Emails will be logged to console.');
     }
   }
 
   private async sendMail(options: EmailOptions): Promise<boolean> {
-    if (!this.isEmailEnabled || !this.transporter) {
+    if (!this.isEmailEnabled || !this.resend) {
       // Log email to console for development
       this.logger.log('='.repeat(60));
-      this.logger.log('📧 EMAIL (Development Mode)');
+      this.logger.log('📧 EMAIL (Development Mode - No Resend API Key)');
       this.logger.log(`To: ${options.to}`);
       this.logger.log(`Subject: ${options.subject}`);
       this.logger.log('-'.repeat(60));
-      this.logger.log('HTML Content logged (check email template below):');
       // Extract important links from HTML
       const linkMatch = options.html.match(/href="([^"]+)"/g);
       if (linkMatch) {
@@ -86,13 +64,19 @@ export class EmailService {
     }
 
     try {
-      await this.transporter.sendMail({
-        from: `"${this.fromName}" <${this.fromEmail}>`,
-        to: options.to,
+      const { data, error } = await this.resend.emails.send({
+        from: `${this.fromName} <${this.fromEmail}>`,
+        to: [options.to],
         subject: options.subject,
         html: options.html,
       });
-      this.logger.log(`Email sent successfully to ${options.to}`);
+
+      if (error) {
+        this.logger.error(`Resend error for ${options.to}: ${error.message}`);
+        return false;
+      }
+
+      this.logger.log(`Email sent successfully to ${options.to} (ID: ${data?.id})`);
       return true;
     } catch (error) {
       this.logger.error(`Failed to send email to ${options.to}:`, error.message);
