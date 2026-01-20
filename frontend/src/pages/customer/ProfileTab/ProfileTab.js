@@ -157,7 +157,7 @@ const ProfileTab = () => {
               <span className="settings-icon" role="img" aria-label="language">&#127760;</span>
               <div>
                 <span className="settings-label">{t('profile.language', 'Language')}</span>
-                <span className="settings-value">{i18n.language === 'vi' ? 'Tiếng Việt' : 'English'}</span>
+                <span className="settings-value">{i18n.language === 'vi' ? t('menu.vietnamese', 'Tiếng Việt') : t('menu.english', 'English')}</span>
               </div>
             </div>
             <LanguageSwitcher />

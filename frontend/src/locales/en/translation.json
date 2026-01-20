@@ -154,14 +154,19 @@
         "viewOrder": "View Order"
     },
     "auth": {
-        "login": "Login",
+        "signIn": "Sign In",
         "username": "Username",
         "password": "Password",
+        "tagline": "Scan, Order, Reward",
         "forgotPassword": "Forgot Password?",
-        "loginButton": "Sign In",
-        "staffMember": "Staff member?",
+        "createAccount": "Create Account",
+        "or": "Or",
+        "continueAsGuest": "Continue as Guest",
+        "staffMember": "Are you a staff member?",
         "loginHere": "Login here",
-        "invalidCredentials": "Invalid username or password"
+        "invalidCredentials": "Invalid username or password",
+        "guestUser": "Guest User",
+        "guestMessage": "Login to view order history and save your information"
     },
     "admin": {
         "dashboard": "Dashboard",

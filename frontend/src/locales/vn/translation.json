@@ -154,14 +154,19 @@
         "viewOrder": "Xem đơn hàng"
     },
     "auth": {
-        "login": "Đăng nhập",
+        "signIn": "Đăng nhập",
         "username": "Tên đăng nhập",
         "password": "Mật khẩu",
+        "tagline": "Quét. Đặt. Thưởng",
         "forgotPassword": "Quên mật khẩu?",
-        "loginButton": "Đăng nhập",
+        "createAccount": "Tạo tài khoản",
+        "or": "Hoặc",
+        "continueAsGuest": "Tiếp tục như khách vãng lai",
         "staffMember": "Bạn là nhân viên?",
         "loginHere": "Đăng nhập tại đây",
-        "invalidCredentials": "Tên đăng nhập hoặc mật khẩu không đúng"
+        "invalidCredentials": "Tên đăng nhập hoặc mật khẩu không đúng",
+        "guestUser": "Khách vãng lai",
+        "guestMessage": "Đăng nhập để xem lịch sử đơn hàng và lưu lại các thông tin"
     },
     "admin": {
         "dashboard": "Bảng điều khiển",
