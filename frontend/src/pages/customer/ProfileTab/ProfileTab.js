@@ -10,8 +10,7 @@ import './ProfileTab.css';
 const ProfileTab = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const { customer, isAuthenticated, logout, changePassword, getToken } = useCustomerAuth();
-  const { customer, isAuthenticated, logout, changePassword, updateProfile } = useCustomerAuth();
+  const { customer, isAuthenticated, logout, changePassword, getToken, updateProfile } = useCustomerAuth();
   const { table } = useCart();
 
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -65,6 +64,8 @@ const ProfileTab = () => {
     } finally {
       setResendingVerification(false);
     }
+  };
+
   const validateProfileForm = () => {
     const { name, phone } = profileForm;
 
