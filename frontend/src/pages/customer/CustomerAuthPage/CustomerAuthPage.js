@@ -1,18 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useCustomerAuth } from '../../../contexts/CustomerAuthContext';
 import { useCart } from '../../../contexts/CartContext';
 import PasswordStrengthIndicator from '../../../components/customer/PasswordStrengthIndicator';
+import customerAuthService from '../../../services/customerAuthService';
 import './CustomerAuthPage.css';
 
 const CustomerAuthPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { login, register, continueAsGuest, isLoading, error, clearError, hasSession, authMode } = useCustomerAuth();
+  const { login, register, continueAsGuest, isLoading, error, clearError, hasSession, authMode, checkEmailAvailability } = useCustomerAuth();
   const { table } = useCart();
 
-  const [mode, setMode] = useState('select'); // 'select' | 'login' | 'register'
+  const [mode, setMode] = useState('select'); // 'select' | 'login' | 'register' | 'forgot' | 'verify-pending'
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -23,6 +24,12 @@ const CustomerAuthPage = () => {
   const [formErrors, setFormErrors] = useState({});
   const [emailChecking, setEmailChecking] = useState(false);
   const [emailAvailable, setEmailAvailable] = useState(null);
+  const [forgotPasswordSent, setForgotPasswordSent] = useState(false);
+  const [pendingVerificationEmail, setPendingVerificationEmail] = useState('');
+  const [devVerifyToken, setDevVerifyToken] = useState(''); // For development only
+  const [resendingVerification, setResendingVerification] = useState(false);
+  const [verificationResent, setVerificationResent] = useState(false);
+  const emailCheckTimeoutRef = useRef(null);
 
   // Redirect if no table session
   useEffect(() => {
@@ -43,7 +50,47 @@ const CustomerAuthPage = () => {
     clearError();
     setFormErrors({});
     setEmailAvailable(null);
+    setForgotPasswordSent(false);
   }, [mode, clearError]);
+
+  // Real-time email availability check with debounce
+  const checkEmail = useCallback(async (email) => {
+    if (!validateEmail(email)) {
+      setEmailAvailable(null);
+      return;
+    }
+
+    setEmailChecking(true);
+    try {
+      const available = await checkEmailAvailability(email);
+      setEmailAvailable(available);
+    } catch (err) {
+      setEmailAvailable(null);
+    } finally {
+      setEmailChecking(false);
+    }
+  }, [checkEmailAvailability]);
+
+  // Debounced email check when typing in register form
+  useEffect(() => {
+    if (mode === 'register' && formData.email) {
+      // Clear previous timeout
+      if (emailCheckTimeoutRef.current) {
+        clearTimeout(emailCheckTimeoutRef.current);
+      }
+
+      // Set new timeout for debounce (500ms)
+      emailCheckTimeoutRef.current = setTimeout(() => {
+        checkEmail(formData.email);
+      }, 500);
+    }
+
+    return () => {
+      if (emailCheckTimeoutRef.current) {
+        clearTimeout(emailCheckTimeoutRef.current);
+      }
+    };
+  }, [formData.email, mode, checkEmail]);
 
   const validateEmail = (email) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -83,6 +130,10 @@ const CustomerAuthPage = () => {
     const result = await login(formData.email, formData.password);
     if (result.success) {
       navigate('/c/menu', { replace: true });
+    } else if (result.emailNotVerified) {
+      // User hasn't verified email yet
+      setPendingVerificationEmail(result.email);
+      setMode('verify-pending');
     }
   };
 
@@ -117,13 +168,59 @@ const CustomerAuthPage = () => {
     });
 
     if (result.success) {
-      navigate('/c/menu', { replace: true });
+      if (result.requiresVerification) {
+        // Show verification pending screen
+        setPendingVerificationEmail(result.email || formData.email);
+        setDevVerifyToken(result.emailVerifyToken || ''); // For development
+        setMode('verify-pending');
+      } else {
+        navigate('/c/menu', { replace: true });
+      }
+    }
+  };
+
+  const handleResendVerification = async () => {
+    setResendingVerification(true);
+    setVerificationResent(false);
+    try {
+      const result = await customerAuthService.resendVerificationByEmail(pendingVerificationEmail);
+      // For development: update the dev token if returned
+      if (result.emailVerifyToken) {
+        setDevVerifyToken(result.emailVerifyToken);
+      }
+      setVerificationResent(true);
+    } catch (err) {
+      // Still show success to prevent email enumeration
+      setVerificationResent(true);
+    } finally {
+      setResendingVerification(false);
     }
   };
 
   const handleGuestContinue = () => {
     continueAsGuest();
     navigate('/c/menu', { replace: true });
+  };
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    const errors = {};
+
+    if (!formData.email) errors.email = t('auth.emailRequired', 'Email is required');
+    else if (!validateEmail(formData.email)) errors.email = t('auth.invalidEmail', 'Invalid email format');
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+
+    try {
+      await customerAuthService.forgotPassword(formData.email);
+      setForgotPasswordSent(true);
+    } catch (err) {
+      // Still show success to prevent email enumeration
+      setForgotPasswordSent(true);
+    }
   };
 
   const renderSelectMode = () => (
@@ -228,6 +325,12 @@ const CustomerAuthPage = () => {
           {formErrors.password && <span className="field-error">{formErrors.password}</span>}
         </div>
 
+        <div className="forgot-password-link">
+          <button type="button" onClick={() => setMode('forgot')}>
+            {t('auth.forgotPassword', 'Forgot your password?')}
+          </button>
+        </div>
+
         <button
           type="submit"
           className="auth-btn auth-btn-primary auth-submit-btn"
@@ -243,6 +346,130 @@ const CustomerAuthPage = () => {
           {t('auth.signUp', 'Sign Up')}
         </button>
       </p>
+    </div>
+  );
+
+  const renderForgotPasswordForm = () => (
+    <div className="auth-form-container">
+      <button className="auth-back-btn" onClick={() => setMode('login')}>
+        <span role="img" aria-label="back">&#8592;</span> {t('common.back', 'Back')}
+      </button>
+
+      <h2 className="auth-form-title">{t('auth.resetPassword', 'Reset Password')}</h2>
+      <p className="auth-form-subtitle">{t('auth.resetPasswordDesc', 'Enter your email to receive a password reset link')}</p>
+
+      {forgotPasswordSent ? (
+        <div className="auth-success-message">
+          <span className="success-icon" role="img" aria-label="success">&#10003;</span>
+          <h3>{t('auth.emailSent', 'Email Sent!')}</h3>
+          <p>{t('auth.checkInbox', 'Please check your inbox for the password reset link. The link will expire in 1 hour.')}</p>
+          <button
+            className="auth-btn auth-btn-secondary"
+            onClick={() => setMode('login')}
+          >
+            {t('auth.backToLogin', 'Back to Login')}
+          </button>
+        </div>
+      ) : (
+        <>
+          {error && <div className="auth-error">{error}</div>}
+
+          <form onSubmit={handleForgotPassword} className="auth-form">
+            <div className="form-group">
+              <label htmlFor="forgot-email">{t('auth.email', 'Email')}</label>
+              <input
+                type="email"
+                id="forgot-email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder={t('auth.emailPlaceholder', 'your@email.com')}
+                autoComplete="email"
+                inputMode="email"
+                className={formErrors.email ? 'error' : ''}
+              />
+              {formErrors.email && <span className="field-error">{formErrors.email}</span>}
+            </div>
+
+            <button
+              type="submit"
+              className="auth-btn auth-btn-primary auth-submit-btn"
+              disabled={isLoading}
+            >
+              {isLoading ? t('auth.sending', 'Sending...') : t('auth.sendResetLink', 'Send Reset Link')}
+            </button>
+          </form>
+        </>
+      )}
+    </div>
+  );
+
+  const renderVerifyPending = () => (
+    <div className="auth-form-container verify-pending-container">
+      <div className="verify-pending-icon">
+        <span role="img" aria-label="email">&#9993;</span>
+      </div>
+
+      <h2 className="auth-form-title">{t('auth.verifyYourEmail', 'Verify Your Email')}</h2>
+      <p className="auth-form-subtitle">
+        {t('auth.verificationSentTo', "We've sent a verification link to")}
+      </p>
+      <p className="verification-email">{pendingVerificationEmail}</p>
+
+      <div className="verify-instructions">
+        <p>{t('auth.checkInboxVerify', 'Please check your inbox and click the verification link to activate your account.')}</p>
+        <p className="verify-note">{t('auth.linkExpires', 'The link will expire in 24 hours.')}</p>
+      </div>
+
+      {/* Development only: Show direct link */}
+      {devVerifyToken && (
+        <div className="dev-verify-link">
+          <p><strong>Development Only:</strong></p>
+          <a
+            href={`/c/verify-email?token=${devVerifyToken}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="auth-btn auth-btn-secondary"
+          >
+            {t('auth.verifyNow', 'Verify Now')} (Dev Link)
+          </a>
+        </div>
+      )}
+
+      <div className="resend-section">
+        {verificationResent ? (
+          <p className="resend-success">
+            <span role="img" aria-label="check">&#10003;</span>
+            {t('auth.verificationResent', 'Verification email resent!')}
+          </p>
+        ) : (
+          <>
+            <p>{t('auth.didntReceive', "Didn't receive the email?")}</p>
+            <button
+              className="resend-link"
+              onClick={handleResendVerification}
+              disabled={resendingVerification}
+            >
+              {resendingVerification
+                ? t('auth.sending', 'Sending...')
+                : t('auth.resendVerification', 'Resend verification email')}
+            </button>
+          </>
+        )}
+      </div>
+
+      <div className="verify-actions">
+        <button
+          className="auth-btn auth-btn-ghost"
+          onClick={() => {
+            setMode('login');
+            setPendingVerificationEmail('');
+            setDevVerifyToken('');
+          }}
+        >
+          {t('auth.backToLogin', 'Back to Login')}
+        </button>
+      </div>
     </div>
   );
 
@@ -287,9 +514,19 @@ const CustomerAuthPage = () => {
             className={formErrors.email ? 'error' : emailAvailable === false ? 'error' : emailAvailable === true ? 'success' : ''}
           />
           {formErrors.email && <span className="field-error">{formErrors.email}</span>}
-          {emailAvailable === true && !formErrors.email && (
+          {emailChecking && !formErrors.email && (
+            <span className="field-checking">
+              <span className="spinner-small"></span> {t('auth.checkingEmail', 'Checking availability...')}
+            </span>
+          )}
+          {emailAvailable === true && !formErrors.email && !emailChecking && (
             <span className="field-success">
               <span role="img" aria-label="check">&#10003;</span> {t('auth.emailAvailable', 'Email is available')}
+            </span>
+          )}
+          {emailAvailable === false && !formErrors.email && !emailChecking && (
+            <span className="field-error">
+              <span role="img" aria-label="error">&#10007;</span> {t('auth.emailTaken', 'Email is already registered')}
             </span>
           )}
         </div>
@@ -364,6 +601,8 @@ const CustomerAuthPage = () => {
       <div className="auth-container">
         {mode === 'select' && renderSelectMode()}
         {mode === 'login' && renderLoginForm()}
+        {mode === 'forgot' && renderForgotPasswordForm()}
+        {mode === 'verify-pending' && renderVerifyPending()}
         {mode === 'register' && renderRegisterForm()}
       </div>
     </div>

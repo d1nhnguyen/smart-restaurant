@@ -77,6 +77,17 @@ export const CustomerAuthProvider = ({ children }) => {
       return { success: true };
     } catch (err) {
       const message = err.response?.data?.message || 'Login failed. Please try again.';
+
+      // Handle unverified email case
+      if (message === 'EMAIL_NOT_VERIFIED') {
+        return {
+          success: false,
+          emailNotVerified: true,
+          email: email,
+          error: 'Please verify your email before logging in.'
+        };
+      }
+
       setError(message);
       return { success: false, error: message };
     } finally {
@@ -89,11 +100,25 @@ export const CustomerAuthProvider = ({ children }) => {
     setIsLoading(true);
     try {
       const response = await customerAuthService.register(data);
-      const { access_token, customer: customerData } = response;
 
-      setCustomer(customerData);
-      setAuthMode('authenticated');
-      saveToStorage(access_token, customerData, 'authenticated');
+      // New flow: registration requires email verification
+      if (response.requiresVerification) {
+        return {
+          success: true,
+          requiresVerification: true,
+          email: response.customer?.email,
+          // For development: return token to show verification link
+          emailVerifyToken: response.emailVerifyToken
+        };
+      }
+
+      // Fallback for old flow (if backend returns access_token)
+      const { access_token, customer: customerData } = response;
+      if (access_token) {
+        setCustomer(customerData);
+        setAuthMode('authenticated');
+        saveToStorage(access_token, customerData, 'authenticated');
+      }
 
       return { success: true };
     } catch (err) {

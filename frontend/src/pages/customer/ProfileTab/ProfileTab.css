@@ -67,6 +67,75 @@
   font-size: 14px;
   color: #7f8c8d;
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.verified-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  background: #27ae60;
+  border-radius: 50%;
+  font-size: 10px;
+  color: #fff;
+}
+
+/* Email Verification Banner */
+.verification-banner {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%);
+  border-left: 4px solid #f39c12;
+  margin: 0 0 16px;
+}
+
+.verification-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.verification-content {
+  flex: 1;
+}
+
+.verification-content h4 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #856404;
+  margin: 0 0 4px;
+}
+
+.verification-content p {
+  font-size: 13px;
+  color: #856404;
+  margin: 0 0 12px;
+  line-height: 1.4;
+}
+
+.verification-sent {
+  color: #155724 !important;
+  font-weight: 500;
+}
+
+.resend-btn {
+  padding: 10px 16px;
+  background: #f39c12;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.resend-btn:disabled {
+  background: #d5a32a;
+  cursor: not-allowed;
 }
 
 /* Guest Profile */

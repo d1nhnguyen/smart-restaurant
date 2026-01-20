@@ -368,6 +368,11 @@ model Customer {
   phone               String?   @db.VarChar(20)
   preferredLanguage   String?   @default("en") @map("preferred_language") @db.VarChar(10)
   isActive            Boolean   @default(true) @map("is_active")
+  isEmailVerified     Boolean   @default(false) @map("is_email_verified")
+  emailVerifyToken    String?   @unique @map("email_verify_token") @db.VarChar(100)
+  emailVerifyExpires  DateTime? @map("email_verify_expires")
+  passwordResetToken  String?   @unique @map("password_reset_token") @db.VarChar(100)
+  passwordResetExpires DateTime? @map("password_reset_expires")
   failedLoginAttempts Int       @default(0) @map("failed_login_attempts")
   lockedUntil         DateTime? @map("locked_until")
   createdAt           DateTime  @default(now()) @map("created_at")
@@ -376,6 +381,8 @@ model Customer {
   orders Order[] @relation("CustomerOrders")
 
   @@index([email])
+  @@index([emailVerifyToken])
+  @@index([passwordResetToken])
   @@map("customers")
 }
 

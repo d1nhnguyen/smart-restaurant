@@ -1,7 +1,9 @@
-import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
+import { EmailService } from '../email/email.service';
 import { CustomerRegisterDto } from './dto/customer-register.dto';
 import { CustomerLoginDto } from './dto/customer-login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -10,13 +12,20 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MINUTES = 15;
 const CUSTOMER_TOKEN_EXPIRY = '7d';
+const EMAIL_VERIFY_EXPIRY_HOURS = 24;
+const PASSWORD_RESET_EXPIRY_HOURS = 1;
 
 @Injectable()
 export class CustomerAuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private emailService: EmailService,
   ) {}
+
+  private generateToken(): string {
+    return crypto.randomBytes(32).toString('hex');
+  }
 
   async register(registerDto: CustomerRegisterDto) {
     const { email, password, name, phone, preferredLanguage } = registerDto;
@@ -30,6 +39,8 @@ export class CustomerAuthService {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const emailVerifyToken = this.generateToken();
+    const emailVerifyExpires = new Date(Date.now() + EMAIL_VERIFY_EXPIRY_HOURS * 60 * 60 * 1000);
 
     const customer = await this.prisma.customer.create({
       data: {
@@ -38,22 +49,22 @@ export class CustomerAuthService {
         name,
         phone,
         preferredLanguage: preferredLanguage || 'en',
+        emailVerifyToken,
+        emailVerifyExpires,
+        isEmailVerified: false,
       },
     });
 
-    const payload = { sub: customer.id, email: customer.email, type: 'customer' };
-    const access_token = await this.jwtService.signAsync(payload, {
-      expiresIn: CUSTOMER_TOKEN_EXPIRY,
-    });
+    // Send verification email
+    await this.emailService.sendVerificationEmail(customer.email, emailVerifyToken);
 
     return {
-      access_token,
+      message: 'Registration successful. Please check your email to verify your account.',
+      requiresVerification: true,
       customer: {
         id: customer.id,
         email: customer.email,
         name: customer.name,
-        phone: customer.phone,
-        preferredLanguage: customer.preferredLanguage,
       },
     };
   }
@@ -110,6 +121,13 @@ export class CustomerAuthService {
       );
     }
 
+    // Check if email is verified
+    if (!customer.isEmailVerified) {
+      throw new UnauthorizedException(
+        'EMAIL_NOT_VERIFIED',
+      );
+    }
+
     await this.prisma.customer.update({
       where: { id: customer.id },
       data: {
@@ -131,8 +149,179 @@ export class CustomerAuthService {
         name: customer.name,
         phone: customer.phone,
         preferredLanguage: customer.preferredLanguage,
+        isEmailVerified: customer.isEmailVerified,
       },
     };
+  }
+
+  async verifyEmail(token: string) {
+    const customer = await this.prisma.customer.findUnique({
+      where: { emailVerifyToken: token },
+    });
+
+    if (!customer) {
+      // Token not found - could be already used or invalid
+      // Check if there's a verified customer (token was already used)
+      // For security, we don't reveal if token existed, just say invalid/expired
+      return {
+        message: 'Email already verified',
+        alreadyVerified: true
+      };
+    }
+
+    if (customer.isEmailVerified) {
+      return { message: 'Email already verified', alreadyVerified: true };
+    }
+
+    if (customer.emailVerifyExpires && customer.emailVerifyExpires < new Date()) {
+      throw new BadRequestException('Verification token has expired. Please request a new one.');
+    }
+
+    await this.prisma.customer.update({
+      where: { id: customer.id },
+      data: {
+        isEmailVerified: true,
+        emailVerifyToken: null,
+        emailVerifyExpires: null,
+      },
+    });
+
+    return { message: 'Email verified successfully', success: true };
+  }
+
+  async resendVerificationEmail(customerId: string) {
+    const customer = await this.prisma.customer.findUnique({
+      where: { id: customerId },
+    });
+
+    if (!customer) {
+      throw new NotFoundException('Customer not found');
+    }
+
+    if (customer.isEmailVerified) {
+      throw new BadRequestException('Email is already verified');
+    }
+
+    const emailVerifyToken = this.generateToken();
+    const emailVerifyExpires = new Date(Date.now() + EMAIL_VERIFY_EXPIRY_HOURS * 60 * 60 * 1000);
+
+    await this.prisma.customer.update({
+      where: { id: customer.id },
+      data: {
+        emailVerifyToken,
+        emailVerifyExpires,
+      },
+    });
+
+    // Send verification email
+    await this.emailService.sendVerificationEmail(customer.email, emailVerifyToken);
+
+    return {
+      message: 'Verification email sent',
+    };
+  }
+
+  async resendVerificationByEmail(email: string) {
+    const customer = await this.prisma.customer.findUnique({
+      where: { email },
+    });
+
+    // Always return success to prevent email enumeration
+    if (!customer || customer.isEmailVerified) {
+      return { message: 'If an unverified account exists, a verification email will be sent.' };
+    }
+
+    const emailVerifyToken = this.generateToken();
+    const emailVerifyExpires = new Date(Date.now() + EMAIL_VERIFY_EXPIRY_HOURS * 60 * 60 * 1000);
+
+    await this.prisma.customer.update({
+      where: { id: customer.id },
+      data: {
+        emailVerifyToken,
+        emailVerifyExpires,
+      },
+    });
+
+    // Send verification email
+    await this.emailService.sendVerificationEmail(customer.email, emailVerifyToken);
+
+    return {
+      message: 'If an unverified account exists, a verification email will be sent.',
+    };
+  }
+
+  async forgotPassword(email: string) {
+    const customer = await this.prisma.customer.findUnique({
+      where: { email },
+    });
+
+    // Always return success to prevent email enumeration
+    if (!customer) {
+      return { message: 'If an account exists, a password reset link will be sent.' };
+    }
+
+    const passwordResetToken = this.generateToken();
+    const passwordResetExpires = new Date(Date.now() + PASSWORD_RESET_EXPIRY_HOURS * 60 * 60 * 1000);
+
+    await this.prisma.customer.update({
+      where: { id: customer.id },
+      data: {
+        passwordResetToken,
+        passwordResetExpires,
+      },
+    });
+
+    // Send password reset email
+    await this.emailService.sendPasswordResetEmail(customer.email, passwordResetToken);
+
+    return {
+      message: 'If an account exists, a password reset link will be sent.',
+    };
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    const customer = await this.prisma.customer.findUnique({
+      where: { passwordResetToken: token },
+    });
+
+    if (!customer) {
+      throw new BadRequestException('Invalid or expired reset token');
+    }
+
+    if (customer.passwordResetExpires && customer.passwordResetExpires < new Date()) {
+      throw new BadRequestException('Reset token has expired. Please request a new one.');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await this.prisma.customer.update({
+      where: { id: customer.id },
+      data: {
+        password: hashedPassword,
+        passwordResetToken: null,
+        passwordResetExpires: null,
+        failedLoginAttempts: 0,
+        lockedUntil: null,
+      },
+    });
+
+    return { message: 'Password reset successfully' };
+  }
+
+  async validateResetToken(token: string) {
+    const customer = await this.prisma.customer.findUnique({
+      where: { passwordResetToken: token },
+    });
+
+    if (!customer) {
+      return { valid: false, message: 'Invalid reset token' };
+    }
+
+    if (customer.passwordResetExpires && customer.passwordResetExpires < new Date()) {
+      return { valid: false, message: 'Reset token has expired' };
+    }
+
+    return { valid: true, email: customer.email };
   }
 
   async getProfile(customerId: string) {
@@ -144,6 +333,7 @@ export class CustomerAuthService {
         name: true,
         phone: true,
         preferredLanguage: true,
+        isEmailVerified: true,
         createdAt: true,
       },
     });
