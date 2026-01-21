@@ -1,148 +1,135 @@
-# Restaurant Menu Management System
+# 🍽️ Smart Restaurant Management System
 
-A full-stack web application for managing restaurant categories, menu items, pricing, and availability.
+[![NestJS](https://img.shields.io/badge/backend-NestJS%2010-E0234E?style=flat&logo=nestjs)](https://nestjs.com/)
+[![React](https://img.shields.io/badge/frontend-React%2019-61DAFB?style=flat&logo=react)](https://react.dev/)
+[![Prisma](https://img.shields.io/badge/ORM-Prisma-2D3748?style=flat&logo=prisma)](https://www.prisma.io/)
+[![PostgreSQL](https://img.shields.io/badge/database-PostgreSQL-336791?style=flat&logo=postgresql)](https://www.postgresql.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## Project cần file .env trong backend và frontend, hỏi người tạo đồ án để biết
+A comprehensive, full-stack solution designed to modernize restaurant operations through digital menu management, QR-based ordering, and real-time staff coordination.
 
-## Project Structure
+---
 
-```
-Final_project/
-├── backend/          # NestJS REST API
-├── frontend/         # React web application
-```
+## 📖 Table of Contents
+- [Features](#-features)
+- [Tech Stack](#-tech-stack)
+- [Project Structure](#-project-structure)
+- [Getting Started](#-getting-started)
+- [API Overview](#-api-overview)
+- [Database Schema](#-database-schema)
+- [Vietnamese Description](#-tiếng-việt)
 
-## Technology Stack
+---
+
+## ✨ Features
+
+### 📋 Table & QR Management
+- **Interactive Grid**: Visual representation of the restaurant layout.
+- **Dynamic QR Generation**: Secure, token-based QR codes for each table.
+- **Real-time Status**: Live tracking of table availability (Available, Occupied, Reserved).
+
+### 🍱 Advanced Menu Management
+- **Categorization**: Full CRUD for menu categories with custom display ordering.
+- **Item Details**: Manage pricing, preparation time, and "Chef's Recommendations".
+- **Stock Control**: Real-time availability toggles (`Available`, `Unavailable`, `Sold out`).
+- **Modifier Groups**: Flexible options for items (e.g., custom sizes, extra toppings).
+- **Media Gallery**: Cloudinary-integrated photo management with primary image selection.
+
+### 🛡️ Admin & Staff Tools
+- **Robust Authentication**: Secure login for Admin and Kitchen Staff.
+- **Analytics Dashboard**: Track popularity, sales (based on project progress).
+- **Real-time Notifications**: Socket.io integration for instant order updates between guest and kitchen.
+
+### 🌐 Localization
+- **Multilingual Support**: Fully localized in **English** and **Vietnamese** using `i18next`.
+
+---
+
+## 🚀 Tech Stack
 
 ### Backend
-- **Framework**: NestJS 10.x
-- **Database**: PostgreSQL 15 (Docker)
-- **ORM**: Prisma 5.x
-- **Runtime**: Node.js with TypeScript
+- **Core**: NestJS (TypeScript)
+- **Database**: PostgreSQL with Prisma ORM
+- **Security**: JWT & Passport
+- **Real-time**: Socket.io
+- **Storage**: Cloudinary (Image Hosting)
+- **Communication**: Brevo/Resend/Nodemailer (Email Services)
 
 ### Frontend
-- **Framework**: React 19.x
-- **Routing**: React Router v6
-- **HTTP Client**: Axios
-- **Styling**: Custom CSS
+- **Framework**: React 19
+- **State/Routing**: React Router v6
+- **API Client**: Axios
+- **Real-time**: Socket.io-client
+- **Internationalization**: i18next
+- **Styling**: Vanilla CSS (Custom Responsive Design)
 
-## Prerequisites
+---
 
-- Node.js 18+ and npm
-- Docker and Docker Compose
-- Git
-
-## Quick Start
-
-### 1. Clone the repository
+## 🏗️ Project Structure
 
 ```bash
-git clone <repository-url>
-cd Final_project
+menu-management/
+├── backend/          # NestJS Server & API
+│   ├── src/          # Source code (controllers, services, gateways)
+│   ├── prisma/       # Database schema & migrations
+│   └── .env.example  # Backend environment template
+├── frontend/         # React Application
+│   ├── src/          # Components, Pages, Contexts
+│   ├── public/       # Static assets
+│   └── .env.example  # Frontend environment template
+└── README.md         # Documentation
 ```
 
-docker-compose up -d  # Start PostgreSQL
-```
+---
 
-### 2. Backend
-```bash
-cd backend
-npm install && npx prisma db push
-npm run start:dev
-```
+## 🛠️ Getting Started
 
-### 3. Frontend
-```bash
-cd frontend
-npm install && npm start
-```
+### Prerequisites
+- Node.js (v18+)
+- Docker (for local PostgreSQL)
+- npm or yarn
 
-## Features
+### Installation
 
-### 📋 Table & QR Management (Completed)
-- ✅ View/Edit restaurant tables in a grid layout
-- ✅ Automatic QR generation with secure JWT tokens
-- ✅ Real-time status tracking (Available, Occupied, etc.)
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd menu-management
+   ```
 
-### 🍽️ Menu Management (Current Assignment)
-- **Menu Categories**: Full CRUD with name uniqueness, display ordering, and status (Active/Inactive).
-- **Menu Items**:
-  - Detailed CRUD (Price, Prep Time, Chef Recommendation).
-  - Availability status: `Available`, `Unavailable`, `Sold out`.
-  - **Soft delete** support to preserve order history.
-- **Photos Management**:
-  - Upload multiple photos per item (JPG/PNG/WebP).
-  - Set primary photos for guest menu display.
-- **Item Modifiers**:
-  - Create modifier groups (Single-select/Multi-select).
-  - Price adjustments per option (e.g., Size, Extras).
-- **Admin UI**:
-  - Advanced filtering (by name, category, status).
-  - Sorting (by price, creation time, popularity).
-  - Pagination support for large menus.
-- **Guest Menu**:
-  - Read-only consumption endpoint for QR flow.
-  - Search and category filtering.
+2. **Environment Setup**
+   - Create `.env` files in both `backend/` and `frontend/` based on their respective `.env.example` files.
 
-## API Endpoints summary
+3. **Database Setup**
+   ```bash
+   # In the root or backend directory
+   docker-compose up -d
+   cd backend
+   npm install
+   npx prisma db push
+   npx prisma db seed # Optional: Seed initial data
+   ```
 
-### Admin Menu API
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/admin/menu/categories` | List categories (filter/sort) |
-| POST | `/api/admin/menu/categories` | Create category |
-| GET | `/api/admin/menu/items` | List items (paging/filter/sort) |
-| POST | `/api/admin/menu/items` | Create item |
-| POST | `/api/admin/menu/items/:id/photos` | Multi-photo upload |
-| POST | `/api/admin/menu/modifier-groups` | Create modifier group |
+4. **Running the Application**
+   - **Backend**: `npm run start:dev`
+   - **Frontend**: `cd ../frontend && npm install && npm start`
 
-### Table & QR API
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/tables` | Get all tables |
-| PATCH | `/api/tables/:id/status` | Update table status |
-| POST | `/api/qr/verify` | Verify QR token |
+---
 
-### Guest API
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/menu` | Load restaurant-scoped menu |
+## 🗺️ API Overview
 
-## Database Schema Highlights
+| Feature | Method | Endpoint |
+| :--- | :--- | :--- |
+| **Guest Menu** | `GET` | `/api/menu` |
+| **Admin Items** | `GET/POST` | `/api/admin/menu/items` |
+| **Categories** | `GET/POST` | `/api/admin/menu/categories` |
+| **Tables** | `GET/PATCH` | `/api/tables` |
+| **QR Verify** | `POST` | `/api/qr/verify` |
 
-- **Menu Item**: id, categoryId, name, price, prepTime, status (available/unavailable/sold_out), isChefRecommended, isDeleted.
-- **Menu Category**: id, name (unique), displayOrder, status (active/inactive).
-- **Item Photo**: id, menuItemId, url, isPrimary.
-- **Modifier Group**: id, name, selectionType (single/multiple), isRequired, minSelections, maxSelections.
-- **Modifier Option**: id, groupId, name, priceAdjustment.
-- **Table**: id, tableNumber, capacity, location, status, qrToken.
+---
 
-## Development
+## 📄 License
+Distributed under the MIT License. See `LICENSE` for more information.
 
-### Backend Development
-```bash
-cd backend
-npm run start:dev  # Hot reload with ts-node
-```
-
-### Frontend Development
-```bash
-cd frontend
-npm start  # React development server
-```
-
-### Database Management
-```bash
-cd backend
-npx prisma studio  # Open Prisma Studio GUI
-```
-
-## Project Details
-
-- **Course**: Web Application Development (WAD)
-- **Assignments**: Table Management & Menu Management
-- **Year**: 2024-2025
-
-## License
-
-MIT
+---
+*Created as part of the Web Application Development (WAD) Course - 2025-2026.*
