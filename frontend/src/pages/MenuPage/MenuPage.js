@@ -10,6 +10,7 @@ import CartButton from '../../components/cart/CartButton';
 import CartDrawer from '../../components/cart/CartDrawer';
 import CheckoutButton from '../../components/cart/CheckoutButton';
 import LanguageSwitcher from '../../components/LanguageSwitcher';
+import { getImageUrl } from '../../utils/imageUrl';
 import './MenuPage.css';
 
 const MenuPage = () => {
@@ -393,7 +394,7 @@ const MenuPage = () => {
                 </div>
               )}
               {primaryPhoto ? (
-                <img src={primaryPhoto.url} alt={item.name} className="item-img" />
+                <img src={getImageUrl(primaryPhoto.url)} alt={item.name} className="item-img" />
               ) : (
                 <div className="item-placeholder">🍽️</div>
               )}

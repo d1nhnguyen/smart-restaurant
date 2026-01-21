@@ -8,6 +8,9 @@ import { authService } from './utils/auth';
 const rawApiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 axios.defaults.baseURL = rawApiUrl.replace(/\/api$/, '').replace(/\/$/, '');
 
+// Export base URL for use in image URLs
+export const API_BASE_URL = axios.defaults.baseURL;
+
 // Add request interceptor to include auth token
 axios.interceptors.request.use(
   (config) => {

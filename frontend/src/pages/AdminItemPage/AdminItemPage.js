@@ -3,6 +3,7 @@ import axios from 'axios';
 import Fuse from 'fuse.js';
 import Sidebar from '../../components/Sidebar';
 import ItemModal from '../../components/ItemModal';
+import { getImageUrl } from '../../utils/imageUrl';
 
 const AdminItemPage = () => {
   // State for data
@@ -299,7 +300,7 @@ const AdminItemPage = () => {
                           <td>
                             {primaryPhoto ? (
                               <img
-                                src={primaryPhoto.url}
+                                src={getImageUrl(primaryPhoto.url)}
                                 alt={item.name}
                                 style={{
                                   width: '60px',

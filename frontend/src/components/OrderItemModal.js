@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import './OrderItemModal.css';
+import { getImageUrl } from '../utils/imageUrl';
 
 const OrderItemModal = ({ item, onClose, onAddToOrder }) => {
   const { t } = useTranslation();
@@ -119,7 +120,7 @@ const OrderItemModal = ({ item, onClose, onAddToOrder }) => {
         {/* Item Header */}
         <div className="order-item-header">
           {primaryPhoto ? (
-            <img src={primaryPhoto.url} alt={item.name} className="order-item-img" />
+            <img src={getImageUrl(primaryPhoto.url)} alt={item.name} className="order-item-img" />
           ) : (
             <div className="order-item-placeholder">🍕</div>
           )}

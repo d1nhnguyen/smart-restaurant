@@ -6,6 +6,8 @@ import { GetItemsFilterDto, ItemSort } from './dto/get-items.dto';
 import { Prisma, ItemStatus } from '@prisma/client';
 import * as fs from 'fs';
 import { join } from 'path';
+import { cloudinary } from '../config/cloudinary.config';
+import { isUsingCloudinary } from '../utils/file-upload.utils';
 
 
 @Injectable()
@@ -139,19 +141,28 @@ export class MenuItemService {
 
   async addPhotos(itemId: string, files: Express.Multer.File[]) {
     // 1. Check item exists
-    await this.findOne(itemId);
+    const item = await this.findOne(itemId);
 
-    // 2. Create photo records
+    // 2. Check if item already has a primary photo
+    const hasPrimary = item.photos.some(p => p.isPrimary);
+
+    // 3. Create photo records
     const photos = await Promise.all(
-      files.map((file) =>
-        this.prisma.menuItemPhoto.create({
+      files.map((file: any, index: number) => {
+        // Cloudinary returns path property with full URL, local storage uses filename
+        const url = isUsingCloudinary() ? file.path : `/uploads/menu-items/${file.filename}`;
+
+        // If no primary exists, make the FIRST file of this upload primary
+        const isPrimary = !hasPrimary && index === 0;
+
+        return this.prisma.menuItemPhoto.create({
           data: {
             menuItemId: itemId,
-            url: `/uploads/menu-items/${file.filename}`,
-            isPrimary: false, // Default false, admin can set primary later
+            url,
+            isPrimary,
           },
-        }),
-      ),
+        });
+      }),
     );
 
     return {
@@ -179,16 +190,28 @@ export class MenuItemService {
       where: { id: photoId },
     });
 
-    // 4. Physical file deletion
+    // 4. File deletion - handle both Cloudinary and local storage
     try {
-      // url looks like "/uploads/menu-items/abc.jpg"
-      // we need relative path from project root: "./uploads/menu-items/abc.jpg"
-      const filePath = join(__dirname, '../../..', photo.url);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
+      if (photo.url.includes('cloudinary.com')) {
+        // Extract public_id from Cloudinary URL
+        // URL format: https://res.cloudinary.com/cloud_name/image/upload/v123/menu-items/filename.jpg
+        const urlParts = photo.url.split('/');
+        const filenameWithExt = urlParts[urlParts.length - 1];
+        const filename = filenameWithExt.split('.')[0];
+        const folder = urlParts[urlParts.length - 2];
+        const publicId = `${folder}/${filename}`;
+
+        await cloudinary.uploader.destroy(publicId);
+      } else {
+        // Local file deletion
+        // url looks like "/uploads/menu-items/abc.jpg"
+        const filePath = join(__dirname, '../../..', photo.url);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
       }
     } catch (err) {
-      console.error(`Failed to delete physical file: ${photo.url}`, err);
+      console.error(`Failed to delete file: ${photo.url}`, err);
       // We don't throw here to ensure the API call still succeeds if DB delete worked
     }
 

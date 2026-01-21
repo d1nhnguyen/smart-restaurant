@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './PhotoManager.css';
+import { getImageUrl } from '../utils/imageUrl';
 
 const PhotoManager = ({ itemId, photos = [], onUpdate, onLocalChange }) => {
     const [uploading, setUploading] = useState(false);
@@ -124,7 +125,7 @@ const PhotoManager = ({ itemId, photos = [], onUpdate, onLocalChange }) => {
             <div className="photo-grid">
                 {displayPhotos.map((photo) => (
                     <div key={photo.id} className={`photo-item ${photo.isPrimary ? 'is-primary' : ''}`}>
-                        <img src={photo.url} alt="Menu item" />
+                        <img src={getImageUrl(photo.url)} alt="Menu item" />
                         {photo.isPrimary && <span className="primary-badge">PRIMARY</span>}
                         {photo.sortOrder > 0 && <span className="order-badge">#{photo.sortOrder}</span>}
 

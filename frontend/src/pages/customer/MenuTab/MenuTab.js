@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import OrderItemModal from '../../../components/OrderItemModal';
 import { useCart } from '../../../contexts/CartContext';
 import { useSocket } from '../../../hooks/useSocket';
+import { getImageUrl } from '../../../utils/imageUrl';
 import './MenuTab.css';
 
 const MenuTab = () => {
@@ -297,7 +298,7 @@ const MenuTab = () => {
             >
               <div className="item-image-container">
                 {primaryPhoto ? (
-                  <img src={primaryPhoto.url} alt={item.name} className="item-image" loading="lazy" />
+                  <img src={getImageUrl(primaryPhoto.url)} alt={item.name} className="item-image" loading="lazy" />
                 ) : (
                   <div className="item-placeholder">
                     <span role="img" aria-label="food">&#127869;</span>
